@@ -17,9 +17,9 @@ class YClient:
     """
 
     _DEFAULT_HTTP_TIMEOUT: int = 80
+    _LOGIN_URL: str = "https://login.yahoo.com"
     _YAHOO_FINANCE_URL: str = "https://query1.finance.yahoo.com"
     _CRUMB_URL: str = _YAHOO_FINANCE_URL + "/v1/test/getcrumb"
-    _COOKIE_URL: str = "https://login.yahoo.com"
     _USER_AGENT: str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/113.0"
 
     def __init__(self) -> None:
@@ -40,17 +40,17 @@ class YClient:
         self._expiry: datetime.datetime = datetime.datetime(1970, 1, 1)
         self._crumb: str = ""
 
-    def __refresh_cookies(self) -> None:
+    def __login(self) -> None:
         """
-        Refreshes cookies from Yahoo Finance.
+        Loggin to Yahoo! finance.
 
-        The cookies are required to fetch the crumb that is in turn required to fetch quotes.
+        Logging in will set the cookies that are required to fetch the crumb and make calls to the Yahoo! finance API.
         """
 
-        logging.debug("Refreshing cookies")
+        logging.debug("Logging in...")
 
         with self._http_client.get(
-            self._COOKIE_URL,
+            self._LOGIN_URL,
             timeout=self._DEFAULT_HTTP_TIMEOUT,
         ) as response:
             # default expiry is ten years in the future
@@ -59,7 +59,7 @@ class YClient:
             try:
                 response.raise_for_status()
             except requests.exceptions.HTTPError as e:
-                logging.error("Can't refresh cookies: %s", e)
+                logging.error("Can't log in: %s", e)
                 return
 
             for cookie in response.cookies:
@@ -89,34 +89,21 @@ class YClient:
 
             self._expiry = expiry
 
-    def __fetch_crumb(self) -> str:
+    def __refresh_crumb(self) -> None:
         """
         Refresh the crumb required to fetch quotes.
-
-        Returns:
-            str: The retrieved crumb.
         """
 
-        logging.debug("Fetching crumb")
+        logging.debug("Refreshing crumb...")
 
         with self._http_client.get(
             self._CRUMB_URL, timeout=self._DEFAULT_HTTP_TIMEOUT
         ) as response:
             try:
                 response.raise_for_status()
+                self._crumb = response.text
             except requests.exceptions.HTTPError as e:
                 logging.error("Can't fetch crumb: %s", e)
-                return ""
-
-            return response.text
-
-    def __refresh_crumb(self):
-        """
-        Refresh the crumb required to fetch quotes."""
-
-        logging.debug("Refreshing crumb...")
-        self.__refresh_cookies()
-        self._crumb = self.__fetch_crumb()
 
         if self._crumb is not None and self._crumb != "":
             logging.debug(
@@ -176,6 +163,9 @@ class YClient:
         logging.debug("Calling %s with params %s", api_url, query_params)
 
         if self._expiry < datetime.datetime.now():
+            self.__login()
+
+        if self._crumb == "":
             self.__refresh_crumb()
 
         if query_params is None:
