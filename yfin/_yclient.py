@@ -2,10 +2,11 @@
 This module provides a client for the Yahoo! Finance API.
 """
 
-import datetime
 import json
 import logging
 import urllib.parse
+from datetime import datetime, timedelta
+from http.cookiejar import Cookie
 from typing import Any
 
 import requests
@@ -37,47 +38,41 @@ class YClient:
             "User-Agent": self._USER_AGENT,
         }
 
-        self._expiry: datetime.datetime = datetime.datetime(1970, 1, 1)
+        self._expiry: datetime = datetime(1970, 1, 1)
         self._crumb: str = ""
 
     def __login(self) -> None:
         """
-        Loggin to Yahoo! finance.
+        Logging to Yahoo! finance.
 
         Logging in will set the cookies that are required to fetch the crumb and make calls to the Yahoo! finance API.
         """
 
         logging.debug("Logging in...")
 
+        response: requests.Response
         with self._http_client.get(
             self._LOGIN_URL,
             timeout=self._DEFAULT_HTTP_TIMEOUT,
         ) as response:
-            # default expiry is ten years in the future
-            expiry = datetime.datetime.now() + datetime.timedelta(days=3650)
-
             try:
                 response.raise_for_status()
             except requests.exceptions.HTTPError as e:
-                logging.error("Can't log in: %s", e)
+                logging.exception("Can't log in: %s", e)
                 return
 
-            for cookie in response.cookies:
-                logging.debug("Considering cookie: %s", cookie)
+            # Figure out how long the login is valid for.
+            # Default expiry is ten years in the future
+            expiry: datetime = datetime.now() + timedelta(days=3650)
 
-                if cookie.name == "AS" or cookie.expires is None:
-                    logging.debug(
-                        "Cookie ignored based on name: %s or lack of expiry",
-                        cookie.name,
-                    )
+            cookie: Cookie
+            for cookie in response.cookies:
+                if cookie.domain != ".yahoo.com" or cookie.expires is None:
                     continue
 
-                # compute expiry as now + cookie expiry
-                cookie_expiry = datetime.datetime.fromtimestamp(cookie.expires)
+                cookie_expiry: datetime = datetime.fromtimestamp(cookie.expires)
 
-                # if the cookie expires afthe the current expiry, don't update the expiry
                 if cookie_expiry >= expiry:
-                    logging.debug("Cookie ignored based on expiry: %s", cookie_expiry)
                     continue
 
                 logging.debug(
@@ -96,6 +91,7 @@ class YClient:
 
         logging.debug("Refreshing crumb...")
 
+        response: requests.Response
         with self._http_client.get(
             self._CRUMB_URL, timeout=self._DEFAULT_HTTP_TIMEOUT
         ) as response:
@@ -103,7 +99,7 @@ class YClient:
                 response.raise_for_status()
                 self._crumb = response.text
             except requests.exceptions.HTTPError as e:
-                logging.error("Can't fetch crumb: %s", e)
+                logging.exception("Can't fetch crumb: %s", e)
 
         if self._crumb is not None and self._crumb != "":
             logging.debug(
@@ -124,20 +120,20 @@ class YClient:
         Returns:
             dict[str, Any]: The JSON response.
         """
-        start = datetime.datetime.now()
 
+        logging.debug("Executing request: %s", api_call)
+
+        response: requests.Response
         with self._http_client.get(
             self._YAHOO_FINANCE_URL + api_call, timeout=self._DEFAULT_HTTP_TIMEOUT
         ) as response:
-            logging.debug("Completed in %s", datetime.datetime.now() - start)
-
             try:
                 response.raise_for_status()
             except requests.exceptions.HTTPError as e:
-                logging.error("Request to api failed: %s", e)
+                logging.exception("Request to api failed: %s", e)
                 return {}
 
-            res_body = response.text
+            res_body: str = response.text
             logging.debug("Response: %s", res_body)
 
             if res_body is None or res_body == "":
@@ -162,7 +158,7 @@ class YClient:
 
         logging.debug("Calling %s with params %s", api_url, query_params)
 
-        if self._expiry < datetime.datetime.now():
+        if self._expiry < datetime.now():
             self.__login()
 
         if self._crumb == "":

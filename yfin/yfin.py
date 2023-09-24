@@ -3,6 +3,7 @@ A Python interface to the Yahoo! Finance API.
 """
 
 import logging
+from typing import Any
 
 from ._yclient import YClient
 from .yquote import YQuote
@@ -20,7 +21,7 @@ class YFin:
 
     def get_quotes(self, symbols: list[str]) -> list[YQuote]:
         """
-        Retreive quotes for the given symbols.
+        Retrieve quotes for the given symbols.
 
         Args:
             symbols (list[str]): The symbols to get quotes for.
@@ -36,7 +37,7 @@ class YFin:
             raise ValueError("No symbols provided")
 
         # call YClient.call with symbols stripped of whitespace
-        json_data = self._yclient.call(
+        json_data: dict[str, Any] = self._yclient.call(
             self._QUOTE_API, {"symbols": ",".join([s.strip() for s in symbols])}
         )
 
