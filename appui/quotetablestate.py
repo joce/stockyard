@@ -1,6 +1,6 @@
 from enum import Enum
 
-from yfin import YFin, YQuote
+from yfinance import YFinance, YQuote
 
 from ._formatting import as_float, as_percent, as_shrunk_int
 
@@ -22,7 +22,7 @@ class Column:
 
 
 class QuoteTableState:
-    def __init__(self, yfin: YFin) -> None:
+    def __init__(self, yfin: YFinance) -> None:
         # TODO Temp...
         # We will need to have a complete list of all the possible properties that can be "columnized", and pick from that.
         # We will also need a way to change the column order, and to add/remove columns.
@@ -42,7 +42,7 @@ class QuoteTableState:
             Column("Dividend", 6, "div"),
             Column("Mkt Cap", 8, "mcap"),
         ]
-        self._yfin: YFin = yfin
+        self._yfin: YFinance = yfin
 
         # TODO TEMP TEMP TEMP
         # This is just to get something to show quickly.

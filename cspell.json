@@ -13,6 +13,7 @@
         "triggerable",
         "yclient",
         "yfin",
+        "yfinance",
         "yquote"
     ],
     "import": []

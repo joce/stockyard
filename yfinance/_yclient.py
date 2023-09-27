@@ -48,6 +48,9 @@ class YClient:
         Logging in will set the cookies that are required to fetch the crumb and make calls to the Yahoo! finance API.
         """
 
+        # TODO handle login for EU users.
+        # See https://github.com/achannarasappa/ticker/commit/96a55637494ab37662ee651664d23ec9d00e8d92
+
         logging.debug("Logging in...")
 
         response: requests.Response

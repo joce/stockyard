@@ -2,11 +2,11 @@
 This module provides facilities for fetching financial data from Yahoo Finance.
 """
 
-from .yfin import YFin
+from .yfinance import YFinance
 from .yquote import MarketState, OptionType, PriceAlertConfidence, QuoteType, YQuote
 
 __all__ = [
-    "YFin",
+    "YFinance",
     "YQuote",
     "QuoteType",
     "MarketState",

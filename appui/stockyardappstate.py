@@ -1,4 +1,4 @@
-from yfin import YFin
+from yfinance import YFinance
 
 from .quotetablestate import QuoteTableState
 
@@ -6,9 +6,9 @@ from .quotetablestate import QuoteTableState
 class StockyardAppState:
     """The state of the Stockyard app."""
 
-    def __init__(self, yfin: YFin, *, title: str = "Stockyard") -> None:
+    def __init__(self, yfin: YFinance, *, title: str = "Stockyard") -> None:
         self._title: str = title
-        self._yfin: YFin = yfin
+        self._yfin: YFinance = yfin
         self._quote_table_state: QuoteTableState = QuoteTableState(self._yfin)
         # TODO: add a dirty flag and an indicator of what has been dirtied
 

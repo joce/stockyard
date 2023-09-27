@@ -9,7 +9,7 @@ from ._yclient import YClient
 from .yquote import YQuote
 
 
-class YFin:
+class YFinance:
     """
     A Python interface to the Yahoo! Finance API.
     """
