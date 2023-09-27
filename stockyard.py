@@ -1,10 +1,8 @@
 # TODO provide an OK docstring for this currently embryonic utility for displaying stock quotes
 
-from yfin import YFin, YQuote
+from appui import StockyardApp, StockyardAppState
+from yfin import YFin
 
-yfin: YFin = YFin()
-
-quotes: list[YQuote] = yfin.get_quotes(["MSFT", "AAPL"])
-
-for q in quotes:
-    print(q)
+app_state: StockyardAppState = StockyardAppState(YFin())
+app = StockyardApp(app_state)
+app.run()
