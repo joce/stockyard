@@ -1,4 +1,6 @@
-__NO_VALUE = "N/A"  ## TDB... Maybe use "" instead?
+"""Provides functions for formatting values as strings."""
+
+__NO_VALUE: str = "N/A"  ## TDB... Maybe use "" instead?
 
 
 def as_percent(value: float | None) -> str:

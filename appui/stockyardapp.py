@@ -1,6 +1,7 @@
 import logging
 
 from textual.app import App, ComposeResult
+from textual.binding import BindingType
 from textual.logging import TextualHandler
 from textual.widgets import Footer
 
@@ -16,7 +17,7 @@ logging.basicConfig(
 class StockyardApp(App):
     """A Textual app for the Stockyard application."""
 
-    BINDINGS = [("q", "exit", "Exit")]
+    BINDINGS: list[BindingType] = [("q", "exit", "Exit")]
 
     def __init__(self, state: StockyardAppState) -> None:
         """Initialize the app."""

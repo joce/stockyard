@@ -7,7 +7,7 @@ from .quotetablestate import Column, QuoteTableState
 class QuoteTable(DataTable):
     def __init__(self, state: QuoteTableState) -> None:
         super().__init__()
-        self._state = state
+        self._state: QuoteTableState = state
 
     def on_mount(self) -> None:
         column: Column
@@ -18,6 +18,7 @@ class QuoteTable(DataTable):
 
         quote: list[str]
         for quote in self._state.get_quotes():
+            # TODO This is certainly suboptimal to have to zip the quote and the columns together every time.
             stylized_row: list[Text] = [
                 Text(cell, justify=column.justification.value)
                 for cell, column in zip(quote, self._state.columns)

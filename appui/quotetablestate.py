@@ -67,9 +67,7 @@ class QuoteTableState:
             quotes.append(
                 [
                     q.symbol,
-                    as_float(
-                        q.regular_market_price, hint
-                    ),  # We need to "nicify" the numbers
+                    as_float(q.regular_market_price, hint),
                     as_float(q.regular_market_change, hint),
                     as_percent(q.regular_market_change_percent),
                     as_float(q.regular_market_open, hint),
