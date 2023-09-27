@@ -1,2 +1,2 @@
 # stockyard
-Yahoo! finance-based stock viewer
+Yahoo! finance-based TUI stock viewer
