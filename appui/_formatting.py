@@ -1,6 +1,6 @@
 """Provides functions for formatting values as strings for Stockyard."""
 
-__NO_VALUE: str = "N/A"  ## TDB... Maybe use "" instead?
+__NO_VALUE: str = "N/A"  ## TODO... Maybe use "" instead?
 
 
 def as_percent(value: float | None) -> str:
@@ -31,4 +31,3 @@ def as_shrunk_int(value: int | None) -> str:
         return f"{value / 1000000000:.2f}B"
 
     return f"{value / 1000000000000:.2f}T"
-
