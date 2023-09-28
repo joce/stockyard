@@ -1,3 +1,19 @@
-.vscode/
+# Byte-compiled / optimized / DLL files
 __pycache__/
+
+# Unit test / coverage reports
 .pytest_cache/
+
+# Sphinx documentation
+docs/_build/
+
+# mkdocs documentation
+/site
+
+# VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
