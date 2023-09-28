@@ -6,7 +6,7 @@ from textual.logging import TextualHandler
 from textual.widgets import Footer
 
 from ._quotetable import QuoteTable
-from .stockyardappstate import StockyardAppState
+from .stockyardapp_state import StockyardAppState
 
 logging.basicConfig(
     level="NOTSET",

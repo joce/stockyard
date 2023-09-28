@@ -1,7 +1,8 @@
 from rich.text import Text
 from textual.widgets import DataTable
 
-from .quotetablestate import Column, QuoteTableState
+from ._column import Column
+from .quotetable_state import QuoteTableState
 
 
 class QuoteTable(DataTable):

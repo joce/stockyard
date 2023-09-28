@@ -1,30 +1,14 @@
-from enum import Enum
-
 from yfinance import YFinance, YQuote
 
+from ._column import Column
 from ._formatting import as_float, as_percent, as_shrunk_int
-
-
-class Justify(Enum):
-    LEFT = "left"
-    CENTER = "center"
-    RIGHT = "right"
-
-
-class Column:
-    def __init__(
-        self, name: str, width: int, key: str, justify: Justify = Justify.RIGHT
-    ) -> None:
-        self.name = name
-        self.width = width
-        self.key = key
-        self.justification = justify
+from .enums import Justify
 
 
 class QuoteTableState:
     def __init__(self, yfin: YFinance) -> None:
         # TODO Temp...
-        # We will need to have a complete list of all the possible properties that can be "columnized", and pick from that.
+        # We will need to have a complete list of all the possible properties that can be used for columns, and pick from that.
         # We will also need a way to change the column order, and to add/remove columns.
         self._columns: list[Column] = [
             Column("Ticker", 8, "tick", Justify.LEFT),

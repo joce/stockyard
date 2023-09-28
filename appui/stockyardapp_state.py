@@ -1,6 +1,6 @@
 from yfinance import YFinance
 
-from .quotetablestate import QuoteTableState
+from .quotetable_state import QuoteTableState
 
 
 class StockyardAppState:
