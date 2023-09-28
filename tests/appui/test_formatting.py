@@ -1,8 +1,9 @@
 from appui import _formatting as fmt
 
+# pylint: disable=protected-access
 
 def test_as_percent():
-    assert fmt.as_percent(None) == "N/A"
+    assert fmt.as_percent(None) == fmt._NO_VALUE
     assert fmt.as_percent(0) == "0.00%"
     assert fmt.as_percent(100) == "100.00%"
     assert fmt.as_percent(12.34) == "12.34%"
@@ -13,13 +14,13 @@ def test_as_percent():
 
 
 def test_as_float():
-    assert fmt.as_float(None) == "N/A"
+    assert fmt.as_float(None) == fmt._NO_VALUE
     assert fmt.as_float(1234.5678) == "1234.57"
     assert fmt.as_float(1234.5678, 3) == "1234.568"
 
 
 def test_as_shrunk_int():
-    assert fmt.as_shrunk_int(None) == "N/A"
+    assert fmt.as_shrunk_int(None) == fmt._NO_VALUE
     assert fmt.as_shrunk_int(1) == "1"
     assert fmt.as_shrunk_int(10) == "10"
     assert fmt.as_shrunk_int(200) == "200"
