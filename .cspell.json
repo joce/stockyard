@@ -1,0 +1,31 @@
+{
+    "version": "0.2",
+    "language": "en",
+    "ignorePaths": [".cspell.json"],
+    "dictionaryDefinitions": [],
+    "dictionaries": [],
+    "words": ["triggerable"],
+    "ignoreWords": [
+        "MUTUALFUND",
+        "POSTPOST",
+        "PREPRE",
+        "appui",
+        "disp",
+        "getcrumb",
+        "quotetable",
+        "stockyardapp",
+        "yclient",
+        "yfin",
+        "yfinance",
+        "yquote"
+    ],
+    "import": [],
+    "flagWords": ["hte"],
+    "patterns": [
+        {
+            "name": "QuoteSymbol",
+            "pattern": "/\"[A-Z.]{4,7}\"/"
+        }
+    ],
+    "ignoreRegExpList": ["QuoteSymbol"]
+}
