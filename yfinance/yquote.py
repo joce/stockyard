@@ -775,7 +775,7 @@ class YQuote:
         return self._price_to_book
 
     @property
-    def quote_source_name(self) -> str:
+    def quote_source_name(self) -> Optional[str]:
         """
         The name of the source providing the quote.
 
@@ -1369,7 +1369,9 @@ class YQuote:
         self._price_to_book: Optional[float] = (
             input_data["priceToBook"] if "priceToBook" in input_data else None
         )
-        self._quote_source_name: str = input_data["quoteSourceName"]
+        self._quote_source_name: Optional[str] = (
+            input_data["quoteSourceName"] if "quoteSourceName" in input_data else None
+        )
         self._quote_type: QuoteType = QuoteType(input_data["quoteType"])
         self._region: str = input_data["region"]
         self._regular_market_change: float = input_data["regularMarketChange"]
