@@ -12,7 +12,7 @@ class Clock(Static):
     A very simple and limited widget to display the current time.
     """
 
-    time = reactive(datetime.now(timezone.utc).astimezone())
+    dirty: reactive = reactive(1)
 
     def on_mount(self) -> None:
         """
@@ -22,12 +22,14 @@ class Clock(Static):
 
     def update_time(self) -> None:
         """
-        Method to update the time to the current time.
+        Method to tick the clock update.
         """
-        self.time = datetime.now(timezone.utc).astimezone()
+        self.dirty = self.dirty + 1
 
-    def watch_time(self, time: datetime) -> None:
+    def watch_dirty(self, _: bool) -> None:
         """
-        Called when the time attribute changes.
+        Called when the time needs to be updated.
         """
-        self.update(datetime.strftime(time, "%H:%M:%S %z"))
+        self.update(
+            datetime.strftime(datetime.now(timezone.utc).astimezone(), "%H:%M:%S")
+        )
