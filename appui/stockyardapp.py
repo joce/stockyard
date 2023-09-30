@@ -5,6 +5,7 @@ from textual.binding import BindingType
 from textual.logging import TextualHandler
 from textual.widgets import Footer
 
+from ._clock import Clock
 from ._quotetable import QuoteTable
 from .stockyardapp_state import StockyardAppState
 
@@ -21,6 +22,8 @@ logging.basicConfig(
 class StockyardApp(App):
     """A Textual app for the Stockyard application."""
 
+    CSS_PATH = "./stockyardapp.tcss"
+
     BINDINGS: list[BindingType] = [("q", "exit", "Exit")]
 
     def __init__(self, state: StockyardAppState) -> None:
@@ -36,6 +39,7 @@ class StockyardApp(App):
 
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
+        yield Clock()
         yield QuoteTable(self._state.quote_table_state())
         yield Footer()
 
