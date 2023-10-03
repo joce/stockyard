@@ -8,7 +8,12 @@ from .enums import Justify
 ALL_COLUMNS: dict[str, Column] = {
     "ticker": (
         Column(
-            "Ticker", 8, "ticker", lambda q: q.symbol, lambda q: q.symbol, Justify.LEFT
+            "Ticker",
+            8,
+            "ticker",
+            lambda q: q.symbol,
+            lambda q: q.symbol.lower(),
+            Justify.LEFT,
         )
     ),
     "last": (
