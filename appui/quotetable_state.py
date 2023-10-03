@@ -6,8 +6,19 @@ from ._column_definitions import ALL_COLUMNS
 
 class QuoteTableState:
     def __init__(self, yfin: YFinance) -> None:
-        # TODO Temp...
-        # We need to be able to load the columns from a config file
+        self._yfin: YFinance = yfin
+
+        # TODO We need to be able to load the symbols from a config file
+        self._quotes_symbols: list[str] = [
+            "TSLA",
+            "GOOG",
+            "MSFT",
+            "F",
+            "NUMI.TO",
+            "AQB",
+        ]
+
+        # TODO We need to be able to load the columns from a config file
         self._columns_keys: list[str] = [
             "ticker",
             "last",
@@ -20,19 +31,14 @@ class QuoteTableState:
             ALL_COLUMNS[column] for column in self._columns_keys
         ]
 
-        self._yfin: YFinance = yfin
+        # TODO Another quick and dirty hack. This information will be retrieved from the config file as well.
+        self._sort_column: Column = self._columns[0]
+        self._sort_ascending: bool = True
+
 
         # TODO TEMP TEMP TEMP
         # This is just to get something to show quickly.
-        self._quotes: list[YQuote] = self._yfin.get_quotes(
-            ["TSLA", "GOOG", "MSFT", "F", "NUMI.TO", "AQB"]
-        )
-
-        # TODO Another quick and dirty hack. This information will be retrieved from the config file as well.
-        self._sort_column: Column = self._columns[2]
-        self._sort_ascending: bool = False
-
-        # TODO: add a dirty flag and an indicator of what has been dirtied
+        self._quotes: list[YQuote] = self._yfin.get_quotes(self._quotes_symbols)
 
     @property
     def columns(self) -> list[Column]:
