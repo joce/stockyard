@@ -2,7 +2,7 @@ from typing import Any, Callable
 
 from yfinance import YQuote
 
-from .enums import Justify
+from ._enums import Justify
 
 
 class QuoteColumn:
@@ -18,8 +18,19 @@ class QuoteColumn:
         justify: Justify = Justify.RIGHT,
     ) -> None:
         self.name = name
+        """The name of the column."""
+
         self.width = width
+        """The width of the column."""
+
         self.key = key
+        """The key of the column."""
+
         self.format_func = format_func
-        self.sort_key = sort_key
+        """The function used to format the column."""
+
+        self.sort_key_func = sort_key
+        """The function used provide the sort key for the column."""
+
         self.justification = justify
+        """The justification of the column. Defaults to Justify.RIGHT."""

@@ -9,6 +9,8 @@ from ._quote_row import QuoteRow
 
 
 class QuoteTableState:
+    """The state of the quote table."""
+
     def __init__(self, yfin: YFinance) -> None:
         self._yfin: YFinance = yfin
 
@@ -51,18 +53,19 @@ class QuoteTableState:
     @property
     def columns(self) -> list[QuoteColumn]:
         """The columns of the quote table."""
+
         return self._columns
 
     @property
     def version(self) -> int:
         """The version of the quote data."""
+
         return self._version
 
     @property
     def query_thread_running(self) -> bool:
-        """
-        Whether the quote query thread is currently running.
-        """
+        """Whether the quote query thread is currently running."""
+
         return self._query_thread_running
 
     @query_thread_running.setter
@@ -82,13 +85,8 @@ class QuoteTableState:
         Get the quotes to display in the quote table. Each quote is comprised of the elements required for each column.
 
         Returns:
-            list[list[str]]: The quotes strings
+            list[QuoteRow]: The quotes to display in the quote table.
         """
-
-        # TODO: sort only when the sort order change, or when we get a new batch of quotes
-        self._quotes.sort(
-            key=self._sort_column.sort_key, reverse=not self._sort_ascending
-        )
 
         quote_info: list[QuoteRow] = [
             QuoteRow(
@@ -107,12 +105,14 @@ class QuoteTableState:
         return quote_info
 
     def _query_quotes(self) -> None:
-        """
-        Query for the quotes and update the change version.
-        """
+        """Query for the quotes and update the change version."""
+
         now: float = monotonic()
         while self._query_thread_running:
             self._quotes = self._yfin.get_quotes(self._quotes_symbols)
+            self._quotes.sort(
+                key=self._sort_column.sort_key_func, reverse=not self._sort_ascending
+            )
             self._last_query_time = now
             self._version += 1
 

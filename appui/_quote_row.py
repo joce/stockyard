@@ -1,4 +1,4 @@
-from .enums import Justify
+from ._enums import Justify
 
 
 class QuoteRow:

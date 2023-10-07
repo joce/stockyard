@@ -1,6 +1,4 @@
-"""
-This module provides a client for the Yahoo! Finance API.
-"""
+"""This module provides a client for the Yahoo! Finance API."""
 
 import json
 import logging
@@ -13,9 +11,7 @@ import requests
 
 
 class YClient:
-    """
-    Yahoo! Finance API client.
-    """
+    """Yahoo! Finance API client."""
 
     _DEFAULT_HTTP_TIMEOUT: int = 80
     _LOGIN_URL: str = "https://login.yahoo.com"
@@ -88,9 +84,7 @@ class YClient:
             self._expiry = expiry
 
     def __refresh_crumb(self) -> None:
-        """
-        Refresh the crumb required to fetch quotes.
-        """
+        """Refresh the crumb required to fetch quotes."""
 
         logging.debug("Refreshing crumb...")
 

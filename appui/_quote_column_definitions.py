@@ -1,9 +1,8 @@
-"""
-Definition for the available columns
-"""
+"""Definitions of the available columns"""
+
+from ._enums import Justify
 from ._formatting import as_float, as_percent, as_shrunk_int
 from ._quote_column import QuoteColumn
-from .enums import Justify
 
 ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
     "ticker": (
@@ -131,5 +130,5 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
     ),
 }
 """
-A dictionary of Columns and the associated lambda functions to format the a YQuote data into a string
+A dictionary of QuoteColumns available for the quote table, keyed by the column's key name.
 """

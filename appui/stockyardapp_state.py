@@ -1,6 +1,6 @@
 from yfinance import YFinance
 
-from .quotetable_state import QuoteTableState
+from .quote_table_state import QuoteTableState
 
 
 class StockyardAppState:
@@ -10,11 +10,12 @@ class StockyardAppState:
         self._title: str = title
         self._yfin: YFinance = yfin
         self._quote_table_state: QuoteTableState = QuoteTableState(self._yfin)
-        # TODO: add a dirty flag and an indicator of what has been dirtied
+        self._version: int = 0
 
     @property
     def title(self) -> str:
         """The title of the app."""
+
         return self._title
 
     @title.setter
@@ -23,4 +24,5 @@ class StockyardAppState:
 
     def quote_table_state(self) -> QuoteTableState:
         """The state of the quote table."""
+
         return self._quote_table_state

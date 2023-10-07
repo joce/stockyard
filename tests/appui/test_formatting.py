@@ -2,6 +2,7 @@ from appui import _formatting as fmt
 
 # pylint: disable=protected-access
 
+
 def test_as_percent():
     assert fmt.as_percent(None) == fmt._NO_VALUE
     assert fmt.as_percent(0) == "0.00%"

@@ -5,13 +5,11 @@ from textual.coordinate import Coordinate
 from textual.widgets import DataTable
 
 from ._quote_column import QuoteColumn
-from .quotetable_state import QuoteTableState
+from .quote_table_state import QuoteTableState
 
 
 class QuoteTable(DataTable):
-    """
-    A DataTable for displaying quotes
-    """
+    """A DataTable for displaying quotes."""
 
     def __init__(self, state: QuoteTableState) -> None:
         super().__init__()
@@ -19,13 +17,11 @@ class QuoteTable(DataTable):
         self._version: int
 
     def on_mount(self) -> None:
-        """
-        The event handler called when the widget is added to the app
-        """
+        """The event handler called when the widget is added to the app."""
+
         super().on_mount()
         column: QuoteColumn
         for column in self._state.columns:
-            # TODO Unsure if we put this here on in the state.
             styled_column: Text = Text(column.name, justify=column.justification.value)
             self.add_column(styled_column, width=column.width, key=column.key)
 
@@ -37,10 +33,18 @@ class QuoteTable(DataTable):
         self._state.query_thread_running = True
 
     def _on_unmount(self) -> None:
+        """
+        The event handler called when the widget is added to the app.
+
+        Required to stop the query thread.
+        """
+
         self._state.query_thread_running = False
         super()._on_unmount()
 
     def _update_table(self) -> None:
+        """Update the table with the latest quotes (if any)"""
+
         if self._version == self._state.version:
             return
 
@@ -70,6 +74,14 @@ class QuoteTable(DataTable):
         self._version = self._state.version
 
     def watch_hover_coordinate(self, _: Coordinate, value: Coordinate) -> None:
+        """
+        Watch the hover coordinate and update the cursor type accordingly.
+
+        Args:
+            _ (Coordinate): The old coordinate. Unused.
+            value (Coordinate): The current hover coordinate.
+        """
+
         if value.row == -1 and self.cursor_type != "column":
             self.cursor_type = "column"
             self.move_cursor(column=-1)

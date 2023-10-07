@@ -1,6 +1,4 @@
-"""
-A Python interface to the Yahoo! Finance API.
-"""
+"""A Python interface to the Yahoo! Finance API."""
 
 import logging
 from typing import Any
@@ -10,9 +8,7 @@ from .yquote import YQuote
 
 
 class YFinance:
-    """
-    A Python interface to the Yahoo! Finance API.
-    """
+    """A Python interface to the Yahoo! Finance API."""
 
     _QUOTE_API: str = "/v7/finance/quote"
 
