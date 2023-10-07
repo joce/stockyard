@@ -3,8 +3,9 @@ from time import monotonic, sleep
 
 from yfinance import YFinance, YQuote
 
-from ._column import Column
-from ._column_definitions import ALL_COLUMNS
+from ._quote_column import QuoteColumn
+from ._quote_column_definitions import ALL_QUOTE_COLUMNS
+from ._quote_row import QuoteRow
 
 
 class QuoteTableState:
@@ -30,13 +31,13 @@ class QuoteTableState:
             "market_cap",
         ]
 
-        self._columns: list[Column] = [
-            ALL_COLUMNS[column] for column in self._columns_keys
+        self._columns: list[QuoteColumn] = [
+            ALL_QUOTE_COLUMNS[column] for column in self._columns_keys
         ]
 
         # TODO Another quick and dirty hack. This information will be retrieved from the config file as well.
         # TODO We should store the column key name rather than the column object
-        self._sort_column: Column = self._columns[0]
+        self._sort_column: QuoteColumn = self._columns[0]
         self._sort_ascending: bool = True
         self._query_frequency: int = 10
 
@@ -48,7 +49,7 @@ class QuoteTableState:
         self._quotes: list[YQuote] = []
 
     @property
-    def columns(self) -> list[Column]:
+    def columns(self) -> list[QuoteColumn]:
         """The columns of the quote table."""
         return self._columns
 
@@ -76,7 +77,7 @@ class QuoteTableState:
         else:
             self._query_thread.join()
 
-    def get_quotes(self) -> list[list[str]]:
+    def get_quotes(self) -> list[QuoteRow]:
         """
         Get the quotes to display in the quote table. Each quote is comprised of the elements required for each column.
 
@@ -89,8 +90,17 @@ class QuoteTableState:
             key=self._sort_column.sort_key, reverse=not self._sort_ascending
         )
 
-        quote_info: list[list[str]] = [
-            [ALL_COLUMNS[column].format_func(q) for column in self._columns_keys]
+        quote_info: list[QuoteRow] = [
+            QuoteRow(
+                q.symbol,
+                [
+                    (
+                        ALL_QUOTE_COLUMNS[column].format_func(q),
+                        ALL_QUOTE_COLUMNS[column].justification,
+                    )
+                    for column in self._columns_keys
+                ],
+            )
             for q in self._quotes
         ]
 

@@ -5,7 +5,7 @@ from yfinance import YQuote
 from .enums import Justify
 
 
-class Column:
+class QuoteColumn:
     """Definition of column for the quote table."""
 
     def __init__(

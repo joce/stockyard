@@ -1,13 +1,13 @@
 """
 Definition for the available columns
 """
-from ._column import Column
 from ._formatting import as_float, as_percent, as_shrunk_int
+from ._quote_column import QuoteColumn
 from .enums import Justify
 
-ALL_COLUMNS: dict[str, Column] = {
+ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
     "ticker": (
-        Column(
+        QuoteColumn(
             "Ticker",
             8,
             "ticker",
@@ -17,7 +17,7 @@ ALL_COLUMNS: dict[str, Column] = {
         )
     ),
     "last": (
-        Column(
+        QuoteColumn(
             "Last",
             10,
             "last",
@@ -26,7 +26,7 @@ ALL_COLUMNS: dict[str, Column] = {
         )
     ),
     "change": (
-        Column(
+        QuoteColumn(
             "Change",
             8,
             "change",
@@ -35,7 +35,7 @@ ALL_COLUMNS: dict[str, Column] = {
         )
     ),
     "change_percent": (
-        Column(
+        QuoteColumn(
             "Change%",
             8,
             "change_percent",
@@ -44,7 +44,7 @@ ALL_COLUMNS: dict[str, Column] = {
         )
     ),
     "open": (
-        Column(
+        QuoteColumn(
             "Open",
             10,
             "open",
@@ -53,7 +53,7 @@ ALL_COLUMNS: dict[str, Column] = {
         )
     ),
     "low": (
-        Column(
+        QuoteColumn(
             "Low",
             10,
             "low",
@@ -62,7 +62,7 @@ ALL_COLUMNS: dict[str, Column] = {
         )
     ),
     "high": (
-        Column(
+        QuoteColumn(
             "High",
             10,
             "high",
@@ -71,7 +71,7 @@ ALL_COLUMNS: dict[str, Column] = {
         )
     ),
     "52w_low": (
-        Column(
+        QuoteColumn(
             "52w Low",
             10,
             "52_low",
@@ -80,7 +80,7 @@ ALL_COLUMNS: dict[str, Column] = {
         )
     ),
     "52w_high": (
-        Column(
+        QuoteColumn(
             "52w High",
             10,
             "52_high",
@@ -89,7 +89,7 @@ ALL_COLUMNS: dict[str, Column] = {
         )
     ),
     "volume": (
-        Column(
+        QuoteColumn(
             "Volume",
             8,
             "volume",
@@ -98,7 +98,7 @@ ALL_COLUMNS: dict[str, Column] = {
         )
     ),
     "avg_volume": (
-        Column(
+        QuoteColumn(
             "Avg Vol",
             8,
             "avg_volume",
@@ -107,12 +107,12 @@ ALL_COLUMNS: dict[str, Column] = {
         )
     ),
     "pe": (
-        Column(
+        QuoteColumn(
             "P/E", 6, "pe", lambda q: as_float(q.trailing_pe), lambda q: q.trailing_pe
         )
     ),
     "dividend": (
-        Column(
+        QuoteColumn(
             "Dividend",
             6,
             "dividend",
@@ -121,7 +121,7 @@ ALL_COLUMNS: dict[str, Column] = {
         )
     ),
     "market_cap": (
-        Column(
+        QuoteColumn(
             "Mkt Cap",
             8,
             "market_cap",
