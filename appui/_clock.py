@@ -16,6 +16,7 @@ class Clock(Static):
     def update_time(self) -> None:
         """Method to tick the clock update."""
 
+        # TODO Make the time display configurable through the config file (24h v. AM/PM)
         self.update(
             datetime.strftime(datetime.now(timezone.utc).astimezone(), "%H:%M:%S")
         )

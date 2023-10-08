@@ -5,6 +5,7 @@ from typing import Any
 
 from textual.app import App, ComposeResult
 from textual.binding import BindingType
+from textual.containers import Horizontal
 from textual.logging import TextualHandler
 from textual.widgets import Footer
 
@@ -34,9 +35,8 @@ class StockyardApp(App):
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
 
-        yield Clock()
         yield QuoteTable(self._state.quote_table_state())
-        yield Footer()
+        yield Horizontal(Footer(), Clock())
 
     def on_mount(self) -> None:
         """Handle mount events."""
