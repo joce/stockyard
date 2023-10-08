@@ -7,3 +7,12 @@ class Justify(Enum):
     LEFT = "left"
     CENTER = "center"
     RIGHT = "right"
+
+
+class SortDirection(Enum):
+    """SortDirection enum for the sort_direction property of the QuoteTableState class."""
+
+    ASCENDING = "ascending"
+    ASC = ASCENDING
+    DESCENDING = "descending"
+    DESC = DESCENDING

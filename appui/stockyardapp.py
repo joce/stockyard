@@ -1,4 +1,7 @@
+import json
 import logging
+from io import TextIOWrapper
+from typing import Any
 
 from textual.app import App, ComposeResult
 from textual.binding import BindingType
@@ -44,3 +47,17 @@ class StockyardApp(App):
         """Handle exit actions."""
 
         self.exit()
+
+    def load_config(self, path: str) -> None:
+        """Load the configuration for the app."""
+
+        f: TextIOWrapper
+        with open(path, "rt", encoding="utf-8") as f:
+            config: dict[str, Any] = json.load(f)
+            self._state.load_config(config)
+
+    def save_config(self, path: str) -> None:
+        """Save the configuration for the app."""
+
+        # TODO Save the configuration to a file
+        pass

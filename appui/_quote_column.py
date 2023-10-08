@@ -14,7 +14,7 @@ class QuoteColumn:
         width: int,
         key: str,
         format_func: Callable[[YQuote], str],
-        sort_key: Callable[[YQuote], Any],
+        sort_key_func: Callable[[YQuote], Any],
         justify: Justify = Justify.RIGHT,
     ) -> None:
         self.name = name
@@ -29,7 +29,7 @@ class QuoteColumn:
         self.format_func = format_func
         """The function used to format the column."""
 
-        self.sort_key_func = sort_key
+        self.sort_key_func = sort_key_func
         """The function used provide the sort key for the column."""
 
         self.justification = justify

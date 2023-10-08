@@ -1,3 +1,5 @@
+from typing import Any
+
 from yfinance import YFinance
 
 from .quote_table_state import QuoteTableState
@@ -26,3 +28,15 @@ class StockyardAppState:
         """The state of the quote table."""
 
         return self._quote_table_state
+
+    def load_config(self, config: dict[str, Any]) -> None:
+        """Load the configuration for the app."""
+
+        quote_table_config: dict[str, Any] = config["quote_table"]
+        self._quote_table_state.load_config(quote_table_config)
+
+    def save_config(self, path: str) -> None:
+        """Save the configuration for the app."""
+
+        # TODO Save the configuration to a file
+        pass
