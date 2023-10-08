@@ -4,7 +4,7 @@
     "ignorePaths": [".cspell.json"],
     "dictionaryDefinitions": [],
     "dictionaries": [],
-    "words": ["triggerable"],
+    "words": ["legault", "triggerable"],
     "ignoreWords": [
         "MUTUALFUND",
         "POSTPOST",
