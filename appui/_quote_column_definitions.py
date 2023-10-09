@@ -1,10 +1,28 @@
 """Definitions of the available columns"""
 
 from math import inf
+from typing import Optional, TypeVar, cast
 
 from ._enums import Justify
 from ._formatting import as_float, as_percent, as_shrunk_int
 from ._quote_column import QuoteColumn
+
+T = TypeVar("T", int, float)
+
+
+def _get_safe_value(v: Optional[T]) -> float:
+    """
+    Returns the smallest representable value for type T if value is None,
+    otherwise returns the value itself.
+    """
+    return -inf if v is None else v
+
+
+def _get_sign(v: float) -> int:
+    """Get the sign of a value."""
+
+    return 1 if v > 0 else -1 if v < 0 else 0
+
 
 ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
     "ticker": (
@@ -14,7 +32,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             "ticker",
             lambda q: q.symbol,
             lambda q: q.symbol.lower(),
-            Justify.LEFT,
+            justify=Justify.LEFT,
         )
     ),
     "last": (
@@ -33,6 +51,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             "change",
             lambda q: as_float(q.regular_market_change, q.price_hint),
             lambda q: q.regular_market_change,
+            lambda q: _get_sign(q.regular_market_change),
         )
     ),
     "change_percent": (
@@ -42,6 +61,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             "change_percent",
             lambda q: as_percent(q.regular_market_change_percent),
             lambda q: q.regular_market_change_percent,
+            lambda q: _get_sign(q.regular_market_change_percent),
         )
     ),
     "open": (
@@ -50,9 +70,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             10,
             "open",
             lambda q: as_float(q.regular_market_open, q.price_hint),
-            lambda q: q.regular_market_open
-            if q.regular_market_open is not None
-            else -inf,
+            lambda q: _get_safe_value(q.regular_market_open),
         )
     ),
     "low": (
@@ -61,9 +79,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             10,
             "low",
             lambda q: as_float(q.regular_market_day_low, q.price_hint),
-            lambda q: q.regular_market_day_low
-            if q.regular_market_day_low is not None
-            else -inf,
+            lambda q: _get_safe_value(q.regular_market_day_low),
         )
     ),
     "high": (
@@ -72,9 +88,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             10,
             "high",
             lambda q: as_float(q.regular_market_day_high, q.price_hint),
-            lambda q: q.regular_market_day_high
-            if q.regular_market_day_high is not None
-            else -inf,
+            lambda q: _get_safe_value(q.regular_market_day_high),
         )
     ),
     "52w_low": (
@@ -101,9 +115,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             10,
             "volume",
             lambda q: as_shrunk_int(q.regular_market_volume),
-            lambda q: q.regular_market_volume
-            if q.regular_market_volume is not None
-            else -inf,
+            lambda q: _get_safe_value(q.regular_market_volume),
         )
     ),
     "avg_volume": (
@@ -112,9 +124,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             10,
             "avg_volume",
             lambda q: as_shrunk_int(q.average_daily_volume_3_month),
-            lambda q: q.average_daily_volume_3_month
-            if q.average_daily_volume_3_month is not None
-            else -inf,
+            lambda q: _get_safe_value(q.average_daily_volume_3_month),
         )
     ),
     "pe": (
@@ -123,7 +133,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             6,
             "pe",
             lambda q: as_float(q.trailing_pe),
-            lambda q: q.trailing_pe if q.trailing_pe is not None else -inf,
+            lambda q: _get_safe_value(q.trailing_pe),
         )
     ),
     "dividend": (
@@ -132,7 +142,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             6,
             "dividend",
             lambda q: as_float(q.dividend_yield),
-            lambda q: q.dividend_yield if q.dividend_yield is not None else -inf,
+            lambda q: _get_safe_value(q.dividend_yield),
         )
     ),
     "market_cap": (
@@ -141,7 +151,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             8,
             "market_cap",
             lambda q: as_shrunk_int(q.market_cap),
-            lambda q: q.market_cap if q.market_cap is not None else -inf,
+            lambda q: _get_safe_value(q.market_cap),
         )
     ),
 }

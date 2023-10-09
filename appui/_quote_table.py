@@ -91,11 +91,28 @@ class QuoteTable(DataTable):
                     self.update_cell(
                         quote_key,
                         self._state.columns[j].key,
-                        Text(cell[0], justify=cell[1].value),
+                        Text(
+                            cell[0],
+                            justify=cell[2].value,
+                            style="red"
+                            if cell[1] == -1
+                            else "green"
+                            if cell[1] > 0
+                            else "",
+                        ),
                     )
             else:
                 stylized_row: list[Text] = [
-                    Text(cell[0], justify=cell[1].value) for cell in quote.values
+                    Text(
+                        cell[0],
+                        justify=cell[2].value,
+                        style="red"
+                        if cell[1] == -1
+                        else "green"
+                        if cell[1] > 0
+                        else "",
+                    )
+                    for cell in quote.values
                 ]
                 self.add_row(*stylized_row, key=quote_key)
 

@@ -138,6 +138,7 @@ class QuoteTableState:
                 [
                     (
                         ALL_QUOTE_COLUMNS[column].format_func(q),
+                        ALL_QUOTE_COLUMNS[column].sign_indicator_func(q),
                         ALL_QUOTE_COLUMNS[column].justification,
                     )
                     for column in self._columns_keys
