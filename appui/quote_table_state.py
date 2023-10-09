@@ -101,11 +101,28 @@ class QuoteTableState:
 
         return self._sort_column_key
 
+    @sort_column_key.setter
+    def sort_column_key(self, value: str) -> None:
+        if value == self._sort_column_key:
+            return
+        self._sort_column_key = value
+        self._sort_key_func = ALL_QUOTE_COLUMNS[self._sort_column_key].sort_key_func
+        self._sort_quotes()
+        self._version += 1
+
     @property
     def sort_direction(self) -> SortDirection:
         """The direction of the sort."""
 
         return self._sort_direction
+
+    @sort_direction.setter
+    def sort_direction(self, value: SortDirection) -> None:
+        if value == self._sort_direction:
+            return
+        self._sort_direction = value
+        self._sort_quotes()
+        self._version += 1
 
     def get_quotes(self) -> list[QuoteRow]:
         """
@@ -137,10 +154,7 @@ class QuoteTableState:
         now: float = monotonic()
         while self._query_thread_running:
             self._quotes = self._yfin.get_quotes(self._quotes_symbols)
-            self._quotes.sort(
-                key=self._sort_key_func,
-                reverse=(self._sort_direction == SortDirection.DESCENDING),
-            )
+            self._sort_quotes()
             self._last_query_time = now
             self._version += 1
 
@@ -150,9 +164,18 @@ class QuoteTableState:
                 sleep(1)
                 now = monotonic()
 
+    def _sort_quotes(self):
+        """Sort the quotes, according to the sort column and direction."""
+
+        self._quotes.sort(
+            key=self._sort_key_func,
+            reverse=(self._sort_direction == SortDirection.DESCENDING),
+        )
+
     def load_config(self, config: dict[str, Any]) -> None:
         """Load the configuration for the app."""
 
+        # TODO: CHeck if values are actually changed, and if so, bump the version
         columns_keys: Optional[list[str]] = (
             config["columns"] if "columns" in config else None
         )
