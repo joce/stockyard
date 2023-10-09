@@ -37,19 +37,16 @@ class QuoteTableState:
 
     _DEFAULT_SORT_DIRECTION: SortDirection = SortDirection.ASCENDING
 
-    _DEFAULT_QUERY_FREQUENCY: int = 10
+    _DEFAULT_QUERY_FREQUENCY: int = 15
 
     def __init__(self, yfin: YFinance) -> None:
         self._yfin: YFinance = yfin
 
-        # TODO We need to be able to load the columns from a config file
         self._columns_keys: list[str] = QuoteTableState._DEFAULT_COLUMN_KEYS[:]
-
-        # TODO We need to be able to load the symbols from a config file
         self._quotes_symbols: list[str] = QuoteTableState._DEFAULT_QUOTES[:]
 
         # TODO Another quick and dirty hack. This information will be retrieved from the config file as well.
-        self._sort_column_key: str = self._columns_keys[0]
+        self._sort_column_key: str = self._columns_keys[2]
         self._sort_direction: SortDirection = QuoteTableState._DEFAULT_SORT_DIRECTION
         self._query_frequency: int = QuoteTableState._DEFAULT_QUERY_FREQUENCY
 
@@ -97,6 +94,18 @@ class QuoteTableState:
             self._query_thread.start()
         else:
             self._query_thread.join()
+
+    @property
+    def sort_column_key(self) -> str:
+        """The key of the column to sort by."""
+
+        return self._sort_column_key
+
+    @property
+    def sort_direction(self) -> SortDirection:
+        """The direction of the sort."""
+
+        return self._sort_direction
 
     def get_quotes(self) -> list[QuoteRow]:
         """

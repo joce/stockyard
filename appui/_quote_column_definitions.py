@@ -27,7 +27,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
     "change": (
         QuoteColumn(
             "Change",
-            8,
+            10,
             "change",
             lambda q: as_float(q.regular_market_change, q.price_hint),
             lambda q: q.regular_market_change,
@@ -35,7 +35,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
     ),
     "change_percent": (
         QuoteColumn(
-            "Change%",
+            "Chg %",
             8,
             "change_percent",
             lambda q: as_percent(q.regular_market_change_percent),
@@ -90,7 +90,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
     "volume": (
         QuoteColumn(
             "Volume",
-            8,
+            10,
             "volume",
             lambda q: as_shrunk_int(q.regular_market_volume),
             lambda q: q.regular_market_volume,
@@ -99,7 +99,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
     "avg_volume": (
         QuoteColumn(
             "Avg Vol",
-            8,
+            10,
             "avg_volume",
             lambda q: as_shrunk_int(q.average_daily_volume_3_month),
             lambda q: q.average_daily_volume_3_month,
@@ -112,7 +112,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
     ),
     "dividend": (
         QuoteColumn(
-            "Dividend",
+            "Div",
             6,
             "dividend",
             lambda q: as_float(q.dividend_yield),
@@ -129,6 +129,4 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
         )
     ),
 }
-"""
-A dictionary of QuoteColumns available for the quote table, keyed by the column's key name.
-"""
+"""A dictionary of QuoteColumns available for the quote table, keyed by the column's key name."""

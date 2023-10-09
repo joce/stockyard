@@ -4,6 +4,7 @@ from rich.text import Text
 from textual.coordinate import Coordinate
 from textual.widgets import DataTable
 
+from ._enums import SortDirection
 from ._quote_column import QuoteColumn
 from .quote_table_state import QuoteTableState
 
@@ -22,7 +23,14 @@ class QuoteTable(DataTable):
         super().on_mount()
         column: QuoteColumn
         for column in self._state.columns:
-            styled_column: Text = Text(column.name, justify=column.justification.value)
+            column_title: str = column.name
+            if column.key == self._state.sort_column_key:
+                if self._state.sort_direction == SortDirection.ASCENDING:
+                    column_title = column_title[: column.width - 2] + " ▼"
+                else:
+                    column_title = column_title[: column.width - 2] + " ▲"
+
+            styled_column: Text = Text(column_title, justify=column.justification.value)
             self.add_column(styled_column, width=column.width, key=column.key)
 
         self.cursor_type = "row"
@@ -84,7 +92,10 @@ class QuoteTable(DataTable):
 
         if value.row == -1 and self.cursor_type != "column":
             self.cursor_type = "column"
-            self.move_cursor(column=-1)
         elif value.row >= 0 and self.cursor_type != "row":
             self.cursor_type = "row"
+
+        if self.cursor_type == "column":
+            self.move_cursor(column=value.column)
+
         logging.debug(value)
