@@ -1,5 +1,7 @@
 """Definitions of the available columns"""
 
+from math import inf
+
 from ._enums import Justify
 from ._formatting import as_float, as_percent, as_shrunk_int
 from ._quote_column import QuoteColumn
@@ -48,7 +50,9 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             10,
             "open",
             lambda q: as_float(q.regular_market_open, q.price_hint),
-            lambda q: q.regular_market_open,
+            lambda q: q.regular_market_open
+            if q.regular_market_open is not None
+            else -inf,
         )
     ),
     "low": (
@@ -57,7 +61,9 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             10,
             "low",
             lambda q: as_float(q.regular_market_day_low, q.price_hint),
-            lambda q: q.regular_market_day_low,
+            lambda q: q.regular_market_day_low
+            if q.regular_market_day_low is not None
+            else -inf,
         )
     ),
     "high": (
@@ -66,7 +72,9 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             10,
             "high",
             lambda q: as_float(q.regular_market_day_high, q.price_hint),
-            lambda q: q.regular_market_day_high,
+            lambda q: q.regular_market_day_high
+            if q.regular_market_day_high is not None
+            else -inf,
         )
     ),
     "52w_low": (
@@ -93,7 +101,9 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             10,
             "volume",
             lambda q: as_shrunk_int(q.regular_market_volume),
-            lambda q: q.regular_market_volume,
+            lambda q: q.regular_market_volume
+            if q.regular_market_volume is not None
+            else -inf,
         )
     ),
     "avg_volume": (
@@ -102,12 +112,18 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             10,
             "avg_volume",
             lambda q: as_shrunk_int(q.average_daily_volume_3_month),
-            lambda q: q.average_daily_volume_3_month,
+            lambda q: q.average_daily_volume_3_month
+            if q.average_daily_volume_3_month is not None
+            else -inf,
         )
     ),
     "pe": (
         QuoteColumn(
-            "P/E", 6, "pe", lambda q: as_float(q.trailing_pe), lambda q: q.trailing_pe
+            "P/E",
+            6,
+            "pe",
+            lambda q: as_float(q.trailing_pe),
+            lambda q: q.trailing_pe if q.trailing_pe is not None else -inf,
         )
     ),
     "dividend": (
@@ -116,7 +132,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             6,
             "dividend",
             lambda q: as_float(q.dividend_yield),
-            lambda q: q.dividend_yield,
+            lambda q: q.dividend_yield if q.dividend_yield is not None else -inf,
         )
     ),
     "market_cap": (
@@ -125,7 +141,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             8,
             "market_cap",
             lambda q: as_shrunk_int(q.market_cap),
-            lambda q: q.market_cap,
+            lambda q: q.market_cap if q.market_cap is not None else -inf,
         )
     ),
 }
