@@ -5,4 +5,13 @@ Clock {
     padding: 0 1 0 1;
     width: auto;
     background: $accent-darken-1;
+    color: white;
+}
+
+QuoteTable > .datatable--cursor {
+    background: rgb(92, 128, 128);
+}
+
+QuoteTable > .datatable--hover {
+    background: rgb(56, 78, 78);
 }

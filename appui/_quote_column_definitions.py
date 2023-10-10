@@ -148,7 +148,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
     "market_cap": (
         QuoteColumn(
             "Mkt Cap",
-            8,
+            10,
             "market_cap",
             lambda q: as_shrunk_int(q.market_cap),
             lambda q: _get_safe_value(q.market_cap),

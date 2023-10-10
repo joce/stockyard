@@ -5,7 +5,7 @@ from rich.text import Text
 from textual.coordinate import Coordinate
 from textual.widgets import DataTable
 
-from ._enums import SortDirection
+from ._enums import Justify, SortDirection
 from ._quote_column import QuoteColumn
 from ._quote_row import QuoteRow
 from .quote_table_state import QuoteTableState
@@ -27,16 +27,7 @@ class QuoteTable(DataTable):
         super().on_mount()
         quote_column: QuoteColumn
         for quote_column in self._state.columns:
-            column_title: str = quote_column.name
-            if quote_column.key == self._state.sort_column_key:
-                if self._state.sort_direction == SortDirection.ASCENDING:
-                    column_title = column_title[: quote_column.width - 2] + " ▼"
-                else:
-                    column_title = column_title[: quote_column.width - 2] + " ▲"
-
-            styled_column: Text = Text(
-                column_title, justify=quote_column.justification.value
-            )
+            styled_column: Text = self._get_styled_column_title(quote_column)
             key = self.add_column(
                 styled_column, width=quote_column.width, key=quote_column.key
             )
@@ -44,6 +35,7 @@ class QuoteTable(DataTable):
 
         self.cursor_type = "row"
         self.zebra_stripes = True
+        self.cursor_foreground_priority = "renderable"
         self.set_interval(0.1, self._update_table)
 
         # Force a first update
@@ -69,16 +61,8 @@ class QuoteTable(DataTable):
         # TODO make this a function
         quote_column: QuoteColumn
         for quote_column in self._state.columns:
-            column_title: str = quote_column.name
-            if quote_column.key == self._state.sort_column_key:
-                if self._state.sort_direction == SortDirection.ASCENDING:
-                    column_title = column_title[: quote_column.width - 2] + " ▼"
-                else:
-                    column_title = column_title[: quote_column.width - 2] + " ▲"
+            styled_column: Text = self._get_styled_column_title(quote_column)
 
-            styled_column: Text = Text(
-                column_title, justify=quote_column.justification.value
-            )
             self.columns[self._column_key_map[quote_column.key]].label = styled_column
 
         quotes: list[QuoteRow] = self._state.get_quotes()
@@ -91,12 +75,13 @@ class QuoteTable(DataTable):
                     self.update_cell(
                         quote_key,
                         self._state.columns[j].key,
+                        # TODO Create a quote cell class and make this a function
                         Text(
                             cell[0],
                             justify=cell[2].value,
-                            style="red"
+                            style="#DD0000"
                             if cell[1] == -1
-                            else "green"
+                            else "#00DD00"
                             if cell[1] > 0
                             else "",
                         ),
@@ -106,9 +91,9 @@ class QuoteTable(DataTable):
                     Text(
                         cell[0],
                         justify=cell[2].value,
-                        style="red"
+                        style="#DD0000"
                         if cell[1] == -1
-                        else "green"
+                        else "#00DD00"
                         if cell[1] > 0
                         else "",
                     )
@@ -121,6 +106,37 @@ class QuoteTable(DataTable):
             self.remove_row(row_key=str(i))
 
         self._version = self._state.version
+
+    def _get_styled_column_title(self, quote_column: QuoteColumn) -> Text:
+        """
+        Generate a styled column title based on the quote column and the current state.
+
+        If the quote column key matches the sort column key in the current state, an arrow
+        indicating the sort direction is added to the column title. The position of the arrow
+        depends on the justification of the column: if the column is left-justified, the arrow
+        is added at the end of the title; if the column is right-justified, the arrow is added
+        at the beginning of the title.
+
+        Args:
+            quote_column (QuoteColumn): The quote column for which to generate a styled title.
+
+        Returns:
+            Text: The styled column title.
+        """
+        column_title: str = quote_column.name
+        if quote_column.key == self._state.sort_column_key:
+            if quote_column.justification == Justify.LEFT:
+                if self._state.sort_direction == SortDirection.ASCENDING:
+                    column_title = column_title[: quote_column.width - 2] + " ▼"
+                else:
+                    column_title = column_title[: quote_column.width - 2] + " ▲"
+            else:
+                if self._state.sort_direction == SortDirection.ASCENDING:
+                    column_title = "▼ " + column_title[: quote_column.width - 2]
+                else:
+                    column_title = "▲ " + column_title[: quote_column.width - 2]
+
+        return Text(column_title, justify=quote_column.justification.value)
 
     def watch_hover_coordinate(self, _: Coordinate, value: Coordinate) -> None:
         """
@@ -150,6 +166,7 @@ class QuoteTable(DataTable):
         )
 
         if selected_column_key != self._state.sort_column_key:
+            # TODO Add a function that can set both the sort column and the sort direction at once
             self._state.sort_column_key = selected_column_key
             self._state.sort_direction = SortDirection.ASCENDING
         else:

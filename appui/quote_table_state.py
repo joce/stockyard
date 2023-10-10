@@ -37,7 +37,7 @@ class QuoteTableState:
 
     _DEFAULT_SORT_DIRECTION: SortDirection = SortDirection.ASCENDING
 
-    _DEFAULT_QUERY_FREQUENCY: int = 15
+    _DEFAULT_QUERY_FREQUENCY: int = 10
 
     def __init__(self, yfin: YFinance) -> None:
         self._yfin: YFinance = yfin
