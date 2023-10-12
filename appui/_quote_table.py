@@ -6,8 +6,7 @@ from textual.coordinate import Coordinate
 from textual.widgets import DataTable
 
 from ._enums import Justify, SortDirection
-from ._quote_column import QuoteColumn
-from ._quote_row import QuoteRow
+from ._quote_table_data import QuoteCell, QuoteColumn, QuoteRow
 from .quote_table_state import QuoteTableState
 
 
@@ -75,29 +74,11 @@ class QuoteTable(DataTable):
                     self.update_cell(
                         quote_key,
                         self._state.columns[j].key,
-                        # TODO Create a quote cell class and make this a function
-                        Text(
-                            cell[0],
-                            justify=cell[2].value,
-                            style="#DD0000"
-                            if cell[1] == -1
-                            else "#00DD00"
-                            if cell[1] > 0
-                            else "",
-                        ),
+                        self._get_styled_cell(cell),
                     )
             else:
                 stylized_row: list[Text] = [
-                    Text(
-                        cell[0],
-                        justify=cell[2].value,
-                        style="#DD0000"
-                        if cell[1] == -1
-                        else "#00DD00"
-                        if cell[1] > 0
-                        else "",
-                    )
-                    for cell in quote.values
+                    self._get_styled_cell(cell) for cell in quote.values
                 ]
                 self.add_row(*stylized_row, key=quote_key)
 
@@ -123,6 +104,7 @@ class QuoteTable(DataTable):
         Returns:
             Text: The styled column title.
         """
+
         column_title: str = quote_column.name
         if quote_column.key == self._state.sort_column_key:
             if quote_column.justification == Justify.LEFT:
@@ -137,6 +119,23 @@ class QuoteTable(DataTable):
                     column_title = "▲ " + column_title[: quote_column.width - 2]
 
         return Text(column_title, justify=quote_column.justification.value)
+
+    def _get_styled_cell(self, cell: QuoteCell) -> Text:
+        """
+        Generate the styled text for a cell based on the quote cell data.
+
+        Args:
+            cell (QuoteCell): The quote cell for which to generate a styled cell.
+
+        Returns:
+            Text: The styled cell.
+        """
+
+        return Text(
+            cell.value,
+            justify=cell.justify.value,
+            style="#DD0000" if cell.sign == -1 else "#00DD00" if cell.sign > 0 else "",
+        )
 
     def watch_hover_coordinate(self, _: Coordinate, value: Coordinate) -> None:
         """

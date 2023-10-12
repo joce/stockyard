@@ -1,26 +1,39 @@
-"""Definitions of the available columns"""
+"""Definitions of the available columns for the quote table."""
 
 from math import inf
-from typing import Optional, TypeVar, cast
+from typing import Optional, TypeVar
 
 from ._enums import Justify
 from ._formatting import as_float, as_percent, as_shrunk_int
-from ._quote_column import QuoteColumn
+from ._quote_table_data import QuoteColumn
 
 T = TypeVar("T", int, float)
+"""TypeVar T is defined to be either an int or a float."""
 
 
 def _get_safe_value(v: Optional[T]) -> float:
     """
-    Returns the smallest representable value for type T if value is None,
-    otherwise returns the value itself.
+    Safely retrieves the value of v. If v is None, it returns the smallest representable value for type T.
+
+    Args:
+        v (Optional[T]): The value to be retrieved. Can be of type int or float.
+
+    Returns:
+        float: The value of v if it's not None, otherwise the smallest representable value for type T.
     """
     return -inf if v is None else v
 
 
 def _get_sign(v: float) -> int:
-    """Get the sign of a value."""
+    """
+    Determines the sign of a given value.
 
+    Args:
+        v (float): The value for which the sign is to be determined.
+
+    Returns:
+        int: Returns 1 if the value is greater than 0, -1 if less than 0, and 0 if the value is exactly 0.
+    """
     return 1 if v > 0 else -1 if v < 0 else 0
 
 
@@ -155,4 +168,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
         )
     ),
 }
-"""A dictionary of QuoteColumns available for the quote table, keyed by the column's key name."""
+"""
+A dictionary that contains QuoteColumns available for the quote table.
+Each QuoteColumn is keyed by its key name.
+"""

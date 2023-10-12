@@ -8,9 +8,8 @@ from typing import Any, Callable, Optional
 from yfinance import YFinance, YQuote
 
 from ._enums import SortDirection
-from ._quote_column import QuoteColumn
 from ._quote_column_definitions import ALL_QUOTE_COLUMNS
-from ._quote_row import QuoteRow
+from ._quote_table_data import QuoteCell, QuoteColumn, QuoteRow
 
 
 class QuoteTableState:
@@ -136,7 +135,7 @@ class QuoteTableState:
             QuoteRow(
                 q.symbol,
                 [
-                    (
+                    QuoteCell(
                         ALL_QUOTE_COLUMNS[column].format_func(q),
                         ALL_QUOTE_COLUMNS[column].sign_indicator_func(q),
                         ALL_QUOTE_COLUMNS[column].justification,
@@ -174,8 +173,12 @@ class QuoteTableState:
         )
 
     def load_config(self, config: dict[str, Any]) -> None:
-        """Load the configuration for the app."""
+        """
+        Load the configuration for the app.
 
+        Args:
+            config (dict[str, Any]): The configuration dictionary to load.
+        """
         # TODO: CHeck if values are actually changed, and if so, bump the version
         columns_keys: Optional[list[str]] = (
             config["columns"] if "columns" in config else None

@@ -23,6 +23,7 @@ class StockyardAppState:
     @title.setter
     def title(self, value: str) -> None:
         self._title = value
+        self._version += 1
 
     def quote_table_state(self) -> QuoteTableState:
         """The state of the quote table."""
