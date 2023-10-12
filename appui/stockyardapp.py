@@ -1,3 +1,5 @@
+"""The stockyard application"""
+
 import json
 import logging
 from io import TextIOWrapper
@@ -60,4 +62,3 @@ class StockyardApp(App):
         """Save the configuration for the app."""
 
         # TODO Save the configuration to a file
-        pass

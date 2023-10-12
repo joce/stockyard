@@ -1,4 +1,9 @@
+"""
+This module contains the QuoteTable class which is a DataTable for displaying quotes.
+"""
+
 import logging
+
 from typing import Any
 
 from rich.text import Text

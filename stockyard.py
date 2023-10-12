@@ -1,3 +1,5 @@
+"""Main entry point for the application."""
+
 from appui import StockyardApp, StockyardAppState
 from yfinance import YFinance
 

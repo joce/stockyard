@@ -1,6 +1,7 @@
-from appui import _formatting as fmt
-
 # pylint: disable=protected-access
+# pylint: disable=missing-module-docstring
+
+from appui import _formatting as fmt
 
 
 def test_as_percent():

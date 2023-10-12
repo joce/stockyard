@@ -1,10 +1,12 @@
+# pylint: disable=protected-access
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-class-docstring
+
 import unittest
 
 from appui._enums import SortDirection
 from appui.quote_table_state import QuoteTableState
 from yfinance import YFinance
-
-# pylint: disable=protected-access
 
 
 class TestQuoteTableState(unittest.TestCase):

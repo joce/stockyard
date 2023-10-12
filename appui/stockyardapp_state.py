@@ -1,3 +1,5 @@
+"""The state of the whole stockyard application."""
+
 from typing import Any
 
 from yfinance import YFinance
@@ -40,4 +42,3 @@ class StockyardAppState:
         """Save the configuration for the app."""
 
         # TODO Save the configuration to a file
-        pass
