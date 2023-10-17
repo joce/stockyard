@@ -3,7 +3,6 @@ This module contains the QuoteTable class which is a DataTable for displaying qu
 """
 
 import logging
-
 from typing import Any
 
 from rich.text import Text
@@ -48,7 +47,7 @@ class QuoteTable(DataTable):
 
     def _on_unmount(self) -> None:
         """
-        The event handler called when the widget is added to the app.
+        The event handler called when the widget is removed from the app.
 
         Required to stop the query thread.
         """
@@ -62,18 +61,19 @@ class QuoteTable(DataTable):
         if self._version == self._state.version:
             return
 
-        # TODO make this a function
+        # Set the column titles, including the sort arrow if needed
         quote_column: QuoteColumn
         for quote_column in self._state.columns:
             styled_column: Text = self._get_styled_column_title(quote_column)
-
             self.columns[self._column_key_map[quote_column.key]].label = styled_column
 
         quotes: list[QuoteRow] = self._state.get_quotes()
         i: int = 0
         quote: QuoteRow
         for i, quote in enumerate(quotes):
+            # We only use the index as the row key, so we can update and reorder the rows as needed
             quote_key: str = str(i)
+            # Update existing rows
             if quote_key in self.rows:
                 for j, cell in enumerate(quote.values):
                     self.update_cell(
@@ -82,14 +82,19 @@ class QuoteTable(DataTable):
                         self._get_styled_cell(cell),
                     )
             else:
+                # Add new rows, if any
                 stylized_row: list[Text] = [
                     self._get_styled_cell(cell) for cell in quote.values
                 ]
                 self.add_row(*stylized_row, key=quote_key)
 
-        # remove extra rows
+        # Remove extra rows, if any
         for i in range(i + 1, len(self.rows)):
             self.remove_row(row_key=str(i))
+
+        current_row: int = self._state.current_row
+        if current_row >= 0:
+            self.move_cursor(row=current_row)
 
         self._version = self._state.version
 
@@ -160,6 +165,20 @@ class QuoteTable(DataTable):
             self.move_cursor(column=value.column)
 
         logging.debug(value)
+
+    def watch_cursor_coordinate(
+        self, _: Coordinate, new_coordinate: Coordinate
+    ) -> None:
+        """
+        Watch the cursor coordinate and update the current row accordingly.
+
+        Args:
+            _ (Coordinate): The old coordinate. Unused.
+            new_coordinate (Coordinate): The current cursor coordinate.
+        """
+
+        super().watch_cursor_coordinate(_, new_coordinate)
+        self._state.current_row = new_coordinate.row
 
     def on_data_table_header_selected(self, evt: DataTable.HeaderSelected) -> None:
         """Event handler called when the header is clicked."""

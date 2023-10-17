@@ -57,6 +57,8 @@ class QuoteTableState:
             self._sort_column_key
         ].sort_key_func
 
+        self._cursor_symbol: str = self._quotes_symbols[0]
+
         self._query_thread_running: bool = False
         self._query_thread: Thread = Thread(target=self._query_quotes)
         self._last_query_time = monotonic()
@@ -122,6 +124,33 @@ class QuoteTableState:
         self._sort_direction = value
         self._sort_quotes()
         self._version += 1
+
+    @property
+    def current_row(self) -> int:
+        """The current row of the cursor."""
+
+        # Return the index of the quote (from _quotes) whose ticker symbol matches the cursor symbol
+        return next(
+            (
+                i
+                for i, quote in enumerate(self._quotes)
+                if quote.symbol == self._cursor_symbol
+            ),
+            -1,
+        )
+
+    @current_row.setter
+    def current_row(self, value: int) -> None:
+        if value >= len(self._quotes_symbols):
+            raise ValueError("Invalid row index")
+
+        if (
+            value < len(self._quotes_symbols)
+            and self._quotes_symbols[value] == self._cursor_symbol
+        ):
+            return
+        self._cursor_symbol = self._quotes[value].symbol
+        # Setting the current row does not change the version. It's just mirroring the cursor position from the UI.
 
     def get_quotes(self) -> list[QuoteRow]:
         """
