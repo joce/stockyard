@@ -129,32 +129,32 @@ class YClient:
     def __get_cookies_eu(self) -> RequestsCookieJar:
         """Get cookies from the EU consent page."""
 
-        res1: requests.Response
+        response: requests.Response
         with self._session.get(
             self._YAHOO_FINANCE_URL,
             headers=self._COOKIE_HEADERS,
             allow_redirects=True,
-        ) as res1:
+        ) as response:
             try:
-                res1.raise_for_status()
+                response.raise_for_status()
             except requests.exceptions.HTTPError as e:
                 logging.exception("Can't log in: %s", e)
                 return RequestsCookieJar()
 
             # Extract the session ID from the redirected request URL
             try:
-                session_id: str = parse_qs(urlparse(res1.url).query)["sessionId"][0]
+                session_id: str = parse_qs(urlparse(response.url).query)["sessionId"][0]
             except (NameError, KeyError):
                 logging.exception(
                     "Unable to extract session id from redirected request URL: '%s'",
-                    res1.url,
+                    response.url,
                 )
                 return RequestsCookieJar()
 
             # Find the right URL in the redirect history, and extract the CSRF token from it
             guce_url: str = ""
             hist: requests.Response
-            for hist in res1.history:
+            for hist in response.history:
                 if hist.url.startswith("https://guce.yahoo.com"):
                     guce_url = hist.url
                     break
@@ -164,26 +164,26 @@ class YClient:
             except (NameError, KeyError):
                 logging.exception(
                     "Unable to extract CSRF token redirected request URL: '%s'",
-                    res1.url,
+                    response.url,
                 )
                 return RequestsCookieJar()
 
             # Look in the history to find the right cookie
             gucs_cookie: RequestsCookieJar = RequestsCookieJar()
-            for hist in res1.history:
+            for hist in response.history:
                 if hist.cookies.get("GUCS") is not None:
                     gucs_cookie: RequestsCookieJar = hist.cookies
                     break
 
             if len(gucs_cookie) == 0:
-                logging.error("no cookies set by finance.yahoo.com")
+                logging.error("No cookies set by finance.yahoo.com")
                 return RequestsCookieJar()
 
         referrer_url: str = (
             "https://consent.yahoo.com/v2/collectConsent?sessionId=" + session_id
         )
 
-        headers2: dict[str, str] = {
+        consent_headers: dict[str, str] = {
             "origin": "https://consent.yahoo.com",
             "host": "consent.yahoo.com",
             "content-type": "application/x-www-form-urlencoded",
@@ -211,12 +211,12 @@ class YClient:
 
         with self._session.post(
             referrer_url,
-            headers=headers2,
+            headers=consent_headers,
             cookies=gucs_cookie,
             data=data,
             allow_redirects=True,
-        ) as res2:
-            for hist in res2.history:
+        ) as response:
+            for hist in response.history:
                 if hist.cookies.get("A3") is not None:
                     return hist.cookies
 
