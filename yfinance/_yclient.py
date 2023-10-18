@@ -59,7 +59,6 @@ class YClient:
             }
         )
         self._session.params = {
-            "formatted": "true",
             "lang": "en-US",
             "region": "US",
             "corsDomain": "finance.yahoo.com",
