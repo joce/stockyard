@@ -54,11 +54,15 @@ class StockyardApp(App):
         """Load the configuration for the app."""
 
         f: TextIOWrapper
-        with open(path, "rt", encoding="utf-8") as f:
+        with open(path, "r", encoding="utf-8") as f:
             config: dict[str, Any] = json.load(f)
             self._state.load_config(config)
 
     def save_config(self, path: str) -> None:
         """Save the configuration for the app."""
 
-        # TODO Save the configuration to a file
+        f: TextIOWrapper
+        with open(path, "w", encoding="utf-8") as f:
+            config: dict[str, Any] = {}
+            self._state.save_config(config)
+            json.dump(config, f, indent=2)

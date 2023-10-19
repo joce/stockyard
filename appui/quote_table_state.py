@@ -203,12 +203,12 @@ class QuoteTableState:
 
     def load_config(self, config: dict[str, Any]) -> None:
         """
-        Load the configuration for the app.
+        Load the configuration for the quote table.
 
         Args:
             config (dict[str, Any]): The configuration dictionary to load.
         """
-        # TODO: CHeck if values are actually changed, and if so, bump the version
+
         columns_keys: Optional[list[str]] = (
             config["columns"] if "columns" in config else None
         )
@@ -224,6 +224,8 @@ class QuoteTableState:
         query_frequency: Optional[int] = (
             config["query_frequency"] if "query_frequency" in config else None
         )
+
+        # TODO: Check if values are actually changed, and if so, bump the version
 
         # Validate the column keys
         if columns_keys is None or len(columns_keys) == 0:
@@ -276,3 +278,23 @@ class QuoteTableState:
         # Set other properties based on the configuration
         self._columns = [ALL_QUOTE_COLUMNS[column] for column in self._columns_keys]
         self._sort_key_func = ALL_QUOTE_COLUMNS[self._sort_column_key].sort_key_func
+
+    def save_config(self, config: dict[str, Any]) -> None:
+        """
+        Save the configuration for the quote table.
+
+        Args:
+            config (dict[str, Any]): A dictionary to save the configuration.
+
+        Raises:
+            ValueError: If the configuration dictionary is not empty
+        """
+
+        if len(config) > 0:
+            raise ValueError("Configuration dictionary must be empty")
+
+        config["columns_keys"] = self._columns_keys[:]
+        config["sort_column_key"] = self._sort_column_key
+        config["sort_direction"] = self._sort_direction.name
+        config["quotes_symbols"] = self._quotes_symbols[:]
+        config["query_frequency"] = self._query_frequency
