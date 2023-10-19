@@ -23,6 +23,11 @@ class QuoteTable(DataTable):
         self._version: int
         self._column_key_map: dict[str, Any] = {}
 
+    def __del__(self) -> None:
+        # Make sure the query thread is stopped
+        if self._state is not None:
+            self._state.query_thread_running = False
+
     def on_mount(self) -> None:
         """The event handler called when the widget is added to the app."""
 

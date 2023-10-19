@@ -66,6 +66,11 @@ class QuoteTableState:
 
         self._quotes: list[YQuote] = []
 
+    def __del__(self) -> None:
+        # Make sure the query thread is stopped
+        if self.query_thread_running:
+            self.query_thread_running = False
+
     @property
     def columns(self) -> list[QuoteColumn]:
         """The columns of the quote table."""
@@ -271,7 +276,7 @@ class QuoteTableState:
         # Validate the query frequency
         if query_frequency is None or query_frequency <= 1:
             logging.warning("Invalid query frequency specified in config file")
-            self._query_frequency = 10
+            self._query_frequency = QuoteTableState._DEFAULT_QUERY_FREQUENCY
         else:
             self._query_frequency = query_frequency
 
