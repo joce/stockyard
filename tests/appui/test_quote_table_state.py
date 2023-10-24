@@ -21,18 +21,18 @@ def fixture_qts() -> QuoteTableState:
 
 def test_load_regular_config(fixture_qts: QuoteTableState):
     config: dict[str, Any] = {
-        "columns": ["ticker", "last", "change_percent"],
-        "sort_column": "last",
-        "sort_direction": "ASCENDING",
-        "quotes": ["AAPL", "F", "VT"],
-        "query_frequency": 15,
+        QuoteTableState._COLUMNS: ["ticker", "last", "change_percent"],
+        QuoteTableState._SORT_COLUMN: "last",
+        QuoteTableState._SORT_DIRECTION: "ASCENDING",
+        QuoteTableState._QUOTES: ["AAPL", "F", "VT"],
+        QuoteTableState._QUERY_FREQUENCY: 15,
     }
     fixture_qts.load_config(config)
-    assert fixture_qts._columns_keys == config["columns"]
-    assert fixture_qts._sort_column_key == config["sort_column"]
-    assert fixture_qts._sort_direction.name == config["sort_direction"]
-    assert fixture_qts._quotes_symbols == config["quotes"]
-    assert fixture_qts._query_frequency == config["query_frequency"]
+    assert fixture_qts._columns_keys == config[QuoteTableState._COLUMNS]
+    assert fixture_qts._sort_column_key == config[QuoteTableState._SORT_COLUMN]
+    assert fixture_qts._sort_direction.name == config[QuoteTableState._SORT_DIRECTION]
+    assert fixture_qts._quotes_symbols == config[QuoteTableState._QUOTES]
+    assert fixture_qts._query_frequency == config[QuoteTableState._QUERY_FREQUENCY]
 
 
 def test_load_empty_config(fixture_qts: QuoteTableState):
@@ -47,7 +47,7 @@ def test_load_empty_config(fixture_qts: QuoteTableState):
 
 def test_load_invalid_columns(fixture_qts: QuoteTableState):
     config: dict[str, Any] = {
-        "columns": ["ticker", "truly_not_a_column", "last"],
+        QuoteTableState._COLUMNS: ["ticker", "truly_not_a_column", "last"],
     }
     fixture_qts.load_config(config)
     assert fixture_qts._columns_keys == ["ticker", "last"]
@@ -55,8 +55,8 @@ def test_load_invalid_columns(fixture_qts: QuoteTableState):
 
 def test_load_invalid_sort_column(fixture_qts: QuoteTableState):
     config: dict[str, Any] = {
-        "columns": ["ticker", "last", "change_percent"],
-        "sort_column": "truly_not_a_column",
+        QuoteTableState._COLUMNS: ["ticker", "last", "change_percent"],
+        QuoteTableState._SORT_COLUMN: "truly_not_a_column",
     }
     fixture_qts.load_config(config)
     assert fixture_qts._sort_column_key == "ticker"
@@ -64,7 +64,7 @@ def test_load_invalid_sort_column(fixture_qts: QuoteTableState):
 
 def test_load_invalid_sort_direction(fixture_qts: QuoteTableState):
     config: dict[str, Any] = {
-        "sort_direction": "AMAZING",
+        QuoteTableState._SORT_DIRECTION: "AMAZING",
     }
     fixture_qts.load_config(config)
     assert fixture_qts._sort_direction == QuoteTableState._DEFAULT_SORT_DIRECTION
@@ -72,7 +72,7 @@ def test_load_invalid_sort_direction(fixture_qts: QuoteTableState):
 
 def test_load_alternate_sort_direction(fixture_qts: QuoteTableState):
     config: dict[str, Any] = {
-        "sort_direction": "DESC",
+        QuoteTableState._SORT_DIRECTION: "DESC",
     }
     fixture_qts.load_config(config)
     assert fixture_qts._sort_direction == SortDirection.DESCENDING
@@ -80,7 +80,7 @@ def test_load_alternate_sort_direction(fixture_qts: QuoteTableState):
 
 def test_load_invalid_query_frequency(fixture_qts: QuoteTableState):
     config: dict[str, Any] = {
-        "query_frequency": 0,
+        QuoteTableState._QUERY_FREQUENCY: 0,
     }
     fixture_qts.load_config(config)
     assert fixture_qts._query_frequency == QuoteTableState._DEFAULT_QUERY_FREQUENCY
@@ -89,23 +89,48 @@ def test_load_invalid_query_frequency(fixture_qts: QuoteTableState):
 def test_save_config_empty_dict(fixture_qts: QuoteTableState):
     config: dict[str, Any] = {}
     fixture_qts.save_config(config)
-    assert config["columns_keys"] == fixture_qts._columns_keys
-    assert config["sort_column_key"] == fixture_qts._sort_column_key
-    assert config["sort_direction"] == fixture_qts._sort_direction.name
-    assert config["quotes_symbols"] == fixture_qts._quotes_symbols
-    assert config["query_frequency"] == fixture_qts._query_frequency
+    assert config[QuoteTableState._COLUMNS] == fixture_qts._columns_keys
+    assert config[QuoteTableState._SORT_COLUMN] == fixture_qts._sort_column_key
+    assert config[QuoteTableState._SORT_DIRECTION] == fixture_qts._sort_direction.name
+    assert config[QuoteTableState._QUOTES] == fixture_qts._quotes_symbols
+    assert config[QuoteTableState._QUERY_FREQUENCY] == fixture_qts._query_frequency
 
 
 def test_save_config_takes_list_copies(fixture_qts: QuoteTableState):
     config: dict[str, Any] = {}
     fixture_qts.save_config(config)
-    config["columns_keys"][0] = "foo_foo"
-    config["quotes_symbols"][0] = "ZZZZ"
-    assert config["columns_keys"] != fixture_qts._columns_keys
-    assert config["quotes_symbols"] != fixture_qts._quotes_symbols
+    config[QuoteTableState._COLUMNS][0] = "foo_foo"
+    config[QuoteTableState._QUOTES][0] = "ZZZZ"
+    assert config[QuoteTableState._COLUMNS] != fixture_qts._columns_keys
+    assert config[QuoteTableState._QUOTES] != fixture_qts._quotes_symbols
 
 
 def test_save_config_non_empty_dict(fixture_qts: QuoteTableState):
     config: dict[str, Any] = {"dummy_key": "dummy_value"}
     with pytest.raises(ValueError):
         fixture_qts.save_config(config)
+
+
+def test_round_trip_config(fixture_qts: QuoteTableState):
+    config: dict[str, Any] = {}
+
+    fixture_qts.save_config(config)
+    assert config[QuoteTableState._COLUMNS] == fixture_qts._columns_keys
+    assert config[QuoteTableState._SORT_COLUMN] == fixture_qts._sort_column_key
+    assert config[QuoteTableState._SORT_DIRECTION] == fixture_qts._sort_direction.name
+    assert config[QuoteTableState._QUOTES] == fixture_qts._quotes_symbols
+    assert config[QuoteTableState._QUERY_FREQUENCY] == fixture_qts._query_frequency
+
+    config.clear()
+    config[QuoteTableState._COLUMNS] = ["ticker", "52w_high"]
+    config[QuoteTableState._SORT_COLUMN] = "52w_high"
+    config[QuoteTableState._SORT_DIRECTION] = "DESCENDING"
+    config[QuoteTableState._QUOTES] = ["FOOF"]
+    config[QuoteTableState._QUERY_FREQUENCY] = 42
+
+    fixture_qts.load_config(config)
+    assert fixture_qts._columns_keys == config[QuoteTableState._COLUMNS]
+    assert fixture_qts._sort_column_key == config[QuoteTableState._SORT_COLUMN]
+    assert fixture_qts._sort_direction.name == config[QuoteTableState._SORT_DIRECTION]
+    assert fixture_qts._quotes_symbols == config[QuoteTableState._QUOTES]
+    assert fixture_qts._query_frequency == config[QuoteTableState._QUERY_FREQUENCY]

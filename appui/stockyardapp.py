@@ -53,16 +53,32 @@ class StockyardApp(App):
     def load_config(self, path: str) -> None:
         """Load the configuration for the app."""
 
-        f: TextIOWrapper
-        with open(path, "r", encoding="utf-8") as f:
-            config: dict[str, Any] = json.load(f)
-            self._state.load_config(config)
+        try:
+            f: TextIOWrapper
+            with open(path, "r", encoding="utf-8") as f:
+                config: dict[str, Any] = json.load(f)
+                self._state.load_config(config)
+        except FileNotFoundError:
+            logging.error("load_config: Config file not found: %s", path)
+        except json.JSONDecodeError as e:
+            logging.error(
+                "load_config: error decoding JSON file: %s [%d, %d]: %s",
+                path,
+                e.lineno,
+                e.colno,
+                e.msg,
+            )
 
     def save_config(self, path: str) -> None:
         """Save the configuration for the app."""
 
-        f: TextIOWrapper
-        with open(path, "w", encoding="utf-8") as f:
-            config: dict[str, Any] = {}
-            self._state.save_config(config)
-            json.dump(config, f, indent=2)
+        try:
+            f: TextIOWrapper
+            with open(path, "w", encoding="utf-8") as f:
+                config: dict[str, Any] = {}
+                self._state.save_config(config)
+                json.dump(config, f, indent=4)
+        except FileNotFoundError:
+            logging.error("save_config: Config file not found: %s", path)
+        except PermissionError:
+            logging.error("save_config: Permission denied: %s", path)

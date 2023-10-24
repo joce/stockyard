@@ -38,6 +38,12 @@ class QuoteTableState:
 
     _DEFAULT_QUERY_FREQUENCY: int = 10
 
+    _COLUMNS: str = "columns"
+    _SORT_COLUMN: str = "sort_column"
+    _SORT_DIRECTION: str = "sort_direction"
+    _QUOTES: str = "quotes"
+    _QUERY_FREQUENCY: str = "query_frequency"
+
     def __init__(self, yfin: YFinance) -> None:
         self._yfin: YFinance = yfin
 
@@ -215,19 +221,29 @@ class QuoteTableState:
         """
 
         columns_keys: Optional[list[str]] = (
-            config["columns"] if "columns" in config else None
+            config[QuoteTableState._COLUMNS]
+            if QuoteTableState._COLUMNS in config
+            else None
         )
         sort_column_key: Optional[str] = (
-            config["sort_column"] if "sort_column" in config else None
+            config[QuoteTableState._SORT_COLUMN]
+            if QuoteTableState._SORT_COLUMN in config
+            else None
         )
         sort_direction: Optional[str] = (
-            config["sort_direction"] if "sort_direction" in config else None
+            config[QuoteTableState._SORT_DIRECTION]
+            if QuoteTableState._SORT_DIRECTION in config
+            else None
         )
         quotes_symbols: Optional[list[str]] = (
-            config["quotes"] if "quotes" in config else None
+            config[QuoteTableState._QUOTES]
+            if QuoteTableState._QUOTES in config
+            else None
         )
         query_frequency: Optional[int] = (
-            config["query_frequency"] if "query_frequency" in config else None
+            config[QuoteTableState._QUERY_FREQUENCY]
+            if QuoteTableState._QUERY_FREQUENCY in config
+            else None
         )
 
         # TODO: Check if values are actually changed, and if so, bump the version
@@ -298,8 +314,8 @@ class QuoteTableState:
         if len(config) > 0:
             raise ValueError("Configuration dictionary must be empty")
 
-        config["columns_keys"] = self._columns_keys[:]
-        config["sort_column_key"] = self._sort_column_key
-        config["sort_direction"] = self._sort_direction.name
-        config["quotes_symbols"] = self._quotes_symbols[:]
-        config["query_frequency"] = self._query_frequency
+        config[QuoteTableState._COLUMNS] = self._columns_keys[:]
+        config[QuoteTableState._SORT_COLUMN] = self._sort_column_key
+        config[QuoteTableState._SORT_DIRECTION] = self._sort_direction.name
+        config[QuoteTableState._QUOTES] = self._quotes_symbols[:]
+        config[QuoteTableState._QUERY_FREQUENCY] = self._query_frequency
