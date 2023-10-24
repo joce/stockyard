@@ -2,9 +2,9 @@
 This module contains the QuoteTable class which is a DataTable for displaying quotes.
 """
 
-import logging
-from typing import Any
+from typing import Any, Optional
 
+from rich.style import Style
 from rich.text import Text
 from textual.coordinate import Coordinate
 from textual.widgets import DataTable
@@ -22,6 +22,7 @@ class QuoteTable(DataTable):
         self._state: QuoteTableState = state
         self._version: int
         self._column_key_map: dict[str, Any] = {}
+        self._current_hover_column: int = -1
 
     def __del__(self) -> None:
         # Make sure the query thread is stopped
@@ -44,7 +45,7 @@ class QuoteTable(DataTable):
         self.cursor_type = "row"
         self.zebra_stripes = True
         self.cursor_foreground_priority = "renderable"
-        self.set_interval(0.1, self._update_table)
+        self.set_interval(0.01, self._update_table)
 
         # Force a first update
         self._version = self._state.version - 1
@@ -152,24 +153,37 @@ class QuoteTable(DataTable):
             style="#DD0000" if cell.sign == -1 else "#00DD00" if cell.sign > 0 else "",
         )
 
-    def watch_hover_coordinate(self, _: Coordinate, value: Coordinate) -> None:
+    def watch_hover_coordinate(self, old: Coordinate, value: Coordinate) -> None:
         """
         Watch the hover coordinate and update the cursor type accordingly.
 
         Args:
-            _ (Coordinate): The old coordinate. Unused.
+            old (Coordinate): The old hover coordinate.
             value (Coordinate): The current hover coordinate.
         """
 
-        if value.row == -1 and self.cursor_type != "column":
-            self.cursor_type = "column"
-        elif value.row >= 0 and self.cursor_type != "row":
-            self.cursor_type = "row"
+        if value.row == -1:
+            self._current_hover_column = value.column
+        else:
+            self._current_hover_column = -1
 
-        if self.cursor_type == "column":
-            self.move_cursor(column=value.column)
+        super().watch_hover_coordinate(old, value)
 
-        logging.debug(value)
+    def _render_cell(
+        self,
+        row_index: int,
+        column_index: int,
+        base_style: Style,
+        width: int,
+        cursor: bool = False,
+        hover: bool = False,
+    ):
+        if row_index == -1:
+            hover = self._current_hover_column == column_index
+
+        return super()._render_cell(
+            row_index, column_index, base_style, width, cursor, hover
+        )
 
     def watch_cursor_coordinate(
         self, _: Coordinate, new_coordinate: Coordinate
