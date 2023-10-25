@@ -2,7 +2,7 @@
 This module contains the QuoteTable class which is a DataTable for displaying quotes.
 """
 
-from typing import Any, Optional
+from typing import Any
 
 from rich.style import Style
 from rich.text import Text

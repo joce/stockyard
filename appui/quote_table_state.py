@@ -7,7 +7,7 @@ from typing import Any, Callable, Optional
 
 from yfinance import YFinance, YQuote
 
-from ._enums import SortDirection
+from ._enums import SortDirection, get_enum_member
 from ._quote_column_definitions import ALL_QUOTE_COLUMNS
 from ._quote_table_data import QuoteCell, QuoteColumn, QuoteRow
 
@@ -15,6 +15,7 @@ from ._quote_table_data import QuoteCell, QuoteColumn, QuoteRow
 class QuoteTableState:
     """The state of the quote table."""
 
+    # Default values
     _DEFAULT_COLUMN_KEYS: list[str] = [
         "ticker",
         "last",
@@ -22,7 +23,6 @@ class QuoteTableState:
         "volume",
         "market_cap",
     ]
-
     _DEFAULT_QUOTES: list[str] = [
         "AAPL",
         "F",
@@ -33,11 +33,10 @@ class QuoteTableState:
         "EURUSD=X",
         "BTC-USD",
     ]
-
     _DEFAULT_SORT_DIRECTION: SortDirection = SortDirection.ASCENDING
-
     _DEFAULT_QUERY_FREQUENCY: int = 10
 
+    # Config file keys
     _COLUMNS: str = "columns"
     _SORT_COLUMN: str = "sort_column"
     _SORT_DIRECTION: str = "sort_direction"
@@ -271,10 +270,10 @@ class QuoteTableState:
             self._sort_column_key = sort_column_key
 
         # Validate the sort direction
-        if sort_direction is None or sort_direction not in SortDirection.__members__:
+        try:
+            self._sort_direction = get_enum_member(SortDirection, sort_direction)
+        except ValueError:
             self._sort_direction = QuoteTableState._DEFAULT_SORT_DIRECTION
-        else:
-            self._sort_direction = SortDirection[sort_direction]
 
         # Validate the quotes symbols
         if quotes_symbols is None or len(quotes_symbols) == 0:
@@ -316,6 +315,6 @@ class QuoteTableState:
 
         config[QuoteTableState._COLUMNS] = self._columns_keys[:]
         config[QuoteTableState._SORT_COLUMN] = self._sort_column_key
-        config[QuoteTableState._SORT_DIRECTION] = self._sort_direction.name
+        config[QuoteTableState._SORT_DIRECTION] = self._sort_direction.value
         config[QuoteTableState._QUOTES] = self._quotes_symbols[:]
         config[QuoteTableState._QUERY_FREQUENCY] = self._query_frequency
