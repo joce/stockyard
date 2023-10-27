@@ -17,6 +17,9 @@ from .quote_table_state import QuoteTableState
 class QuoteTable(DataTable):
     """A DataTable for displaying quotes."""
 
+    _GAINING_COLOR: str = "#00DD00"
+    _LOSING_COLOR: str = "#DD0000"
+
     def __init__(self, state: QuoteTableState) -> None:
         super().__init__()
         self._state: QuoteTableState = state
@@ -151,7 +154,11 @@ class QuoteTable(DataTable):
         return Text(
             cell.value,
             justify=cell.justify.value,
-            style="#DD0000" if cell.sign == -1 else "#00DD00" if cell.sign > 0 else "",
+            style=QuoteTable._LOSING_COLOR
+            if cell.sign == -1
+            else QuoteTable._GAINING_COLOR
+            if cell.sign > 0
+            else "",
         )
 
     def watch_hover_coordinate(self, old: Coordinate, value: Coordinate) -> None:
@@ -179,6 +186,9 @@ class QuoteTable(DataTable):
         cursor: bool = False,
         hover: bool = False,
     ):
+        """
+        Override the default _render_cell method to allow for hover on the header.
+        """
         if row_index == -1:
             hover = self._current_hover_column == column_index
 
