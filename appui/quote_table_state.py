@@ -140,6 +140,17 @@ class QuoteTableState:
         self._version += 1
 
     @property
+    def query_frequency(self) -> int:
+        """The frequency (in seconds) to query for quotes."""
+
+        return self._query_frequency
+
+    @query_frequency.setter
+    def query_frequency(self, value: int) -> None:
+        self._query_frequency = value
+        # Don't change the version. This is a setting for the backend, not the UI.
+
+    @property
     def current_row(self) -> int:
         """The current row of the cursor."""
 

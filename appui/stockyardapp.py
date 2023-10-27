@@ -37,7 +37,7 @@ class StockyardApp(App):
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
 
-        yield QuoteTable(self._state.quote_table_state())
+        yield QuoteTable(self._state.quote_table_state)
         yield Horizontal(Footer(), Clock())
 
     def on_mount(self) -> None:

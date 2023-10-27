@@ -53,6 +53,33 @@ class StockyardAppState:
         self._title = value
         self._version += 1
 
+    @property
+    def log_level(self) -> int:
+        """The logging level."""
+
+        return self._log_level
+
+    @log_level.setter
+    def log_level(self, value: int) -> None:
+        if value == self._log_level:
+            return
+        self._log_level = value
+        self._version += 1
+
+    @property
+    def time_display(self) -> TimeFormat:
+        """The time display format."""
+
+        return self._time_display
+
+    @time_display.setter
+    def time_display(self, value: TimeFormat) -> None:
+        if value == self._time_display:
+            return
+        self._time_display = value
+        self._version += 1
+
+    @property
     def quote_table_state(self) -> QuoteTableState:
         """The state of the quote table."""
 
