@@ -108,7 +108,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
         QuoteColumn(
             "52w Low",
             10,
-            "52_low",
+            "52w_low",
             lambda q: as_float(q.fifty_two_week_low, q.price_hint),
             lambda q: q.fifty_two_week_low,
         )
@@ -117,7 +117,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
         QuoteColumn(
             "52w High",
             10,
-            "52_high",
+            "52w_high",
             lambda q: as_float(q.fifty_two_week_high, q.price_hint),
             lambda q: q.fifty_two_week_high,
         )

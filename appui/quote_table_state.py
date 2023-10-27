@@ -15,9 +15,10 @@ from ._quote_table_data import QuoteCell, QuoteColumn, QuoteRow
 class QuoteTableState:
     """The state of the quote table."""
 
+    _TICKER_COLUMN_KEY: str = "ticker"
+
     # Default values
     _DEFAULT_COLUMN_KEYS: list[str] = [
-        "ticker",
         "last",
         "change_percent",
         "volume",
@@ -46,11 +47,14 @@ class QuoteTableState:
     def __init__(self, yfin: YFinance) -> None:
         self._yfin: YFinance = yfin
 
-        self._columns_keys: list[str] = QuoteTableState._DEFAULT_COLUMN_KEYS[:]
+        # Ticker is *always* the first column
+        self._columns_keys: list[str] = [
+            QuoteTableState._TICKER_COLUMN_KEY
+        ] + QuoteTableState._DEFAULT_COLUMN_KEYS[:]
+
         self._quotes_symbols: list[str] = QuoteTableState._DEFAULT_QUOTES[:]
 
-        # TODO Another quick and dirty hack. This information will be retrieved from the config file as well.
-        self._sort_column_key: str = self._columns_keys[2]
+        self._sort_column_key: str = QuoteTableState._TICKER_COLUMN_KEY
         self._sort_direction: SortDirection = QuoteTableState._DEFAULT_SORT_DIRECTION
         self._query_frequency: int = QuoteTableState._DEFAULT_QUERY_FREQUENCY
 
@@ -219,10 +223,10 @@ class QuoteTableState:
             config (dict[str, Any]): The configuration dictionary to load.
         """
 
-        columns_keys: Optional[list[str]] = (
-            config[QuoteTableState._COLUMNS]
+        columns_keys: list[str] = (
+            config[QuoteTableState._COLUMNS][:]
             if QuoteTableState._COLUMNS in config
-            else None
+            else []
         )
         sort_column_key: Optional[str] = (
             config[QuoteTableState._SORT_COLUMN]
@@ -234,10 +238,10 @@ class QuoteTableState:
             if QuoteTableState._SORT_DIRECTION in config
             else None
         )
-        quotes_symbols: Optional[list[str]] = (
-            config[QuoteTableState._QUOTES]
+        quotes_symbols: list[str] = (
+            config[QuoteTableState._QUOTES][:]
             if QuoteTableState._QUOTES in config
-            else None
+            else []
         )
         query_frequency: Optional[int] = (
             config[QuoteTableState._QUERY_FREQUENCY]
@@ -248,20 +252,31 @@ class QuoteTableState:
         # TODO: Check if values are actually changed, and if so, bump the version
 
         # Validate the column keys
-        if columns_keys is None or len(columns_keys) == 0:
+        if len(columns_keys) == 0:
             logging.warning("No columns specified in config file")
             self._columns_keys = QuoteTableState._DEFAULT_COLUMN_KEYS[:]
+            self._columns_keys.insert(0, QuoteTableState._TICKER_COLUMN_KEY)
         else:
-            self._columns_keys = columns_keys[:]
+            # Ticker is *always* the first column
+            self._columns_keys = [QuoteTableState._TICKER_COLUMN_KEY]
 
-        # Make sure the column keys are supported
-        for i in reversed(range(len(self._columns_keys))):
-            if self._columns_keys[i] not in ALL_QUOTE_COLUMNS:
-                logging.warning(
-                    "Invalid column key '%s' specified in config file",
-                    self._columns_keys[i],
-                )
-                self._columns_keys.pop(i)
+            # Make sure the column keys are supported and there are no duplicates
+            for column_key in columns_keys:
+                if column_key not in ALL_QUOTE_COLUMNS:
+                    logging.warning(
+                        "Invalid column key '%s' specified in config file",
+                        column_key,
+                    )
+                    continue
+
+                if column_key in self._columns_keys:
+                    logging.warning(
+                        "Duplicate column key '%s' specified in config file",
+                        column_key,
+                    )
+                    continue
+
+                self._columns_keys.append(column_key)
 
         # Validate the sort column key
         if sort_column_key is None or sort_column_key not in self._columns_keys:
@@ -276,7 +291,7 @@ class QuoteTableState:
             self._sort_direction = QuoteTableState._DEFAULT_SORT_DIRECTION
 
         # Validate the quotes symbols
-        if quotes_symbols is None or len(quotes_symbols) == 0:
+        if len(quotes_symbols) == 0:
             logging.warning("No quotes specified in config file")
             self._quotes_symbols = QuoteTableState._DEFAULT_QUOTES[:]
         else:
@@ -313,7 +328,8 @@ class QuoteTableState:
         if len(config) > 0:
             raise ValueError("Configuration dictionary must be empty")
 
-        config[QuoteTableState._COLUMNS] = self._columns_keys[:]
+        # Skip the ticker column
+        config[QuoteTableState._COLUMNS] = self._columns_keys[1:]
         config[QuoteTableState._SORT_COLUMN] = self._sort_column_key
         config[QuoteTableState._SORT_DIRECTION] = self._sort_direction.value
         config[QuoteTableState._QUOTES] = self._quotes_symbols[:]

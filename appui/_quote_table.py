@@ -46,6 +46,7 @@ class QuoteTable(DataTable):
         self.zebra_stripes = True
         self.cursor_foreground_priority = "renderable"
         self.set_interval(0.01, self._update_table)
+        self.fixed_columns = 1
 
         # Force a first update
         self._version = self._state.version - 1
