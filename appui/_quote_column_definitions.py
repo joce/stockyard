@@ -24,12 +24,12 @@ def _get_safe_value(v: Optional[T]) -> float:
     return -inf if v is None else v
 
 
-def _get_sign(v: float) -> int:
+def _get_sign(v: T) -> int:
     """
     Determines the sign of a given value.
 
     Args:
-        v (float): The value for which the sign is to be determined.
+        v (T): The value for which the sign is to be determined.
 
     Returns:
         int: Returns 1 if the value is greater than 0, -1 if less than 0, and 0 if the value is exactly 0.
