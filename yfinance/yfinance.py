@@ -15,6 +15,11 @@ class YFinance:
     def __init__(self) -> None:
         self._yclient = YClient()
 
+    def prime(self) -> None:
+        """Prime the YFinance client."""
+
+        self._yclient.prime()
+
     def get_quotes(self, symbols: list[str]) -> list[YQuote]:
         """
         Retrieve quotes for the given symbols.
@@ -28,6 +33,7 @@ class YFinance:
         Returns:
             list[YQuote]: The quotes for the given symbols.
         """
+
         if symbols is None or len(symbols) == 0:
             logging.error("No symbols provided")
             raise ValueError("No symbols provided")

@@ -278,6 +278,12 @@ class YClient:
 
             return json.loads(res_body)
 
+    def prime(self) -> None:
+        """Prime the client for use."""
+
+        self.__refresh_cookies()
+        self.__refresh_crumb()
+
     def call(
         self, api_url: str, query_params: dict[str, str] | None = None
     ) -> dict[str, Any]:

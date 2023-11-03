@@ -8,6 +8,19 @@ Clock {
     color: white;
 }
 
+LoadingIndicator {
+    height: 1fr;
+}
+
+#clock-footer {
+    height: 1;
+    dock: bottom;
+}
+
+QuoteTable {
+    height: 1fr;
+}
+
 QuoteTable > .datatable--cursor {
     background: rgb(92, 128, 128);
 }
