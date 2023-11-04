@@ -1,7 +1,7 @@
 """The state of the quote table."""
 
 import logging
-from threading import Thread
+from threading import Lock, Thread
 from time import monotonic, sleep
 from typing import Any, Callable, Optional
 
@@ -74,6 +74,7 @@ class QuoteTableState:
         self._version: int = 0
 
         self._quotes: list[YQuote] = []
+        self._quotes_lock = Lock()
 
     def __del__(self) -> None:
         # Make sure the query thread is stopped
@@ -122,7 +123,8 @@ class QuoteTableState:
             return
         self._sort_column_key = value
         self._sort_key_func = ALL_QUOTE_COLUMNS[self._sort_column_key].sort_key_func
-        self._sort_quotes()
+        with self._quotes_lock:
+            self._sort_quotes()
         self._version += 1
 
     @property
@@ -136,7 +138,8 @@ class QuoteTableState:
         if value == self._sort_direction:
             return
         self._sort_direction = value
-        self._sort_quotes()
+        with self._quotes_lock:
+            self._sort_quotes()
         self._version += 1
 
     @property
@@ -154,15 +157,16 @@ class QuoteTableState:
     def current_row(self) -> int:
         """The current row of the cursor."""
 
-        # Return the index of the quote (from _quotes) whose ticker symbol matches the cursor symbol
-        return next(
-            (
-                i
-                for i, quote in enumerate(self._quotes)
-                if quote.symbol == self._cursor_symbol
-            ),
-            -1,
-        )
+        with self._quotes_lock:
+            # Return the index of the quote (from _quotes) whose ticker symbol matches the cursor symbol
+            return next(
+                (
+                    i
+                    for i, quote in enumerate(self._quotes)
+                    if quote.symbol == self._cursor_symbol
+                ),
+                -1,
+            )
 
     @current_row.setter
     def current_row(self, value: int) -> None:
@@ -174,7 +178,9 @@ class QuoteTableState:
             and self._quotes_symbols[value] == self._cursor_symbol
         ):
             return
-        self._cursor_symbol = self._quotes[value].symbol
+
+        with self._quotes_lock:
+            self._cursor_symbol = self._quotes[value].symbol
         # Setting the current row does not change the version. It's just mirroring the cursor position from the UI.
 
     def get_quotes(self) -> list[QuoteRow]:
@@ -184,31 +190,32 @@ class QuoteTableState:
         Returns:
             list[QuoteRow]: The quotes to display in the quote table.
         """
+        with self._quotes_lock:
+            quote_info: list[QuoteRow] = [
+                QuoteRow(
+                    q.symbol,
+                    [
+                        QuoteCell(
+                            ALL_QUOTE_COLUMNS[column].format_func(q),
+                            ALL_QUOTE_COLUMNS[column].sign_indicator_func(q),
+                            ALL_QUOTE_COLUMNS[column].justification,
+                        )
+                        for column in self._columns_keys
+                    ],
+                )
+                for q in self._quotes
+            ]
 
-        quote_info: list[QuoteRow] = [
-            QuoteRow(
-                q.symbol,
-                [
-                    QuoteCell(
-                        ALL_QUOTE_COLUMNS[column].format_func(q),
-                        ALL_QUOTE_COLUMNS[column].sign_indicator_func(q),
-                        ALL_QUOTE_COLUMNS[column].justification,
-                    )
-                    for column in self._columns_keys
-                ],
-            )
-            for q in self._quotes
-        ]
-
-        return quote_info
+            return quote_info
 
     def _query_quotes(self) -> None:
         """Query for the quotes and update the change version."""
 
         now: float = monotonic()
         while self._query_thread_running:
-            self._quotes = self._yfin.get_quotes(self._quotes_symbols)
-            self._sort_quotes()
+            with self._quotes_lock:
+                self._quotes = self._yfin.get_quotes(self._quotes_symbols)
+                self._sort_quotes()
             self._last_query_time = now
             self._version += 1
 
@@ -220,6 +227,11 @@ class QuoteTableState:
 
     def _sort_quotes(self):
         """Sort the quotes, according to the sort column and direction."""
+
+        if not self._quotes_lock.locked():
+            raise RuntimeError(
+                "The _quotes_lock must be acquired before calling this function"
+            )
 
         self._quotes.sort(
             key=self._sort_key_func,
