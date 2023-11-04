@@ -174,6 +174,7 @@ def test_round_trip_config(fixture_qts: QuoteTableState):
 # - remove_quote
 # - get_quotes
 # - current_row
+# - sorting stability
 # - sort_direction
 # - sort_column_key
 # - columns
