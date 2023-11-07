@@ -320,12 +320,16 @@ class QuoteTableState:
             self._quotes_symbols = QuoteTableState._DEFAULT_QUOTES[:]
         else:
             self._quotes_symbols.clear()
-            for i in reversed(range(len(quotes_symbols))):
-                if quotes_symbols[i] == "":
+            for quote_symbol in quotes_symbols:
+                if quote_symbol == "":
                     logging.warning("Empty quote symbol specified in config file")
-                    quotes_symbols.pop(i)
+                elif quote_symbol in self._quotes_symbols:
+                    logging.warning(
+                        "Duplicate quote symbol %s specified in config file",
+                        quote_symbol,
+                    )
                 else:
-                    self._quotes_symbols.insert(0, quotes_symbols[i].upper())
+                    self._quotes_symbols.append(quote_symbol.upper())
 
         # Validate the query frequency
         if query_frequency is None or query_frequency <= 1:

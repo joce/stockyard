@@ -109,6 +109,22 @@ def test_load_config_invalid_query_frequency(fixture_qts: QuoteTableState):
     assert fixture_qts.query_frequency == QuoteTableState._DEFAULT_QUERY_FREQUENCY
 
 
+def test_load_config_empty_quote_symbol(fixture_qts: QuoteTableState):
+    config: dict[str, Any] = {
+        QuoteTableState._QUOTES: ["AAPL", "F", "", "VT"],
+    }
+    fixture_qts.load_config(config)
+    assert fixture_qts._quotes_symbols == ["AAPL", "F", "VT"]
+
+
+def test_load_config_duplicate_quote_symbol(fixture_qts: QuoteTableState):
+    config: dict[str, Any] = {
+        QuoteTableState._QUOTES: ["AAPL", "F", "F", "VT", "AAPL"],
+    }
+    fixture_qts.load_config(config)
+    assert fixture_qts._quotes_symbols == ["AAPL", "F", "VT"]
+
+
 def test_save_config_empty_dict(fixture_qts: QuoteTableState):
     config: dict[str, Any] = {}
     fixture_qts.save_config(config)
