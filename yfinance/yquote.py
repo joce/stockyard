@@ -2,7 +2,7 @@
 This module contains the YQuote class, which represents a quote for a security, as retrieved from the Yahoo! Finance API.
 """
 
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from enum import Enum
 from typing import Any, Optional
 from zoneinfo import ZoneInfo
@@ -1224,8 +1224,7 @@ class YQuote:
         self._exchange: str = input_data["exchange"]
         self._exchange_data_delayed_by: int = input_data["exchangeDataDelayedBy"]
         self._expire_date: Optional[date] = (
-            datetime.utcfromtimestamp(input_data["expireDate"]).date()
-            # date.fromtimestamp(input_data["expireDate"])
+            datetime.fromtimestamp(input_data["expireDate"], UTC).date()
             if "expireDate" in input_data
             else None
         )
