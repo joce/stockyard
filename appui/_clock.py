@@ -1,6 +1,6 @@
 """A very simple and limited widget to display the current time."""
 
-from datetime import datetime, timezone
+from datetime import datetime
 
 from textual.widgets import Static
 
@@ -11,12 +11,7 @@ class Clock(Static):
     def on_mount(self) -> None:
         """Event handler called when widget is added to the app."""
 
-        self.set_interval(1 / 60, self.update_time)
-
-    def update_time(self) -> None:
-        """Method to tick the clock update."""
-
         # TODO Make the time display configurable through the config file (24h v. AM/PM)
-        self.update(
-            datetime.strftime(datetime.now(timezone.utc).astimezone(), "%H:%M:%S")
+        self.set_interval(
+            1, lambda: self.update(datetime.now().time().strftime("%H:%M:%S"))
         )
