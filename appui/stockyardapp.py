@@ -109,6 +109,7 @@ class StockyardApp(App):
 
     def _finish_loading(self) -> None:
         """Finish loading."""
+
         indicator: LoadingIndicator = self.query_one(
             "LoadingIndicator", LoadingIndicator
         )

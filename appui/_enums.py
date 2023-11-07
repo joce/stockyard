@@ -43,6 +43,7 @@ def get_enum_member(enum_type: Type[T], value: Optional[U]) -> T:
     Returns:
         T: The enum member.
     """
+
     for member in enum_type:
         if member.value == value:
             return member

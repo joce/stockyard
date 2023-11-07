@@ -104,6 +104,7 @@ class QuoteColumn:
                 The function used to provide the sign indicator for the column. Defaults to a function that returns 0 (neutral).
             justify (Justify, optional): The justification of the column. Defaults to Justify.RIGHT.
         """
+
         self._name: str = name
         self._width: int = width
         self._key: str = key

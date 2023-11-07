@@ -87,7 +87,7 @@ def test_load_empty_config(fixture_sas: StockyardAppState):
     assert fixture_sas._log_level == StockyardAppState._DEFAULT_LOG_LEVEL
 
 
-def test_load_invalid_time_display(fixture_sas: StockyardAppState):
+def test_load_config_invalid_time_display(fixture_sas: StockyardAppState):
     config: dict[str, Any] = {
         StockyardAppState._TIME_FORMAT: "1000000h",
     }
@@ -95,7 +95,7 @@ def test_load_invalid_time_display(fixture_sas: StockyardAppState):
     assert fixture_sas._time_display == StockyardAppState._DEFAULT_TIME_FORMAT
 
 
-def test_load_invalid_lof_level(fixture_sas: StockyardAppState):
+def test_load_config_invalid_lof_level(fixture_sas: StockyardAppState):
     config: dict[str, Any] = {
         StockyardAppState._LOG_LEVEL: "fishy",
     }

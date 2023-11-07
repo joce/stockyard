@@ -21,6 +21,7 @@ def _get_safe_value(v: Optional[T]) -> float:
     Returns:
         float: The value of v if it's not None, otherwise the smallest representable value for type T.
     """
+
     return -inf if v is None else v
 
 
@@ -34,6 +35,7 @@ def _get_sign(v: T) -> int:
     Returns:
         int: Returns 1 if the value is greater than 0, -1 if less than 0, and 0 if the value is exactly 0.
     """
+
     return 1 if v > 0 else -1 if v < 0 else 0
 
 

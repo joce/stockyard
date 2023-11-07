@@ -27,6 +27,10 @@ class QuoteTable(DataTable):
         self._column_key_map: dict[str, Any] = {}
         self._current_hover_column: int = -1
 
+        self.cursor_type = "row"
+        self.zebra_stripes = True
+        self.cursor_foreground_priority = "renderable"
+
     def __del__(self) -> None:
         # Make sure the query thread is stopped
         if self._state is not None:
@@ -45,9 +49,6 @@ class QuoteTable(DataTable):
             )
             self._column_key_map[quote_column.key] = key
 
-        self.cursor_type = "row"
-        self.zebra_stripes = True
-        self.cursor_foreground_priority = "renderable"
         self.set_interval(0.01, self._update_table)
         self.fixed_columns = 1
 
@@ -77,7 +78,7 @@ class QuoteTable(DataTable):
             styled_column: Text = self._get_styled_column_title(quote_column)
             self.columns[self._column_key_map[quote_column.key]].label = styled_column
 
-        quotes: list[QuoteRow] = self._state.get_quotes()
+        quotes: list[QuoteRow] = self._state.get_quotes_rows()
         i: int = 0
         quote: QuoteRow
         for i, quote in enumerate(quotes):
@@ -189,6 +190,7 @@ class QuoteTable(DataTable):
         """
         Override the default _render_cell method to allow for hover on the header.
         """
+
         if row_index == -1:
             hover = self._current_hover_column == column_index
 

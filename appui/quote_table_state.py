@@ -183,13 +183,14 @@ class QuoteTableState:
             self._cursor_symbol = self._quotes[value].symbol
         # Setting the current row does not change the version. It's just mirroring the cursor position from the UI.
 
-    def get_quotes(self) -> list[QuoteRow]:
+    def get_quotes_rows(self) -> list[QuoteRow]:
         """
         Get the quotes to display in the quote table. Each quote is comprised of the elements required for each column.
 
         Returns:
             list[QuoteRow]: The quotes to display in the quote table.
         """
+
         with self._quotes_lock:
             quote_info: list[QuoteRow] = [
                 QuoteRow(

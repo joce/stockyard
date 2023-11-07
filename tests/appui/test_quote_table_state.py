@@ -50,7 +50,7 @@ def test_load_empty_config(fixture_qts: QuoteTableState):
     assert fixture_qts.query_frequency == QuoteTableState._DEFAULT_QUERY_FREQUENCY
 
 
-def test_load_invalid_columns(fixture_qts: QuoteTableState):
+def test_load_config_invalid_columns(fixture_qts: QuoteTableState):
     config: dict[str, Any] = {
         QuoteTableState._COLUMNS: ["truly_not_a_column", "last"],
     }
@@ -58,7 +58,7 @@ def test_load_invalid_columns(fixture_qts: QuoteTableState):
     assert fixture_qts._columns_keys == [QuoteTableState._TICKER_COLUMN_KEY, "last"]
 
 
-def test_load_duplicate_columns(fixture_qts: QuoteTableState):
+def test_load_config_duplicate_columns(fixture_qts: QuoteTableState):
     config: dict[str, Any] = {
         QuoteTableState._COLUMNS: ["last", "last", "last"],
     }
@@ -66,7 +66,7 @@ def test_load_duplicate_columns(fixture_qts: QuoteTableState):
     assert fixture_qts._columns_keys == [QuoteTableState._TICKER_COLUMN_KEY, "last"]
 
 
-def test_load_duplicate_mandatory_column(fixture_qts: QuoteTableState):
+def test_load_config_duplicate_mandatory_column(fixture_qts: QuoteTableState):
     config: dict[str, Any] = {
         QuoteTableState._COLUMNS: [
             "last",
@@ -84,7 +84,7 @@ def test_load_duplicate_mandatory_column(fixture_qts: QuoteTableState):
     ]
 
 
-def test_load_invalid_sort_column(fixture_qts: QuoteTableState):
+def test_load_config_invalid_sort_column(fixture_qts: QuoteTableState):
     config: dict[str, Any] = {
         QuoteTableState._COLUMNS: ["last", "change_percent"],
         QuoteTableState._SORT_COLUMN: "truly_not_a_column",
@@ -93,7 +93,7 @@ def test_load_invalid_sort_column(fixture_qts: QuoteTableState):
     assert fixture_qts.sort_column_key == QuoteTableState._TICKER_COLUMN_KEY
 
 
-def test_load_invalid_sort_direction(fixture_qts: QuoteTableState):
+def test_load_config_invalid_sort_direction(fixture_qts: QuoteTableState):
     config: dict[str, Any] = {
         QuoteTableState._SORT_DIRECTION: "amazing",
     }
@@ -101,7 +101,7 @@ def test_load_invalid_sort_direction(fixture_qts: QuoteTableState):
     assert fixture_qts.sort_direction == QuoteTableState._DEFAULT_SORT_DIRECTION
 
 
-def test_load_invalid_query_frequency(fixture_qts: QuoteTableState):
+def test_load_config_invalid_query_frequency(fixture_qts: QuoteTableState):
     config: dict[str, Any] = {
         QuoteTableState._QUERY_FREQUENCY: 0,
     }

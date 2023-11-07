@@ -30,6 +30,7 @@ def as_float(value: float | None, precision: int = 2) -> str:
     Returns:
         str: The float representation of the value with the specified precision. If the value is None, returns a placeholder string.
     """
+
     if value is None:
         return _NO_VALUE
     return f"{value:.{precision}f}"
@@ -46,6 +47,7 @@ def as_shrunk_int(value: int | None) -> str:
     Returns:
         str: The shrunk integer representation of the value. If the value is None, returns a placeholder string.
     """
+
     if value is None:
         return _NO_VALUE
     if value < 1000:
