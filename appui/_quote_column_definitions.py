@@ -46,7 +46,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             8,
             "ticker",
             lambda q: q.symbol.upper(),
-            lambda q: q.symbol,
+            lambda q: q.symbol.lower(),
             justify=Justify.LEFT,
         )
     ),
@@ -56,7 +56,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             10,
             "last",
             lambda q: as_float(q.regular_market_price, q.price_hint),
-            lambda q: (q.regular_market_price, q.symbol),
+            lambda q: (q.regular_market_price, q.symbol.lower()),
         )
     ),
     "change": (
@@ -65,7 +65,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             10,
             "change",
             lambda q: as_float(q.regular_market_change, q.price_hint),
-            lambda q: (q.regular_market_change, q.symbol),
+            lambda q: (q.regular_market_change, q.symbol.lower()),
             lambda q: _get_sign(q.regular_market_change),
         )
     ),
@@ -75,7 +75,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             8,
             "change_percent",
             lambda q: as_percent(q.regular_market_change_percent),
-            lambda q: (q.regular_market_change_percent, q.symbol),
+            lambda q: (q.regular_market_change_percent, q.symbol.lower()),
             lambda q: _get_sign(q.regular_market_change_percent),
         )
     ),
@@ -85,7 +85,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             10,
             "open",
             lambda q: as_float(q.regular_market_open, q.price_hint),
-            lambda q: (_get_safe_value(q.regular_market_open), q.symbol),
+            lambda q: (_get_safe_value(q.regular_market_open), q.symbol.lower()),
         )
     ),
     "low": (
@@ -94,7 +94,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             10,
             "low",
             lambda q: as_float(q.regular_market_day_low, q.price_hint),
-            lambda q: (_get_safe_value(q.regular_market_day_low), q.symbol),
+            lambda q: (_get_safe_value(q.regular_market_day_low), q.symbol.lower()),
         )
     ),
     "high": (
@@ -103,7 +103,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             10,
             "high",
             lambda q: as_float(q.regular_market_day_high, q.price_hint),
-            lambda q: (_get_safe_value(q.regular_market_day_high), q.symbol),
+            lambda q: (_get_safe_value(q.regular_market_day_high), q.symbol.lower()),
         )
     ),
     "52w_low": (
@@ -112,7 +112,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             10,
             "52w_low",
             lambda q: as_float(q.fifty_two_week_low, q.price_hint),
-            lambda q: (q.fifty_two_week_low, q.symbol),
+            lambda q: (q.fifty_two_week_low, q.symbol.lower()),
         )
     ),
     "52w_high": (
@@ -121,7 +121,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             10,
             "52w_high",
             lambda q: as_float(q.fifty_two_week_high, q.price_hint),
-            lambda q: (q.fifty_two_week_high, q.symbol),
+            lambda q: (q.fifty_two_week_high, q.symbol.lower()),
         )
     ),
     "volume": (
@@ -130,7 +130,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             10,
             "volume",
             lambda q: as_shrunk_int(q.regular_market_volume),
-            lambda q: (_get_safe_value(q.regular_market_volume), q.symbol),
+            lambda q: (_get_safe_value(q.regular_market_volume), q.symbol.lower()),
         )
     ),
     "avg_volume": (
@@ -139,7 +139,10 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             10,
             "avg_volume",
             lambda q: as_shrunk_int(q.average_daily_volume_3_month),
-            lambda q: (_get_safe_value(q.average_daily_volume_3_month), q.symbol),
+            lambda q: (
+                _get_safe_value(q.average_daily_volume_3_month),
+                q.symbol.lower(),
+            ),
         )
     ),
     "pe": (
@@ -148,7 +151,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             6,
             "pe",
             lambda q: as_float(q.trailing_pe),
-            lambda q: (_get_safe_value(q.trailing_pe), q.symbol),
+            lambda q: (_get_safe_value(q.trailing_pe), q.symbol.lower()),
         )
     ),
     "dividend": (
@@ -157,7 +160,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             6,
             "dividend",
             lambda q: as_float(q.dividend_yield),
-            lambda q: (_get_safe_value(q.dividend_yield), q.symbol),
+            lambda q: (_get_safe_value(q.dividend_yield), q.symbol.lower()),
         )
     ),
     "market_cap": (
@@ -166,7 +169,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             10,
             "market_cap",
             lambda q: as_shrunk_int(q.market_cap),
-            lambda q: (_get_safe_value(q.market_cap), q.symbol),
+            lambda q: (_get_safe_value(q.market_cap), q.symbol.lower()),
         )
     ),
 }

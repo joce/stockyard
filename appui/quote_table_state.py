@@ -35,7 +35,7 @@ class QuoteTableState:
         "BTC-USD",
     ]
     _DEFAULT_SORT_DIRECTION: SortDirection = SortDirection.ASCENDING
-    _DEFAULT_QUERY_FREQUENCY: int = 10
+    _DEFAULT_QUERY_FREQUENCY: int = 60
 
     # Config file keys
     _COLUMNS: str = "columns"
@@ -214,11 +214,7 @@ class QuoteTableState:
 
         now: float = monotonic()
         while self._query_thread_running:
-            with self._quotes_lock:
-                self._quotes = self._yfin.get_quotes(self._quotes_symbols)
-                self._sort_quotes()
-            self._last_query_time = now
-            self._version += 1
+            self._load_quotes_internal(now)
 
             while now - self._last_query_time < self._query_frequency:
                 if not self._query_thread_running:
@@ -238,6 +234,22 @@ class QuoteTableState:
             key=self._sort_key_func,
             reverse=(self._sort_direction == SortDirection.DESCENDING),
         )
+
+    def _load_quotes_internal(self, monotonic_clock: float) -> None:
+        """
+        Query for the quotes from the YFinance interface and update the change version.
+
+        NOTE: Not for external use. Created for testing purposes.
+
+        Args:
+            monotonic_clock (float): A monotonic clock time.
+        """
+
+        with self._quotes_lock:
+            self._quotes = self._yfin.get_quotes(self._quotes_symbols)
+            self._sort_quotes()
+        self._last_query_time = monotonic_clock
+        self._version += 1
 
     def load_config(self, config: dict[str, Any]) -> None:
         """

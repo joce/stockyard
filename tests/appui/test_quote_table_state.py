@@ -3,17 +3,30 @@
 # pylint: disable=missing-function-docstring
 # pylint: disable=redefined-outer-name
 
+import re
+from time import monotonic
 from typing import Any
 
 import pytest
 
+from appui._quote_table_data import QuoteRow
 from appui.quote_table_state import QuoteTableState
-from yfinance import YFinance
+
+from .fake_yfinance import FakeYFinance
+
+# A number with 2 decimal values
+NUMBER_RE: re.Pattern = re.compile(r"^(?:-?\d+\.\d{2}|N/A)$", re.M)
+
+# a percentage with 2 decimal values
+PERCENT_RE: re.Pattern = re.compile(r"^(?:-?\d+\.\d{2}%|N/A)$", re.M)
+
+# a shrunken int
+SHRUNKEN_INT_RE: re.Pattern = re.compile(r"^(?:\d{1,3}(?:\.\d{2}[KMBT])?|N/A)$", re.M)
 
 
 @pytest.fixture
 def fixture_qts() -> QuoteTableState:
-    yfin = YFinance()
+    yfin = FakeYFinance()
     qts = QuoteTableState(yfin)
     return qts
 
@@ -182,16 +195,38 @@ def test_round_trip_config(fixture_qts: QuoteTableState):
     assert fixture_qts.query_frequency == config[QuoteTableState._QUERY_FREQUENCY]
 
 
+def test_default_get_quotes_rows(fixture_qts: QuoteTableState):
+    columns: list[str] = ["last", "change_percent", "market_cap"]
+    # Note the quotes are in alphabetical order, the same as the default sort order.
+    # Sorting is tested below in TODO
+    quotes: list[str] = ["^DJI", "AAPL", "F", "VT"]
+    config: dict[str, Any] = {
+        QuoteTableState._COLUMNS: columns,
+        QuoteTableState._QUOTES: quotes,
+    }
+
+    fixture_qts.load_config(config)
+    # Make sure the quotes are loaded from an "external" source
+    fixture_qts._load_quotes_internal(monotonic())
+    rows: list[QuoteRow] = fixture_qts.get_quotes_rows()
+
+    assert len(rows) == len(quotes)
+
+    for i, row in enumerate(rows):
+        assert len(row.values) == len(columns) + 1  # +1 for symbol; always there
+        assert row.values[0].value == quotes[i]
+        assert NUMBER_RE.match(row.values[1].value)  # last
+        assert PERCENT_RE.match(row.values[2].value)  # change_percent
+        assert SHRUNKEN_INT_RE.match(row.values[3].value)  # market_cap
+
+
 # TODO - add tests for the following:
 # - add_column
 # - remove_column
 # - move_column
 # - add_quote
 # - remove_quote
-# - get_quotes
 # - current_row
-# - sorting stability
 # - sort_direction
 # - sort_column_key
-# - columns
 # - thread_running (tricky... using mock?)
