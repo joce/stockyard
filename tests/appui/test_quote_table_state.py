@@ -139,8 +139,7 @@ def test_load_config_duplicate_quote_symbol(fixture_qts: QuoteTableState):
 
 
 def test_save_config_empty_dict(fixture_qts: QuoteTableState):
-    config: dict[str, Any] = {}
-    fixture_qts.save_config(config)
+    config: dict[str, Any] = fixture_qts.save_config()
 
     # The first column, "ticker", is not saved
     assert config[QuoteTableState._COLUMNS] == fixture_qts._columns_keys[1:]
@@ -151,24 +150,15 @@ def test_save_config_empty_dict(fixture_qts: QuoteTableState):
 
 
 def test_save_config_takes_list_copies(fixture_qts: QuoteTableState):
-    config: dict[str, Any] = {}
-    fixture_qts.save_config(config)
+    config: dict[str, Any] = fixture_qts.save_config()
     config[QuoteTableState._COLUMNS][0] = "foo_foo"
     config[QuoteTableState._QUOTES][0] = "ZZZZ"
     assert config[QuoteTableState._COLUMNS] != fixture_qts._columns_keys
     assert config[QuoteTableState._QUOTES] != fixture_qts._quotes_symbols
 
 
-def test_save_config_non_empty_dict(fixture_qts: QuoteTableState):
-    config: dict[str, Any] = {"dummy_key": "dummy_value"}
-    with pytest.raises(ValueError):
-        fixture_qts.save_config(config)
-
-
 def test_round_trip_config(fixture_qts: QuoteTableState):
-    config: dict[str, Any] = {}
-
-    fixture_qts.save_config(config)
+    config: dict[str, Any] = fixture_qts.save_config()
 
     # The first column, "ticker", is not saved
     assert config[QuoteTableState._COLUMNS] == fixture_qts._columns_keys[1:]

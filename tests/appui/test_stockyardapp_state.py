@@ -104,8 +104,7 @@ def test_load_config_invalid_lof_level(fixture_sas: StockyardAppState):
 
 
 def test_save_config_empty_dict(fixture_sas: StockyardAppState):
-    config: dict[str, Any] = {}
-    fixture_sas.save_config(config)
+    config: dict[str, Any] = fixture_sas.save_config()
     assert [QuoteTableState._TICKER_COLUMN_KEY] + config[
         StockyardAppState._QUOTE_TABLE
     ][QuoteTableState._COLUMNS] == fixture_sas.quote_table_state._columns_keys
@@ -131,16 +130,8 @@ def test_save_config_empty_dict(fixture_sas: StockyardAppState):
     )
 
 
-def test_save_config_non_empty_dict(fixture_sas: StockyardAppState):
-    config: dict[str, Any] = {"dummy_key": "dummy_value"}
-    with pytest.raises(ValueError):
-        fixture_sas.save_config(config)
-
-
 def test_round_trip_config(fixture_sas: StockyardAppState):
-    config: dict[str, Any] = {}
-
-    fixture_sas.save_config(config)
+    config: dict[str, Any] = fixture_sas.save_config()
     assert config[StockyardAppState._TIME_FORMAT] == fixture_sas._time_display.value
     assert (
         logging.__dict__[config[StockyardAppState._LOG_LEVEL]] == fixture_sas._log_level

@@ -91,8 +91,7 @@ class StockyardApp(App):
         try:
             f: TextIOWrapper
             with open(path, "w", encoding="utf-8") as f:
-                config: dict[str, Any] = {}
-                self._state.save_config(config)
+                config: dict[str, Any] = self._state.save_config()
                 json.dump(config, f, indent=4)
         except FileNotFoundError:
             logging.error("save_config: Config file not found: %s", path)

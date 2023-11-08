@@ -120,17 +120,18 @@ class StockyardAppState:
         else:
             self._log_level = logging.__dict__[log_level]
 
-    def save_config(self, config: dict[str, Any]) -> None:
-        """Save the configuration for the app."""
+    def save_config(self) -> dict[str, Any]:
+        """
+        Save the configuration for the app.
 
-        if len(config) > 0:
-            raise ValueError("Configuration dictionary must be empty")
+        Returns:
+            (dict[str, Any]): A dictionary containing the configuration.
+        """
 
-        quote_table_config: dict[str, Any] = {}
-        self._quote_table_state.save_config(quote_table_config)
-        config[StockyardAppState._QUOTE_TABLE] = quote_table_config
-        config[StockyardAppState._TIME_FORMAT] = self._time_display.value
-
-        config[StockyardAppState._LOG_LEVEL] = StockyardAppState._LOGGING_LEVELS[
-            self._log_level
-        ]
+        return {
+            StockyardAppState._QUOTE_TABLE: self._quote_table_state.save_config(),
+            StockyardAppState._TIME_FORMAT: self._time_display.value,
+            StockyardAppState._LOG_LEVEL: StockyardAppState._LOGGING_LEVELS[
+                self._log_level
+            ],
+        }

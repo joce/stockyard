@@ -357,23 +357,18 @@ class QuoteTableState:
         self._columns = [ALL_QUOTE_COLUMNS[column] for column in self._columns_keys]
         self._sort_key_func = ALL_QUOTE_COLUMNS[self._sort_column_key].sort_key_func
 
-    def save_config(self, config: dict[str, Any]) -> None:
+    def save_config(self) -> dict[str, Any]:
         """
         Save the configuration for the quote table.
 
-        Args:
-            config (dict[str, Any]): A dictionary to save the configuration.
-
-        Raises:
-            ValueError: If the configuration dictionary is not empty
+        Returns:
+            (dict[str, Any]): A dictionary containing the configuration.
         """
 
-        if len(config) > 0:
-            raise ValueError("Configuration dictionary must be empty")
-
-        # Skip the ticker column
-        config[QuoteTableState._COLUMNS] = self._columns_keys[1:]
-        config[QuoteTableState._SORT_COLUMN] = self._sort_column_key
-        config[QuoteTableState._SORT_DIRECTION] = self._sort_direction.value
-        config[QuoteTableState._QUOTES] = self._quotes_symbols[:]
-        config[QuoteTableState._QUERY_FREQUENCY] = self._query_frequency
+        return {
+            QuoteTableState._COLUMNS: self._columns_keys[1:],
+            QuoteTableState._SORT_COLUMN: self._sort_column_key,
+            QuoteTableState._SORT_DIRECTION: self._sort_direction.value,
+            QuoteTableState._QUOTES: self._quotes_symbols[:],
+            QuoteTableState._QUERY_FREQUENCY: self._query_frequency,
+        }
