@@ -71,7 +71,8 @@ class YClient:
         """
         Logging to Yahoo! finance.
 
-        Logging in will set the cookies that are required to fetch the crumb and make calls to the Yahoo! finance API.
+        Logging in will set the cookies that are required to fetch the crumb and make
+        calls to the Yahoo! finance API.
         """
 
         def _is_eu_consent_redirect(response: requests.Response) -> bool:
@@ -151,7 +152,8 @@ class YClient:
                 )
                 return RequestsCookieJar()
 
-            # Find the right URL in the redirect history, and extract the CSRF token from it
+            # Find the right URL in the redirect history, and extract the CSRF token
+            # from it
             guce_url: str = ""
             hist: requests.Response
             for hist in response.history:
@@ -251,7 +253,8 @@ class YClient:
         Execute the given request and return the data from the response.
 
         Args:
-            api_call (str): The path to the Yahoo! finance API call (with arguments) to create a request for.
+            api_call (str): The path to the Yahoo! finance API call (with arguments) to
+            create a request for.
 
         Returns:
             dict[str, Any]: The JSON response.
@@ -288,11 +291,13 @@ class YClient:
         self, api_url: str, query_params: dict[str, str] | None = None
     ) -> dict[str, Any]:
         """
-        Call the given path with the given query parameters (if any) and return the data from the response.
+        Call the given path with the given query parameters (if any) and return the data
+        from the response.
 
         Args:
             api_url (str): The path of the API to call on the Yahoo! Finance API.
-            query_params (dict[str, str], optional): The query parameters to pass along with the api call. Defaults to None.
+            query_params (dict[str, str], optional): The query parameters to pass along
+            with the api call. Defaults to None.
 
         Returns:
             dict[str, Any]: The JSON response.

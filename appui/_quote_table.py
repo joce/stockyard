@@ -82,7 +82,8 @@ class QuoteTable(DataTable):
         i: int = 0
         quote: QuoteRow
         for i, quote in enumerate(quotes):
-            # We only use the index as the row key, so we can update and reorder the rows as needed
+            # We only use the index as the row key, so we can update and reorder the
+            # rows as needed
             quote_key: str = str(i)
             # Update existing rows
             if quote_key in self.rows:
@@ -113,14 +114,15 @@ class QuoteTable(DataTable):
         """
         Generate a styled column title based on the quote column and the current state.
 
-        If the quote column key matches the sort column key in the current state, an arrow
-        indicating the sort direction is added to the column title. The position of the arrow
-        depends on the justification of the column: if the column is left-justified, the arrow
-        is added at the end of the title; if the column is right-justified, the arrow is added
-        at the beginning of the title.
+        If the quote column key matches the sort column key in the current state, an
+        arrow indicating the sort direction is added to the column title. The position
+        of the arrow depends on the justification of the column: if the column is
+        left-justified, the arrow is added at the end of the title; if the column is
+        right-justified, the arrow is added at the beginning of the title.
 
         Args:
-            quote_column (QuoteColumn): The quote column for which to generate a styled title.
+            quote_column (QuoteColumn): The quote column for which to generate a styled
+                title.
 
         Returns:
             Text: The styled column title.
@@ -221,7 +223,8 @@ class QuoteTable(DataTable):
         )
 
         if selected_column_key != self._state.sort_column_key:
-            # TODO Add a function that can set both the sort column and the sort direction at once
+            # TODO Add a function that can set both the sort column and the sort
+            # direction at once
             self._state.sort_column_key = selected_column_key
             self._state.sort_direction = SortDirection.ASCENDING
         else:

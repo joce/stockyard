@@ -158,7 +158,8 @@ class QuoteTableState:
         """The current row of the cursor."""
 
         with self._quotes_lock:
-            # Return the index of the quote (from _quotes) whose ticker symbol matches the cursor symbol
+            # Return the index of the quote (from _quotes) whose ticker symbol matches
+            # the cursor symbol
             return next(
                 (
                     i
@@ -181,11 +182,13 @@ class QuoteTableState:
 
         with self._quotes_lock:
             self._cursor_symbol = self._quotes[value].symbol
-        # Setting the current row does not change the version. It's just mirroring the cursor position from the UI.
+        # Setting the current row does not change the version. It's just mirroring the
+        # cursor position from the UI.
 
     def get_quotes_rows(self) -> list[QuoteRow]:
         """
-        Get the quotes to display in the quote table. Each quote is comprised of the elements required for each column.
+        Get the quotes to display in the quote table. Each quote is comprised of the
+        elements required for each column.
 
         Returns:
             list[QuoteRow]: The quotes to display in the quote table.

@@ -1,7 +1,8 @@
 """
-This module provides the data structures for the quote table in the application user interface (appui).
-It defines the QuoteCell, QuoteRow and QuoteColumn classes, which represent a cell, a row and a column
-in the quote table respectively.
+This module provides the data structures for the quote table in the application user
+interface (appui).
+It defines the QuoteCell, QuoteRow and QuoteColumn classes, which represent a cell, a
+row and a column in the quote table respectively.
 """
 
 from typing import Any, Callable
@@ -20,7 +21,8 @@ class QuoteCell:
 
         Args:
             value (str): The value to display.
-            sign (int): The sign of the value, i.e. negative (-1), positive (1) or neutral (0).
+            sign (int): The sign of the value, i.e. negative (-1), positive (1) or
+                neutral (0).
             justification (Justify): The justification of the text in the cell.
         """
 
@@ -98,11 +100,15 @@ class QuoteColumn:
             name (str): The name of the column.
             width (int): The width of the column.
             key (str): The key of the column.
-            format_func (Callable[[YQuote], str]): The function used to format the column.
-            sort_key_func (Callable[[YQuote], Any]): The function used provide the sort key for the column.
-            sign_indicator_func (Callable[[YQuote], int], optional):
-                The function used to provide the sign indicator for the column. Defaults to a function that returns 0 (neutral).
-            justify (Justify, optional): The justification of the column. Defaults to Justify.RIGHT.
+            format_func (Callable[[YQuote], str]): The function used to format the
+                column.
+            sort_key_func (Callable[[YQuote], Any]): The function used provide the sort
+                key for the column.
+            sign_indicator_func (Callable[[YQuote], int], optional): The function used
+                to provide the sign indicator for the column. Defaults to a function
+                that returns 0 (neutral).
+            justify (Justify, optional): The justification of the column. Defaults to
+                Justify.RIGHT.
         """
 
         self._name: str = name

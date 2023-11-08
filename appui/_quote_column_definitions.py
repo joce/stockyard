@@ -13,13 +13,15 @@ T = TypeVar("T", int, float)
 
 def _get_safe_value(v: Optional[T]) -> float:
     """
-    Safely retrieves the value of v. If v is None, it returns the smallest representable value for type T.
+    Safely retrieves the value of v. If v is None, it returns the smallest representable
+    value for type T.
 
     Args:
         v (Optional[T]): The value to be retrieved. Can be of type int or float.
 
     Returns:
-        float: The value of v if it's not None, otherwise the smallest representable value for type T.
+        float: The value of v if it's not None, otherwise the smallest representable
+            value for type T.
     """
 
     return -inf if v is None else v
@@ -33,7 +35,8 @@ def _get_sign(v: T) -> int:
         v (T): The value for which the sign is to be determined.
 
     Returns:
-        int: Returns 1 if the value is greater than 0, -1 if less than 0, and 0 if the value is exactly 0.
+        int: Returns 1 if the value is greater than 0, -1 if less than 0, and 0 if the
+            value is exactly 0.
     """
 
     return 1 if v > 0 else -1 if v < 0 else 0

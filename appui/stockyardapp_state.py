@@ -86,7 +86,12 @@ class StockyardAppState:
         return self._quote_table_state
 
     def load_config(self, config: dict[str, Any]) -> None:
-        """Load the configuration for the app."""
+        """
+        Load the configuration for the app.
+
+        Args:
+            config (dict[str, Any]): A dictionary to load the configuration from.
+        """
 
         quote_table_config: dict[str, Any] = (
             config[self._QUOTE_TABLE] if self._QUOTE_TABLE in config else {}
