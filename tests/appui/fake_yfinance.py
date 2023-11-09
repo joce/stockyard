@@ -1,6 +1,4 @@
-# pylint: disable=missing-module-docstring
-# pylint: disable=missing-function-docstring
-# pylint: disable=missing-class-docstring
+"""Fake YFinance client that pulls data from a test data file."""
 
 import json
 import os.path
@@ -11,11 +9,24 @@ from yfinance import YFinance, YQuote
 
 
 class FakeYFinance(YFinance):
+    """Fake YFinance client that pulls data from a test data file."""
+
     # pylint: disable=super-init-not-called
     def __init__(self) -> None:
         self._quotes: list[YQuote] = []
 
     def get_quotes(self, symbols: list[str]) -> list[YQuote]:
+        """
+        Retrieve quotes for the given symbols.
+
+        NOTE: The quotes are pulled from the test data file
+
+        Args:
+            symbols (list[str]): The symbols to get quotes for.
+
+        Returns:
+            list[YQuote]: The quotes for the given symbols.
+        """
         if len(self._quotes) <= 0:
             f: TextIOWrapper
             # Get the directory of the path of this file

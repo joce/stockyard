@@ -1,10 +1,21 @@
-# pylint: disable=missing-module-docstring
-# pylint: disable=missing-function-docstring
+"""
+Test helpers.
+"""
 
 from appui._formatting import _NO_VALUE
 
 
 def compare_shrunken_ints(a: str, b: str) -> int:
+    """
+    Compare two shrunk integers, provided as strings.
+
+    Args:
+        a (str): first shrunk integer
+        b (str): second shrunk integer
+
+    Returns:
+        int: -1 if a < b, 1 if a > b, 0 if a == b
+    """
     if _NO_VALUE in (a, b):
         return 0 if a == b else 1 if b == _NO_VALUE else -1
 
