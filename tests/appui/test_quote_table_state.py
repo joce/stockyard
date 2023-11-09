@@ -260,7 +260,12 @@ def test_rows_sorted_on_float(fixture_qts: QuoteTableState):
     # Make sure the quotes are loaded from an "external" source
     fixture_qts._load_quotes_internal(monotonic())
 
+    orig_version: int = fixture_qts.version
     fixture_qts.sort_column_key = "last"
+    new_version: int = fixture_qts.version
+    # The version should have changed following the sort column change
+    assert new_version > orig_version
+
     assert fixture_qts.sort_direction == SortDirection.ASCENDING
 
     rows: list[QuoteRow] = fixture_qts.get_quotes_rows()
@@ -295,7 +300,12 @@ def test_rows_sorted_on_percent(fixture_qts: QuoteTableState):
     # Make sure the quotes are loaded from an "external" source
     fixture_qts._load_quotes_internal(monotonic())
 
+    orig_version: int = fixture_qts.version
     fixture_qts.sort_column_key = "change_percent"
+    new_version: int = fixture_qts.version
+    # The version should have changed following the sort column change
+    assert new_version > orig_version
+
     assert fixture_qts.sort_direction == SortDirection.ASCENDING
 
     rows: list[QuoteRow] = fixture_qts.get_quotes_rows()
@@ -332,7 +342,12 @@ def test_rows_sorted_on_shrunken_int_and_equal_values(fixture_qts: QuoteTableSta
     # Make sure the quotes are loaded from an "external" source
     fixture_qts._load_quotes_internal(monotonic())
 
+    orig_version: int = fixture_qts.version
     fixture_qts.sort_column_key = "market_cap"
+    new_version: int = fixture_qts.version
+    # The version should have changed following the sort column change
+    assert new_version > orig_version
+
     assert fixture_qts.sort_direction == SortDirection.ASCENDING
 
     rows: list[QuoteRow] = fixture_qts.get_quotes_rows()
