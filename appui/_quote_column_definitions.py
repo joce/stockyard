@@ -11,7 +11,7 @@ T = TypeVar("T", int, float)
 """TypeVar T is defined to be either an int or a float."""
 
 
-def _get_safe_value(v: Optional[T]) -> float:
+def _safe_value(v: Optional[T]) -> float:
     """
     Safely retrieves the value of v. If v is None, it returns the smallest representable
     value for type T.
@@ -27,7 +27,7 @@ def _get_safe_value(v: Optional[T]) -> float:
     return -inf if v is None else v
 
 
-def _get_sign(v: T) -> int:
+def _sign(v: T) -> int:
     """
     Determines the sign of a given value.
 
@@ -69,7 +69,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             "change",
             lambda q: as_float(q.regular_market_change, q.price_hint),
             lambda q: (q.regular_market_change, q.symbol.lower()),
-            lambda q: _get_sign(q.regular_market_change),
+            lambda q: _sign(q.regular_market_change),
         )
     ),
     "change_percent": (
@@ -79,7 +79,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             "change_percent",
             lambda q: as_percent(q.regular_market_change_percent),
             lambda q: (q.regular_market_change_percent, q.symbol.lower()),
-            lambda q: _get_sign(q.regular_market_change_percent),
+            lambda q: _sign(q.regular_market_change_percent),
         )
     ),
     "open": (
@@ -88,7 +88,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             10,
             "open",
             lambda q: as_float(q.regular_market_open, q.price_hint),
-            lambda q: (_get_safe_value(q.regular_market_open), q.symbol.lower()),
+            lambda q: (_safe_value(q.regular_market_open), q.symbol.lower()),
         )
     ),
     "low": (
@@ -97,7 +97,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             10,
             "low",
             lambda q: as_float(q.regular_market_day_low, q.price_hint),
-            lambda q: (_get_safe_value(q.regular_market_day_low), q.symbol.lower()),
+            lambda q: (_safe_value(q.regular_market_day_low), q.symbol.lower()),
         )
     ),
     "high": (
@@ -106,7 +106,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             10,
             "high",
             lambda q: as_float(q.regular_market_day_high, q.price_hint),
-            lambda q: (_get_safe_value(q.regular_market_day_high), q.symbol.lower()),
+            lambda q: (_safe_value(q.regular_market_day_high), q.symbol.lower()),
         )
     ),
     "52w_low": (
@@ -133,7 +133,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             10,
             "volume",
             lambda q: as_shrunk_int(q.regular_market_volume),
-            lambda q: (_get_safe_value(q.regular_market_volume), q.symbol.lower()),
+            lambda q: (_safe_value(q.regular_market_volume), q.symbol.lower()),
         )
     ),
     "avg_volume": (
@@ -142,10 +142,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             10,
             "avg_volume",
             lambda q: as_shrunk_int(q.average_daily_volume_3_month),
-            lambda q: (
-                _get_safe_value(q.average_daily_volume_3_month),
-                q.symbol.lower(),
-            ),
+            lambda q: (_safe_value(q.average_daily_volume_3_month), q.symbol.lower()),
         )
     ),
     "pe": (
@@ -154,7 +151,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             6,
             "pe",
             lambda q: as_float(q.trailing_pe),
-            lambda q: (_get_safe_value(q.trailing_pe), q.symbol.lower()),
+            lambda q: (_safe_value(q.trailing_pe), q.symbol.lower()),
         )
     ),
     "dividend": (
@@ -163,7 +160,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             6,
             "dividend",
             lambda q: as_float(q.dividend_yield),
-            lambda q: (_get_safe_value(q.dividend_yield), q.symbol.lower()),
+            lambda q: (_safe_value(q.dividend_yield), q.symbol.lower()),
         )
     ),
     "market_cap": (
@@ -172,7 +169,7 @@ ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
             10,
             "market_cap",
             lambda q: as_shrunk_int(q.market_cap),
-            lambda q: (_get_safe_value(q.market_cap), q.symbol.lower()),
+            lambda q: (_safe_value(q.market_cap), q.symbol.lower()),
         )
     ),
 }

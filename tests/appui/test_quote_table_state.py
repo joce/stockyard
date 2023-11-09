@@ -3,16 +3,19 @@
 # pylint: disable=missing-function-docstring
 # pylint: disable=redefined-outer-name
 
+import math
 import re
 from time import monotonic
 from typing import Any
 
 import pytest
 
+from appui._enums import SortDirection
 from appui._quote_table_data import QuoteRow
 from appui.quote_table_state import QuoteTableState
 
 from .fake_yfinance import FakeYFinance
+from .helpers import compare_shrunken_ints
 
 # A number with 2 decimal values
 NUMBER_RE: re.Pattern = re.compile(r"^(?:-?\d+\.\d{2}|N/A)$", re.M)
@@ -210,6 +213,158 @@ def test_default_get_quotes_rows(fixture_qts: QuoteTableState):
         assert SHRUNKEN_INT_RE.match(row.values[3].value)  # market_cap
 
 
+def test_rows_sorted_on_string(fixture_qts: QuoteTableState):
+    # The expectation is that the quotes are in alphabetical order, with symbols first.
+    # This is _not_ the default sort order, as capital letters appear before the symbols
+    # in ASCII
+    quotes: list[str] = ["^DJI", "AAPL", "F", "VT"]  # This is the default sort order
+    config: dict[str, Any] = {
+        QuoteTableState._QUOTES: quotes,
+    }
+
+    fixture_qts.load_config(config)
+    # Make sure the quotes are loaded from an "external" source
+    fixture_qts._load_quotes_internal(monotonic())
+
+    # this is the default sort key and direction
+    assert fixture_qts.sort_column_key == QuoteTableState._TICKER_COLUMN_KEY
+    assert fixture_qts.sort_direction == SortDirection.ASCENDING
+
+    rows: list[QuoteRow] = fixture_qts.get_quotes_rows()
+
+    for i, row in enumerate(rows):
+        assert row.values[0].value == quotes[i]
+
+    orig_version: int = fixture_qts.version
+
+    fixture_qts.sort_direction = SortDirection.DESCENDING
+    new_version: int = fixture_qts.version
+
+    # The version should have changed following the sort direction change
+    assert new_version > orig_version
+
+    rows = fixture_qts.get_quotes_rows()
+
+    # The quotes are in reverse order now
+    for i, row in enumerate(rows):
+        assert row.values[0].value == quotes[len(quotes) - 1 - i]
+
+
+def test_rows_sorted_on_float(fixture_qts: QuoteTableState):
+    columns: list[str] = ["last"]
+    config: dict[str, Any] = {
+        QuoteTableState._COLUMNS: columns,
+    }
+
+    fixture_qts.load_config(config)
+    # Make sure the quotes are loaded from an "external" source
+    fixture_qts._load_quotes_internal(monotonic())
+
+    fixture_qts.sort_column_key = "last"
+    assert fixture_qts.sort_direction == SortDirection.ASCENDING
+
+    rows: list[QuoteRow] = fixture_qts.get_quotes_rows()
+
+    prev: float = -math.inf  # Init to a value below anything we can encounter
+
+    for row in rows:
+        val: float = float(row.values[1].value)
+        assert val > prev
+        prev = val
+
+    fixture_qts.sort_direction = SortDirection.DESCENDING
+
+    rows = fixture_qts.get_quotes_rows()
+
+    prev: float = math.inf  # Init to a value above anything we can encounter
+
+    # The quotes are in reverse order now
+    for row in rows:
+        val: float = float(row.values[1].value)
+        assert val < prev
+        prev = val
+
+
+def test_rows_sorted_on_percent(fixture_qts: QuoteTableState):
+    columns: list[str] = ["change_percent"]
+    config: dict[str, Any] = {
+        QuoteTableState._COLUMNS: columns,
+    }
+
+    fixture_qts.load_config(config)
+    # Make sure the quotes are loaded from an "external" source
+    fixture_qts._load_quotes_internal(monotonic())
+
+    fixture_qts.sort_column_key = "change_percent"
+    assert fixture_qts.sort_direction == SortDirection.ASCENDING
+
+    rows: list[QuoteRow] = fixture_qts.get_quotes_rows()
+
+    prev: float = -math.inf  # Init to a value below anything we can encounter
+
+    for row in rows:
+        assert row.values[1].value[-1] == "%"
+        val: float = float(row.values[1].value[:-1])
+        assert val > prev
+        prev = val
+
+    fixture_qts.sort_direction = SortDirection.DESCENDING
+
+    rows = fixture_qts.get_quotes_rows()
+
+    prev: float = math.inf  # Init to a value above anything we can encounter
+
+    # The quotes are in reverse order now
+    for row in rows:
+        assert row.values[1].value[-1] == "%"
+        val: float = float(row.values[1].value[:-1])
+        assert val < prev
+        prev = val
+
+
+def test_rows_sorted_on_shrunken_int_and_equal_values(fixture_qts: QuoteTableState):
+    columns: list[str] = ["market_cap"]
+    config: dict[str, Any] = {
+        QuoteTableState._COLUMNS: columns,
+    }
+
+    fixture_qts.load_config(config)
+    # Make sure the quotes are loaded from an "external" source
+    fixture_qts._load_quotes_internal(monotonic())
+
+    fixture_qts.sort_column_key = "market_cap"
+    assert fixture_qts.sort_direction == SortDirection.ASCENDING
+
+    rows: list[QuoteRow] = fixture_qts.get_quotes_rows()
+
+    prev: QuoteRow = rows[0]
+
+    for row in rows[1:]:
+        cmp: int = compare_shrunken_ints(prev.values[1].value, row.values[1].value)
+        assert cmp <= 0
+        if cmp == 0:
+            # If the values are equals (N/A, most likely), it should then be sorted by
+            # the ticker.
+            # Note that we'er hardcoding the "lower" ticker, as it's the value used
+            # for sorting in the ALL_QUOTES_COLUMNS definitions for the ticker.
+            assert prev.values[0].value.lower() < row.values[0].value.lower()
+        prev = row
+
+    fixture_qts.sort_direction = SortDirection.DESCENDING
+
+    rows = fixture_qts.get_quotes_rows()
+
+    prev: QuoteRow = rows[0]
+
+    for row in rows[1:]:
+        cmp: int = compare_shrunken_ints(prev.values[1].value, row.values[1].value)
+        assert cmp >= 0
+        if cmp == 0:
+            # See above
+            assert prev.values[0].value.lower() > row.values[0].value.lower()
+        prev = row
+
+
 # TODO - add tests for the following:
 # - add_column
 # - remove_column
@@ -217,6 +372,4 @@ def test_default_get_quotes_rows(fixture_qts: QuoteTableState):
 # - add_quote
 # - remove_quote
 # - current_row
-# - sort_direction
-# - sort_column_key
 # - thread_running (tricky... using mock?)
