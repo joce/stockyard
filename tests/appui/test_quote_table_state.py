@@ -29,6 +29,10 @@ SHRUNKEN_INT_RE: re.Pattern = re.compile(r"^(?:\d{1,3}(?:\.\d{2}[KMBT])?|N/A)$",
 
 @pytest.fixture
 def fixture_qts() -> QuoteTableState:
+    """
+    An instance of the QuoteTableState class, with a FakeYFinance instance to get the
+    quotes.
+    """
     yfin = FakeYFinance()
     qts = QuoteTableState(yfin)
     return qts
@@ -37,7 +41,7 @@ def fixture_qts() -> QuoteTableState:
 @pytest.fixture
 def duplicate_column(fixture_qts: QuoteTableState):
     """
-    Helper fixture for testing invalid column addition and insertion
+    Helper fixture for testing invalid column addition and insertion.
     """
     return fixture_qts.quotes_columns[1].key
 
@@ -48,6 +52,11 @@ def duplicate_column(fixture_qts: QuoteTableState):
 
 
 def test_load_regular_config(fixture_qts: QuoteTableState):
+    """
+    Regular config loading.
+    This is expected to work.
+    """
+
     config: dict[str, Any] = {
         QuoteTableState._COLUMNS: ["last", "change_percent"],
         QuoteTableState._SORT_COLUMN: "last",
@@ -67,6 +76,12 @@ def test_load_regular_config(fixture_qts: QuoteTableState):
 
 
 def test_load_empty_config(fixture_qts: QuoteTableState):
+    """
+    Empty config loading.
+    This is expected to work.
+    The defaults should be used.
+    """
+
     config: dict[str, Any] = {}
     fixture_qts.load_config(config)
     assert (
@@ -80,6 +95,12 @@ def test_load_empty_config(fixture_qts: QuoteTableState):
 
 
 def test_load_config_invalid_columns(fixture_qts: QuoteTableState):
+    """
+    Config loading with an invalid column.
+    This is expected to work.
+    The invalid column should be ignored.
+    """
+
     config: dict[str, Any] = {
         QuoteTableState._COLUMNS: ["truly_not_a_column", "last"],
     }
@@ -88,6 +109,12 @@ def test_load_config_invalid_columns(fixture_qts: QuoteTableState):
 
 
 def test_load_config_duplicate_columns(fixture_qts: QuoteTableState):
+    """
+    Config loading with an a column defined more than once.
+    This is expected to work.
+    The duplicated columns should be ignored.
+    """
+
     config: dict[str, Any] = {
         QuoteTableState._COLUMNS: ["last", "last", "last"],
     }
@@ -95,7 +122,13 @@ def test_load_config_duplicate_columns(fixture_qts: QuoteTableState):
     assert fixture_qts.column_keys == [QuoteTableState._TICKER_COLUMN_KEY, "last"]
 
 
-def test_load_config_duplicate_mandatory_column(fixture_qts: QuoteTableState):
+def test_load_config_duplicate_default_column(fixture_qts: QuoteTableState):
+    """
+    Config loading with the default specified in the config.
+    This is expected to work.
+    The default column should be added again.
+    """
+
     config: dict[str, Any] = {
         QuoteTableState._COLUMNS: [
             "last",
@@ -114,6 +147,12 @@ def test_load_config_duplicate_mandatory_column(fixture_qts: QuoteTableState):
 
 
 def test_load_config_invalid_sort_column(fixture_qts: QuoteTableState):
+    """
+    Config loading an invalid sort column.
+    This is expected to work.
+    The default column should be used as sort column.
+    """
+
     config: dict[str, Any] = {
         QuoteTableState._COLUMNS: ["last", "change_percent"],
         QuoteTableState._SORT_COLUMN: "truly_not_a_column",
@@ -123,6 +162,12 @@ def test_load_config_invalid_sort_column(fixture_qts: QuoteTableState):
 
 
 def test_load_config_invalid_sort_direction(fixture_qts: QuoteTableState):
+    """
+    Config loading an invalid sort direction.
+    This is expected to work.
+    The default sort direction should be used.
+    """
+
     config: dict[str, Any] = {
         QuoteTableState._SORT_DIRECTION: "amazing",
     }
@@ -131,6 +176,12 @@ def test_load_config_invalid_sort_direction(fixture_qts: QuoteTableState):
 
 
 def test_load_config_invalid_query_frequency(fixture_qts: QuoteTableState):
+    """
+    Config loading an invalid quote querying frequency.
+    This is expected to work.
+    The default query frequency should be used.
+    """
+
     config: dict[str, Any] = {
         QuoteTableState._QUERY_FREQUENCY: 0,
     }
@@ -139,6 +190,12 @@ def test_load_config_invalid_query_frequency(fixture_qts: QuoteTableState):
 
 
 def test_load_config_empty_quote_symbol(fixture_qts: QuoteTableState):
+    """
+    Config loading a quote symbol that is an empty string.
+    This is expected to work.
+    The invalid quote symbol should be ignored.
+    """
+
     config: dict[str, Any] = {
         QuoteTableState._QUOTES: ["AAPL", "F", "", "VT"],
     }
@@ -147,6 +204,12 @@ def test_load_config_empty_quote_symbol(fixture_qts: QuoteTableState):
 
 
 def test_load_config_duplicate_quote_symbol(fixture_qts: QuoteTableState):
+    """
+    Config loading with quote symbols defined more than once.
+    This is expected to work.
+    The duplicated quote symbols should be ignored.
+    """
+
     config: dict[str, Any] = {
         QuoteTableState._QUOTES: ["AAPL", "F", "F", "VT", "AAPL"],
     }
@@ -159,7 +222,12 @@ def test_load_config_duplicate_quote_symbol(fixture_qts: QuoteTableState):
 ##############################################################################
 
 
-def test_save_config_empty_dict(fixture_qts: QuoteTableState):
+def test_save_config(fixture_qts: QuoteTableState):
+    """
+    Regular config saving.
+    This is expected to work.
+    """
+
     config: dict[str, Any] = fixture_qts.save_config()
 
     # The first column, "ticker", is not saved
@@ -171,6 +239,11 @@ def test_save_config_empty_dict(fixture_qts: QuoteTableState):
 
 
 def test_save_config_takes_list_copies(fixture_qts: QuoteTableState):
+    """
+    Make sure that saving a config takes a copy of lists.
+    This is expected to work.
+    """
+
     config: dict[str, Any] = fixture_qts.save_config()
     config[QuoteTableState._COLUMNS][0] = "foo_foo"
     config[QuoteTableState._QUOTES][0] = "ZZZZ"
@@ -179,6 +252,11 @@ def test_save_config_takes_list_copies(fixture_qts: QuoteTableState):
 
 
 def test_round_trip_config(fixture_qts: QuoteTableState):
+    """
+    Make sure that a round trip save and load works.
+    This is expected to work.
+    """
+
     config: dict[str, Any] = fixture_qts.save_config()
 
     # The first column, "ticker", is not saved

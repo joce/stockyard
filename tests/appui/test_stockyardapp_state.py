@@ -103,7 +103,7 @@ def test_load_config_invalid_lof_level(fixture_sas: StockyardAppState):
     assert fixture_sas._log_level == StockyardAppState._DEFAULT_LOG_LEVEL
 
 
-def test_save_config_empty_dict(fixture_sas: StockyardAppState):
+def test_save_config(fixture_sas: StockyardAppState):
     config: dict[str, Any] = fixture_sas.save_config()
     assert [QuoteTableState._TICKER_COLUMN_KEY] + config[
         StockyardAppState._QUOTE_TABLE
