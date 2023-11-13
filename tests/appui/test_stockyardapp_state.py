@@ -35,7 +35,7 @@ def test_load_regular_config(fixture_sas: StockyardAppState):
     fixture_sas.load_config(config)
 
     assert (
-        fixture_sas.quote_table_state._columns_keys
+        fixture_sas.quote_table_state.column_keys
         == config[StockyardAppState._QUOTE_TABLE][QuoteTableState._COLUMNS]
     )
     assert (
@@ -65,7 +65,7 @@ def test_load_empty_config(fixture_sas: StockyardAppState):
     config: dict[str, Any] = {}
     fixture_sas.load_config(config)
     assert (
-        fixture_sas.quote_table_state._columns_keys
+        fixture_sas.quote_table_state.column_keys
         == [QuoteTableState._TICKER_COLUMN_KEY] + QuoteTableState._DEFAULT_COLUMN_KEYS
     )
     assert (
@@ -107,7 +107,7 @@ def test_save_config_empty_dict(fixture_sas: StockyardAppState):
     config: dict[str, Any] = fixture_sas.save_config()
     assert [QuoteTableState._TICKER_COLUMN_KEY] + config[
         StockyardAppState._QUOTE_TABLE
-    ][QuoteTableState._COLUMNS] == fixture_sas.quote_table_state._columns_keys
+    ][QuoteTableState._COLUMNS] == fixture_sas.quote_table_state.column_keys
     assert (
         config[StockyardAppState._QUOTE_TABLE][QuoteTableState._SORT_COLUMN]
         == fixture_sas.quote_table_state.sort_column_key

@@ -20,7 +20,7 @@ class YFinance:
 
         self._yclient.prime()
 
-    def get_quotes(self, symbols: list[str]) -> list[YQuote]:
+    def retrieve_quotes(self, symbols: list[str]) -> list[YQuote]:
         """
         Retrieve quotes for the given symbols.
 

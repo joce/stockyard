@@ -15,11 +15,11 @@ class FakeYFinance(YFinance):
     def __init__(self) -> None:
         self._quotes: list[YQuote] = []
 
-    def get_quotes(self, symbols: list[str]) -> list[YQuote]:
+    def retrieve_quotes(self, symbols: list[str]) -> list[YQuote]:
         """
         Retrieve quotes for the given symbols.
 
-        NOTE: The quotes are pulled from the test data file
+        In this implementation, the quotes are pulled from the test data file.
 
         Args:
             symbols (list[str]): The symbols to get quotes for.

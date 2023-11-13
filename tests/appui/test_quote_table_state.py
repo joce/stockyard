@@ -20,10 +20,10 @@ from .helpers import compare_shrunken_ints
 # A number with 2 decimal values
 NUMBER_RE: re.Pattern = re.compile(r"^(?:-?\d+\.\d{2}|N/A)$", re.M)
 
-# a percentage with 2 decimal values
+# A percentage with 2 decimal values
 PERCENT_RE: re.Pattern = re.compile(r"^(?:-?\d+\.\d{2}%|N/A)$", re.M)
 
-# a shrunken int
+# A shrunken int
 SHRUNKEN_INT_RE: re.Pattern = re.compile(r"^(?:\d{1,3}(?:\.\d{2}[KMBT])?|N/A)$", re.M)
 
 
@@ -32,6 +32,19 @@ def fixture_qts() -> QuoteTableState:
     yfin = FakeYFinance()
     qts = QuoteTableState(yfin)
     return qts
+
+
+@pytest.fixture
+def duplicate_column(fixture_qts: QuoteTableState):
+    """
+    Helper fixture for testing invalid column addition and insertion
+    """
+    return fixture_qts.quotes_columns[1].key
+
+
+##############################################################################
+## load_config tests
+##############################################################################
 
 
 def test_load_regular_config(fixture_qts: QuoteTableState):
@@ -44,7 +57,7 @@ def test_load_regular_config(fixture_qts: QuoteTableState):
     }
     fixture_qts.load_config(config)
     assert (
-        fixture_qts._columns_keys
+        fixture_qts.column_keys
         == [QuoteTableState._TICKER_COLUMN_KEY] + config[QuoteTableState._COLUMNS]
     )
     assert fixture_qts.sort_column_key == config[QuoteTableState._SORT_COLUMN]
@@ -57,7 +70,7 @@ def test_load_empty_config(fixture_qts: QuoteTableState):
     config: dict[str, Any] = {}
     fixture_qts.load_config(config)
     assert (
-        fixture_qts._columns_keys
+        fixture_qts.column_keys
         == [QuoteTableState._TICKER_COLUMN_KEY] + QuoteTableState._DEFAULT_COLUMN_KEYS
     )
     assert fixture_qts.sort_column_key == QuoteTableState._TICKER_COLUMN_KEY
@@ -71,7 +84,7 @@ def test_load_config_invalid_columns(fixture_qts: QuoteTableState):
         QuoteTableState._COLUMNS: ["truly_not_a_column", "last"],
     }
     fixture_qts.load_config(config)
-    assert fixture_qts._columns_keys == [QuoteTableState._TICKER_COLUMN_KEY, "last"]
+    assert fixture_qts.column_keys == [QuoteTableState._TICKER_COLUMN_KEY, "last"]
 
 
 def test_load_config_duplicate_columns(fixture_qts: QuoteTableState):
@@ -79,7 +92,7 @@ def test_load_config_duplicate_columns(fixture_qts: QuoteTableState):
         QuoteTableState._COLUMNS: ["last", "last", "last"],
     }
     fixture_qts.load_config(config)
-    assert fixture_qts._columns_keys == [QuoteTableState._TICKER_COLUMN_KEY, "last"]
+    assert fixture_qts.column_keys == [QuoteTableState._TICKER_COLUMN_KEY, "last"]
 
 
 def test_load_config_duplicate_mandatory_column(fixture_qts: QuoteTableState):
@@ -92,7 +105,7 @@ def test_load_config_duplicate_mandatory_column(fixture_qts: QuoteTableState):
         ],
     }
     fixture_qts.load_config(config)
-    assert fixture_qts._columns_keys == [
+    assert fixture_qts.column_keys == [
         QuoteTableState._TICKER_COLUMN_KEY,
         "last",
         "open",
@@ -141,11 +154,16 @@ def test_load_config_duplicate_quote_symbol(fixture_qts: QuoteTableState):
     assert fixture_qts._quotes_symbols == ["AAPL", "F", "VT"]
 
 
+##############################################################################
+## save_config tests
+##############################################################################
+
+
 def test_save_config_empty_dict(fixture_qts: QuoteTableState):
     config: dict[str, Any] = fixture_qts.save_config()
 
     # The first column, "ticker", is not saved
-    assert config[QuoteTableState._COLUMNS] == fixture_qts._columns_keys[1:]
+    assert config[QuoteTableState._COLUMNS] == fixture_qts.column_keys[1:]
     assert config[QuoteTableState._SORT_COLUMN] == fixture_qts.sort_column_key
     assert config[QuoteTableState._SORT_DIRECTION] == fixture_qts.sort_direction.value
     assert config[QuoteTableState._QUOTES] == fixture_qts._quotes_symbols
@@ -156,7 +174,7 @@ def test_save_config_takes_list_copies(fixture_qts: QuoteTableState):
     config: dict[str, Any] = fixture_qts.save_config()
     config[QuoteTableState._COLUMNS][0] = "foo_foo"
     config[QuoteTableState._QUOTES][0] = "ZZZZ"
-    assert config[QuoteTableState._COLUMNS] != fixture_qts._columns_keys
+    assert config[QuoteTableState._COLUMNS] != fixture_qts.column_keys
     assert config[QuoteTableState._QUOTES] != fixture_qts._quotes_symbols
 
 
@@ -164,7 +182,7 @@ def test_round_trip_config(fixture_qts: QuoteTableState):
     config: dict[str, Any] = fixture_qts.save_config()
 
     # The first column, "ticker", is not saved
-    assert config[QuoteTableState._COLUMNS] == fixture_qts._columns_keys[1:]
+    assert config[QuoteTableState._COLUMNS] == fixture_qts.column_keys[1:]
     assert config[QuoteTableState._SORT_COLUMN] == fixture_qts.sort_column_key
     assert config[QuoteTableState._SORT_DIRECTION] == fixture_qts.sort_direction.value
     assert config[QuoteTableState._QUOTES] == fixture_qts._quotes_symbols
@@ -179,7 +197,7 @@ def test_round_trip_config(fixture_qts: QuoteTableState):
 
     fixture_qts.load_config(config)
     assert (
-        fixture_qts._columns_keys
+        fixture_qts.column_keys
         == [QuoteTableState._TICKER_COLUMN_KEY] + config[QuoteTableState._COLUMNS]
     )
     assert fixture_qts.sort_column_key == config[QuoteTableState._SORT_COLUMN]
@@ -188,10 +206,15 @@ def test_round_trip_config(fixture_qts: QuoteTableState):
     assert fixture_qts.query_frequency == config[QuoteTableState._QUERY_FREQUENCY]
 
 
+##############################################################################
+## quotes_rows tests
+##############################################################################
+
+
 def test_default_get_quotes_rows(fixture_qts: QuoteTableState):
     columns: list[str] = ["last", "change_percent", "market_cap"]
     # Note the quotes are in alphabetical order, the same as the default sort order.
-    # Sorting is tested below in TODO
+    # Sorting is tested below in test_rows_sorted* functions
     quotes: list[str] = ["^DJI", "AAPL", "F", "VT"]
     config: dict[str, Any] = {
         QuoteTableState._COLUMNS: columns,
@@ -200,8 +223,8 @@ def test_default_get_quotes_rows(fixture_qts: QuoteTableState):
 
     fixture_qts.load_config(config)
     # Make sure the quotes are loaded from an "external" source
-    fixture_qts._load_quotes_internal(monotonic())
-    rows: list[QuoteRow] = fixture_qts.get_quotes_rows()
+    fixture_qts._retrieve_quotes_internal(monotonic())
+    rows: list[QuoteRow] = fixture_qts.quotes_rows
 
     assert len(rows) == len(quotes)
 
@@ -211,6 +234,11 @@ def test_default_get_quotes_rows(fixture_qts: QuoteTableState):
         assert NUMBER_RE.match(row.values[1].value)  # last
         assert PERCENT_RE.match(row.values[2].value)  # change_percent
         assert SHRUNKEN_INT_RE.match(row.values[3].value)  # market_cap
+
+
+##############################################################################
+## quotes_rows (sorting) tests
+##############################################################################
 
 
 def test_rows_sorted_on_string(fixture_qts: QuoteTableState):
@@ -224,14 +252,13 @@ def test_rows_sorted_on_string(fixture_qts: QuoteTableState):
 
     fixture_qts.load_config(config)
     # Make sure the quotes are loaded from an "external" source
-    fixture_qts._load_quotes_internal(monotonic())
+    fixture_qts._retrieve_quotes_internal(monotonic())
 
     # this is the default sort key and direction
     assert fixture_qts.sort_column_key == QuoteTableState._TICKER_COLUMN_KEY
     assert fixture_qts.sort_direction == SortDirection.ASCENDING
 
-    rows: list[QuoteRow] = fixture_qts.get_quotes_rows()
-
+    rows: list[QuoteRow] = fixture_qts.quotes_rows
     for i, row in enumerate(rows):
         assert row.values[0].value == quotes[i]
 
@@ -241,12 +268,11 @@ def test_rows_sorted_on_string(fixture_qts: QuoteTableState):
     new_version: int = fixture_qts.version
 
     # The version should have changed following the sort direction change
-    assert new_version > orig_version
+    assert new_version == orig_version + 1
 
-    rows = fixture_qts.get_quotes_rows()
-
-    # The quotes are in reverse order now
+    rows = fixture_qts.quotes_rows
     for i, row in enumerate(rows):
+        # The quotes are in reverse order now
         assert row.values[0].value == quotes[len(quotes) - 1 - i]
 
 
@@ -258,17 +284,17 @@ def test_rows_sorted_on_float(fixture_qts: QuoteTableState):
 
     fixture_qts.load_config(config)
     # Make sure the quotes are loaded from an "external" source
-    fixture_qts._load_quotes_internal(monotonic())
+    fixture_qts._retrieve_quotes_internal(monotonic())
 
     orig_version: int = fixture_qts.version
     fixture_qts.sort_column_key = "last"
     new_version: int = fixture_qts.version
-    # The version should have changed following the sort column change
-    assert new_version > orig_version
 
+    # The version should have changed following the sort column change
+    assert new_version == orig_version + 1
     assert fixture_qts.sort_direction == SortDirection.ASCENDING
 
-    rows: list[QuoteRow] = fixture_qts.get_quotes_rows()
+    rows: list[QuoteRow] = fixture_qts.quotes_rows
 
     prev: float = -math.inf  # Init to a value below anything we can encounter
 
@@ -279,7 +305,7 @@ def test_rows_sorted_on_float(fixture_qts: QuoteTableState):
 
     fixture_qts.sort_direction = SortDirection.DESCENDING
 
-    rows = fixture_qts.get_quotes_rows()
+    rows = fixture_qts.quotes_rows
 
     prev: float = math.inf  # Init to a value above anything we can encounter
 
@@ -298,17 +324,17 @@ def test_rows_sorted_on_percent(fixture_qts: QuoteTableState):
 
     fixture_qts.load_config(config)
     # Make sure the quotes are loaded from an "external" source
-    fixture_qts._load_quotes_internal(monotonic())
+    fixture_qts._retrieve_quotes_internal(monotonic())
 
     orig_version: int = fixture_qts.version
     fixture_qts.sort_column_key = "change_percent"
     new_version: int = fixture_qts.version
-    # The version should have changed following the sort column change
-    assert new_version > orig_version
 
+    # The version should have changed following the sort column change
+    assert new_version == orig_version + 1
     assert fixture_qts.sort_direction == SortDirection.ASCENDING
 
-    rows: list[QuoteRow] = fixture_qts.get_quotes_rows()
+    rows: list[QuoteRow] = fixture_qts.quotes_rows
 
     prev: float = -math.inf  # Init to a value below anything we can encounter
 
@@ -320,7 +346,7 @@ def test_rows_sorted_on_percent(fixture_qts: QuoteTableState):
 
     fixture_qts.sort_direction = SortDirection.DESCENDING
 
-    rows = fixture_qts.get_quotes_rows()
+    rows = fixture_qts.quotes_rows
 
     prev: float = math.inf  # Init to a value above anything we can encounter
 
@@ -340,17 +366,17 @@ def test_rows_sorted_on_shrunken_int_and_equal_values(fixture_qts: QuoteTableSta
 
     fixture_qts.load_config(config)
     # Make sure the quotes are loaded from an "external" source
-    fixture_qts._load_quotes_internal(monotonic())
+    fixture_qts._retrieve_quotes_internal(monotonic())
 
     orig_version: int = fixture_qts.version
     fixture_qts.sort_column_key = "market_cap"
     new_version: int = fixture_qts.version
-    # The version should have changed following the sort column change
-    assert new_version > orig_version
 
+    # The version should have changed following the sort column change
+    assert new_version == orig_version + 1
     assert fixture_qts.sort_direction == SortDirection.ASCENDING
 
-    rows: list[QuoteRow] = fixture_qts.get_quotes_rows()
+    rows: list[QuoteRow] = fixture_qts.quotes_rows
 
     prev: QuoteRow = rows[0]
 
@@ -367,7 +393,7 @@ def test_rows_sorted_on_shrunken_int_and_equal_values(fixture_qts: QuoteTableSta
 
     fixture_qts.sort_direction = SortDirection.DESCENDING
 
-    rows = fixture_qts.get_quotes_rows()
+    rows = fixture_qts.quotes_rows
 
     prev: QuoteRow = rows[0]
 
@@ -380,11 +406,213 @@ def test_rows_sorted_on_shrunken_int_and_equal_values(fixture_qts: QuoteTableSta
         prev = row
 
 
+##############################################################################
+## Columns operations tests
+##############################################################################
+
+
+def test_add_column(fixture_qts: QuoteTableState):
+    """
+    Try to add a valid column to the table.
+    This is expected to work.
+    """
+
+    columns: list[str] = ["market_cap"]
+    config: dict[str, Any] = {
+        QuoteTableState._COLUMNS: columns,
+    }
+
+    fixture_qts.load_config(config)
+    # Make sure the quotes are loaded from an "external" source
+    fixture_qts._retrieve_quotes_internal(monotonic())
+
+    column_count: int = len(columns) + 1  # +1 for the ticker; always there
+
+    assert len(fixture_qts.quotes_columns) == column_count
+    assert fixture_qts.quotes_columns[1].key == columns[0]
+
+    rows: list[QuoteRow] = fixture_qts.quotes_rows
+    for row in rows:
+        assert len(row.values) == column_count
+
+    orig_version: int = fixture_qts.version
+    new_column: str = "change_percent"
+    fixture_qts.append_column(new_column)
+    column_count += 1  # +1 for the new column
+    new_version: int = fixture_qts.version
+
+    # Check the rows again and see if the new column has been added
+    rows = fixture_qts.quotes_rows
+    for row in rows:
+        assert len(row.values) == column_count
+
+    # The version should have changed following the column addition
+    assert new_version == orig_version + 1
+    assert len(fixture_qts.quotes_columns) == column_count
+    assert fixture_qts.quotes_columns[2].key == new_column
+
+
+@pytest.mark.parametrize(
+    "column_name",
+    [duplicate_column, QuoteTableState._TICKER_COLUMN_KEY, "not_a_valid_column"],
+)
+def test_add_invalid_column(fixture_qts: QuoteTableState, column_name: str):
+    """
+    Try to add an invalid column to the table.
+    This is not expected to work.
+    """
+
+    column_count: int = len(fixture_qts.quotes_columns)
+
+    orig_version: int = fixture_qts.version
+    fixture_qts.append_column(column_name)
+    new_version: int = fixture_qts.version
+
+    # The version should not have changed since nothing has been inserted
+    assert new_version == orig_version
+    assert len(fixture_qts.quotes_columns) == column_count
+
+
+@pytest.mark.parametrize(
+    "insertion_idx, validation_idx",
+    [(1, 1), (2, 2), (3, 3), (4, 4), (100, 4), (-1, 3), (-2, 2), (-3, 1)],
+)
+def test_insert_column(
+    fixture_qts: QuoteTableState, insertion_idx: int, validation_idx: int
+):
+    """
+    Try to insert a valid column in a valid spot to the table.
+    This is expected to work.
+    """
+
+    columns: list[str] = ["market_cap", "change_percent", "last"]
+    config: dict[str, Any] = {
+        QuoteTableState._COLUMNS: columns,
+    }
+
+    fixture_qts.load_config(config)
+    column_count: int = len(fixture_qts.quotes_columns)
+    assert len(columns) + 1 == column_count
+
+    orig_version: int = fixture_qts.version
+    new_column_name: str = "dividend"
+    fixture_qts.insert_column(insertion_idx, new_column_name)
+    column_count += 1  # +1 for the new column
+    new_version: int = fixture_qts.version
+
+    assert new_version == orig_version + 1
+    assert len(fixture_qts.quotes_columns) == column_count
+    assert fixture_qts.quotes_columns[validation_idx].key == new_column_name
+
+
+@pytest.mark.parametrize(
+    "insertion_idx",
+    [0, -4, -100],
+)
+def test_cant_insert_column_at_invalid_index(
+    fixture_qts: QuoteTableState, insertion_idx: int
+):
+    """
+    Try to insert a valid column at the position of the default column, or below.
+    This is not expected to work.
+    """
+
+    columns: list[str] = ["market_cap", "change_percent", "last"]
+    config: dict[str, Any] = {
+        QuoteTableState._COLUMNS: columns,
+    }
+
+    fixture_qts.load_config(config)
+    column_count: int = len(fixture_qts.quotes_columns)
+    assert len(columns) + 1 == column_count
+
+    orig_version: int = fixture_qts.version
+    new_column_name: str = "dividend"
+    fixture_qts.insert_column(insertion_idx, new_column_name)
+    new_version: int = fixture_qts.version
+
+    # No version bump, the column was not inserted
+    assert new_version == orig_version
+    assert len(fixture_qts.quotes_columns) == column_count
+    assert new_column_name not in fixture_qts.column_keys
+
+
+@pytest.mark.parametrize(
+    "column_name",
+    [duplicate_column, "not_a_valid_column"],
+)
+def test_insert_invalid_column(fixture_qts: QuoteTableState, column_name: str):
+    """
+    Try to insert an invalid column at a valid spot to the table.
+    This is not expected to work.
+    """
+
+    column_count: int = len(fixture_qts.quotes_columns)
+
+    orig_version: int = fixture_qts.version
+    fixture_qts.insert_column(1, column_name)
+    new_version: int = fixture_qts.version
+
+    # The version should not have changed since nothing has been inserted
+    assert new_version == orig_version
+    assert len(fixture_qts.quotes_columns) == column_count
+
+
+def test_remove_regular_column(fixture_qts: QuoteTableState):
+    """
+    Try to remove a valid column from the table.
+    This is expected to work.
+    """
+
+    column_count: int = len(fixture_qts.quotes_columns)
+
+    orig_version: int = fixture_qts.version
+    fixture_qts.remove_column(fixture_qts.quotes_columns[1].key)
+    column_count -= 1
+    new_version: int = fixture_qts.version
+
+    # The version should not have changed since nothing has been inserted
+    assert new_version == orig_version + 1
+    assert len(fixture_qts.quotes_columns) == column_count
+
+
+@pytest.mark.parametrize(
+    "column_name",
+    # Can't remove the default column, or a column that doesn't exist
+    [QuoteTableState._TICKER_COLUMN_KEY, "not_a_valid_column"],
+)
+def test_remove_invalid_column(fixture_qts: QuoteTableState, column_name: str):
+    """
+    Try to remove an invalid column from the table.
+    This is not expected to work.
+    """
+
+    with pytest.raises(ValueError):
+        fixture_qts.remove_column(column_name)
+
+
+def test_remove_sorting_column(fixture_qts: QuoteTableState):
+    """
+    Try to remove the column on which the sorting is based.
+    This is expected to work.
+    The new sorting column should be the default column.
+    """
+
+    first_column_name: str = fixture_qts.quotes_columns[1].key
+    fixture_qts.sort_column_key = first_column_name
+    orig_version: int = fixture_qts.version
+    fixture_qts.remove_column(first_column_name)
+    new_version: int = fixture_qts.version
+
+    # Even though there has also been a change in the sorting column, the version
+    # should only have increased by 1 (the removal).
+    assert new_version == orig_version + 1
+    assert fixture_qts.sort_column_key == QuoteTableState._TICKER_COLUMN_KEY
+
+
 # TODO - add tests for the following:
-# - add_column
-# - remove_column
-# - move_column
 # - add_quote
 # - remove_quote
+# - move_column ?
 # - current_row
 # - thread_running (tricky... using mock?)

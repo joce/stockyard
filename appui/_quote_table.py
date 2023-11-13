@@ -39,10 +39,9 @@ class QuoteTable(DataTable):
     def on_mount(self) -> None:
         """The event handler called when the widget is added to the app."""
 
-        # TODO: Consider having the first column be the symbols, always, and fixed.
         super().on_mount()
         quote_column: QuoteColumn
-        for quote_column in self._state.columns:
+        for quote_column in self._state.quotes_columns:
             styled_column: Text = self._get_styled_column_title(quote_column)
             key = self.add_column(
                 styled_column, width=quote_column.width, key=quote_column.key
@@ -74,11 +73,11 @@ class QuoteTable(DataTable):
 
         # Set the column titles, including the sort arrow if needed
         quote_column: QuoteColumn
-        for quote_column in self._state.columns:
+        for quote_column in self._state.quotes_columns:
             styled_column: Text = self._get_styled_column_title(quote_column)
             self.columns[self._column_key_map[quote_column.key]].label = styled_column
 
-        quotes: list[QuoteRow] = self._state.get_quotes_rows()
+        quotes: list[QuoteRow] = self._state.quotes_rows
         i: int = 0
         quote: QuoteRow
         for i, quote in enumerate(quotes):
@@ -90,7 +89,7 @@ class QuoteTable(DataTable):
                 for j, cell in enumerate(quote.values):
                     self.update_cell(
                         quote_key,
-                        self._state.columns[j].key,
+                        self._state.quotes_columns[j].key,
                         self._get_styled_cell(cell),
                     )
             else:
