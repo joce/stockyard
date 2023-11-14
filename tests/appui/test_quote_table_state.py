@@ -5,7 +5,9 @@
 
 import math
 import re
-from time import monotonic
+import sys
+from contextlib import contextmanager
+from time import sleep
 from typing import Any
 
 import pytest
@@ -44,6 +46,16 @@ def duplicate_column(fixture_qts: QuoteTableState):
     Helper fixture for testing invalid column addition and insertion.
     """
     return fixture_qts.quotes_columns[1].key
+
+
+@contextmanager
+def thread_running_context(qts: QuoteTableState):
+    qts.query_thread_running = True
+    sleep(0.1)
+    try:
+        yield
+    finally:
+        qts.query_thread_running = False
 
 
 ##############################################################################
@@ -290,33 +302,41 @@ def test_round_trip_config(fixture_qts: QuoteTableState):
 
 
 def test_default_get_quotes_rows(fixture_qts: QuoteTableState):
-    columns: list[str] = ["last", "change_percent", "market_cap"]
+    """
+    Make sure quote can be retrieved, their order is correct, and the values
+    correct.
+    This is expected to work.
+    """
+
     # Note the quotes are in alphabetical order, the same as the default sort order.
     # Sorting is tested below in test_rows_sorted* functions
     quotes: list[str] = ["^DJI", "AAPL", "F", "VT"]
+    columns: list[str] = ["last", "change_percent", "market_cap"]
     config: dict[str, Any] = {
-        QuoteTableState._COLUMNS: columns,
         QuoteTableState._QUOTES: quotes,
+        QuoteTableState._COLUMNS: columns,
+        QuoteTableState._QUERY_FREQUENCY: sys.maxsize,
     }
 
     fixture_qts.load_config(config)
-    # Make sure the quotes are loaded from an "external" source
-    fixture_qts._retrieve_quotes_internal(monotonic())
-    rows: list[QuoteRow] = fixture_qts.quotes_rows
+    with thread_running_context(fixture_qts):
+        rows: list[QuoteRow] = fixture_qts.quotes_rows
 
-    assert len(rows) == len(quotes)
+        assert len(rows) == len(quotes)
 
-    for i, row in enumerate(rows):
-        assert len(row.values) == len(columns) + 1  # +1 for symbol; always there
-        assert row.values[0].value == quotes[i]
-        assert NUMBER_RE.match(row.values[1].value)  # last
-        assert PERCENT_RE.match(row.values[2].value)  # change_percent
-        assert SHRUNKEN_INT_RE.match(row.values[3].value)  # market_cap
+        for i, row in enumerate(rows):
+            assert len(row.values) == len(columns) + 1  # +1 for symbol; always there
+            assert row.values[0].value == quotes[i]
+            assert NUMBER_RE.match(row.values[1].value)  # last
+            assert PERCENT_RE.match(row.values[2].value)  # change_percent
+            assert SHRUNKEN_INT_RE.match(row.values[3].value)  # market_cap
 
 
 ##############################################################################
 ## quotes_rows (sorting) tests
 ##############################################################################
+
+# TODO: Try and parametrize the sorting tests as to only have one.
 
 
 def test_rows_sorted_on_string(fixture_qts: QuoteTableState):
@@ -326,162 +346,177 @@ def test_rows_sorted_on_string(fixture_qts: QuoteTableState):
     quotes: list[str] = ["^DJI", "AAPL", "F", "VT"]  # This is the default sort order
     config: dict[str, Any] = {
         QuoteTableState._QUOTES: quotes,
+        QuoteTableState._QUERY_FREQUENCY: sys.maxsize,
     }
 
     fixture_qts.load_config(config)
-    # Make sure the quotes are loaded from an "external" source
-    fixture_qts._retrieve_quotes_internal(monotonic())
+    with thread_running_context(fixture_qts):
+        # this is the default sort key and direction
+        assert fixture_qts.sort_column_key == QuoteTableState._TICKER_COLUMN_KEY
+        assert fixture_qts.sort_direction == SortDirection.ASCENDING
 
-    # this is the default sort key and direction
-    assert fixture_qts.sort_column_key == QuoteTableState._TICKER_COLUMN_KEY
-    assert fixture_qts.sort_direction == SortDirection.ASCENDING
+        rows: list[QuoteRow] = fixture_qts.quotes_rows
+        for i, row in enumerate(rows):
+            assert row.values[0].value == quotes[i]
 
-    rows: list[QuoteRow] = fixture_qts.quotes_rows
-    for i, row in enumerate(rows):
-        assert row.values[0].value == quotes[i]
+        orig_version: int = fixture_qts.version
 
-    orig_version: int = fixture_qts.version
+        fixture_qts.sort_direction = SortDirection.DESCENDING
+        new_version: int = fixture_qts.version
 
-    fixture_qts.sort_direction = SortDirection.DESCENDING
-    new_version: int = fixture_qts.version
+        # The version should have changed following the sort direction change
+        assert new_version == orig_version + 1
 
-    # The version should have changed following the sort direction change
-    assert new_version == orig_version + 1
-
-    rows = fixture_qts.quotes_rows
-    for i, row in enumerate(rows):
-        # The quotes are in reverse order now
-        assert row.values[0].value == quotes[len(quotes) - 1 - i]
+        rows = fixture_qts.quotes_rows
+        for i, row in enumerate(rows):
+            # The quotes are in reverse order now
+            assert row.values[0].value == quotes[len(quotes) - 1 - i]
 
 
 def test_rows_sorted_on_float(fixture_qts: QuoteTableState):
     columns: list[str] = ["last"]
     config: dict[str, Any] = {
         QuoteTableState._COLUMNS: columns,
+        QuoteTableState._QUERY_FREQUENCY: sys.maxsize,
     }
 
     fixture_qts.load_config(config)
-    # Make sure the quotes are loaded from an "external" source
-    fixture_qts._retrieve_quotes_internal(monotonic())
+    with thread_running_context(fixture_qts):
+        orig_version: int = fixture_qts.version
+        fixture_qts.sort_column_key = "last"
+        new_version: int = fixture_qts.version
 
-    orig_version: int = fixture_qts.version
-    fixture_qts.sort_column_key = "last"
-    new_version: int = fixture_qts.version
+        # Get the column index of the sort column
+        sort_column_index: int = fixture_qts.column_keys.index(
+            fixture_qts.sort_column_key
+        )
 
-    # The version should have changed following the sort column change
-    assert new_version == orig_version + 1
-    assert fixture_qts.sort_direction == SortDirection.ASCENDING
+        # The version should have changed following the sort column change
+        assert new_version == orig_version + 1
+        assert fixture_qts.sort_direction == SortDirection.ASCENDING
 
-    rows: list[QuoteRow] = fixture_qts.quotes_rows
+        rows: list[QuoteRow] = fixture_qts.quotes_rows
 
-    prev: float = -math.inf  # Init to a value below anything we can encounter
+        prev: float = -math.inf  # Init to a value below anything we can encounter
 
-    for row in rows:
-        val: float = float(row.values[1].value)
-        assert val > prev
-        prev = val
+        for row in rows:
+            val: float = float(row.values[sort_column_index].value)
+            assert val > prev
+            prev = val
 
-    fixture_qts.sort_direction = SortDirection.DESCENDING
+        fixture_qts.sort_direction = SortDirection.DESCENDING
 
-    rows = fixture_qts.quotes_rows
+        rows = fixture_qts.quotes_rows
 
-    prev: float = math.inf  # Init to a value above anything we can encounter
+        prev: float = math.inf  # Init to a value above anything we can encounter
 
-    # The quotes are in reverse order now
-    for row in rows:
-        val: float = float(row.values[1].value)
-        assert val < prev
-        prev = val
+        # The quotes are in reverse order now
+        for row in rows:
+            val: float = float(row.values[sort_column_index].value)
+            assert val < prev
+            prev = val
 
 
 def test_rows_sorted_on_percent(fixture_qts: QuoteTableState):
     columns: list[str] = ["change_percent"]
     config: dict[str, Any] = {
         QuoteTableState._COLUMNS: columns,
+        QuoteTableState._QUERY_FREQUENCY: sys.maxsize,
     }
 
     fixture_qts.load_config(config)
-    # Make sure the quotes are loaded from an "external" source
-    fixture_qts._retrieve_quotes_internal(monotonic())
+    with thread_running_context(fixture_qts):
+        orig_version: int = fixture_qts.version
+        fixture_qts.sort_column_key = "change_percent"
+        new_version: int = fixture_qts.version
 
-    orig_version: int = fixture_qts.version
-    fixture_qts.sort_column_key = "change_percent"
-    new_version: int = fixture_qts.version
+        # Get the column index of the sort column
+        sort_column_index: int = fixture_qts.column_keys.index(
+            fixture_qts.sort_column_key
+        )
 
-    # The version should have changed following the sort column change
-    assert new_version == orig_version + 1
-    assert fixture_qts.sort_direction == SortDirection.ASCENDING
+        # The version should have changed following the sort column change
+        assert new_version == orig_version + 1
+        assert fixture_qts.sort_direction == SortDirection.ASCENDING
 
-    rows: list[QuoteRow] = fixture_qts.quotes_rows
+        rows: list[QuoteRow] = fixture_qts.quotes_rows
 
-    prev: float = -math.inf  # Init to a value below anything we can encounter
+        prev: float = -math.inf  # Init to a value below anything we can encounter
 
-    for row in rows:
-        assert row.values[1].value[-1] == "%"
-        val: float = float(row.values[1].value[:-1])
-        assert val > prev
-        prev = val
+        for row in rows:
+            assert row.values[sort_column_index].value[-1] == "%"
+            val: float = float(row.values[sort_column_index].value[:-1])
+            assert val > prev
+            prev = val
 
-    fixture_qts.sort_direction = SortDirection.DESCENDING
+        fixture_qts.sort_direction = SortDirection.DESCENDING
 
-    rows = fixture_qts.quotes_rows
+        rows = fixture_qts.quotes_rows
 
-    prev: float = math.inf  # Init to a value above anything we can encounter
+        prev: float = math.inf  # Init to a value above anything we can encounter
 
-    # The quotes are in reverse order now
-    for row in rows:
-        assert row.values[1].value[-1] == "%"
-        val: float = float(row.values[1].value[:-1])
-        assert val < prev
-        prev = val
+        # The quotes are in reverse order now
+        for row in rows:
+            assert row.values[sort_column_index].value[-1] == "%"
+            val: float = float(row.values[sort_column_index].value[:-1])
+            assert val < prev
+            prev = val
 
 
 def test_rows_sorted_on_shrunken_int_and_equal_values(fixture_qts: QuoteTableState):
-    columns: list[str] = ["market_cap"]
     config: dict[str, Any] = {
-        QuoteTableState._COLUMNS: columns,
+        QuoteTableState._QUERY_FREQUENCY: sys.maxsize,
     }
 
     fixture_qts.load_config(config)
-    # Make sure the quotes are loaded from an "external" source
-    fixture_qts._retrieve_quotes_internal(monotonic())
+    with thread_running_context(fixture_qts):
+        orig_version: int = fixture_qts.version
+        fixture_qts.sort_column_key = "market_cap"
+        new_version: int = fixture_qts.version
 
-    orig_version: int = fixture_qts.version
-    fixture_qts.sort_column_key = "market_cap"
-    new_version: int = fixture_qts.version
+        # Get the column index of the sort column
+        sort_column_index: int = fixture_qts.column_keys.index(
+            fixture_qts.sort_column_key
+        )
 
-    # The version should have changed following the sort column change
-    assert new_version == orig_version + 1
-    assert fixture_qts.sort_direction == SortDirection.ASCENDING
+        # The version should have changed following the sort column change
+        assert new_version == orig_version + 1
+        assert fixture_qts.sort_direction == SortDirection.ASCENDING
 
-    rows: list[QuoteRow] = fixture_qts.quotes_rows
+        rows: list[QuoteRow] = fixture_qts.quotes_rows
 
-    prev: QuoteRow = rows[0]
+        prev: QuoteRow = rows[0]
 
-    for row in rows[1:]:
-        cmp: int = compare_shrunken_ints(prev.values[1].value, row.values[1].value)
-        assert cmp <= 0
-        if cmp == 0:
-            # If the values are equals (N/A, most likely), it should then be sorted by
-            # the ticker.
-            # Note that we'er hardcoding the "lower" ticker, as it's the value used
-            # for sorting in the ALL_QUOTES_COLUMNS definitions for the ticker.
-            assert prev.values[0].value.lower() < row.values[0].value.lower()
-        prev = row
+        for row in rows[1:]:
+            cmp: int = compare_shrunken_ints(
+                prev.values[sort_column_index].value,
+                row.values[sort_column_index].value,
+            )
+            assert cmp <= 0
+            if cmp == 0:
+                # If the values are equals (N/A, most likely), it should then be sorted by
+                # the ticker.
+                # Note that we'er hardcoding the "lower" ticker, as it's the value used
+                # for sorting in the ALL_QUOTES_COLUMNS definitions for the ticker.
+                assert prev.values[0].value.lower() < row.values[0].value.lower()
+            prev = row
 
-    fixture_qts.sort_direction = SortDirection.DESCENDING
+        fixture_qts.sort_direction = SortDirection.DESCENDING
 
-    rows = fixture_qts.quotes_rows
+        rows = fixture_qts.quotes_rows
 
-    prev: QuoteRow = rows[0]
+        prev: QuoteRow = rows[0]
 
-    for row in rows[1:]:
-        cmp: int = compare_shrunken_ints(prev.values[1].value, row.values[1].value)
-        assert cmp >= 0
-        if cmp == 0:
-            # See above
-            assert prev.values[0].value.lower() > row.values[0].value.lower()
-        prev = row
+        for row in rows[1:]:
+            cmp: int = compare_shrunken_ints(
+                prev.values[sort_column_index].value,
+                row.values[sort_column_index].value,
+            )
+            assert cmp >= 0
+            if cmp == 0:
+                # See above
+                assert prev.values[0].value.lower() > row.values[0].value.lower()
+            prev = row
 
 
 ##############################################################################
@@ -498,36 +533,35 @@ def test_add_column(fixture_qts: QuoteTableState):
     columns: list[str] = ["market_cap"]
     config: dict[str, Any] = {
         QuoteTableState._COLUMNS: columns,
+        QuoteTableState._QUERY_FREQUENCY: sys.maxsize,
     }
 
     fixture_qts.load_config(config)
-    # Make sure the quotes are loaded from an "external" source
-    fixture_qts._retrieve_quotes_internal(monotonic())
+    with thread_running_context(fixture_qts):
+        column_count: int = len(columns) + 1  # +1 for the ticker; always there
 
-    column_count: int = len(columns) + 1  # +1 for the ticker; always there
+        assert len(fixture_qts.quotes_columns) == column_count
+        assert fixture_qts.quotes_columns[1].key == columns[0]
 
-    assert len(fixture_qts.quotes_columns) == column_count
-    assert fixture_qts.quotes_columns[1].key == columns[0]
+        rows: list[QuoteRow] = fixture_qts.quotes_rows
+        for row in rows:
+            assert len(row.values) == column_count
 
-    rows: list[QuoteRow] = fixture_qts.quotes_rows
-    for row in rows:
-        assert len(row.values) == column_count
+        orig_version: int = fixture_qts.version
+        new_column: str = "change_percent"
+        fixture_qts.append_column(new_column)
+        column_count += 1  # +1 for the new column
+        new_version: int = fixture_qts.version
 
-    orig_version: int = fixture_qts.version
-    new_column: str = "change_percent"
-    fixture_qts.append_column(new_column)
-    column_count += 1  # +1 for the new column
-    new_version: int = fixture_qts.version
+        # Check the rows again and see if the new column has been added
+        rows = fixture_qts.quotes_rows
+        for row in rows:
+            assert len(row.values) == column_count
 
-    # Check the rows again and see if the new column has been added
-    rows = fixture_qts.quotes_rows
-    for row in rows:
-        assert len(row.values) == column_count
-
-    # The version should have changed following the column addition
-    assert new_version == orig_version + 1
-    assert len(fixture_qts.quotes_columns) == column_count
-    assert fixture_qts.quotes_columns[2].key == new_column
+        # The version should have changed following the column addition
+        assert new_version == orig_version + 1
+        assert len(fixture_qts.quotes_columns) == column_count
+        assert fixture_qts.quotes_columns[2].key == new_column
 
 
 @pytest.mark.parametrize(
