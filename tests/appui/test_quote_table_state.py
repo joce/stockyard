@@ -720,11 +720,3 @@ def test_remove_sorting_column(fixture_qts: QuoteTableState):
     # should only have increased by 1 (the removal).
     assert new_version == orig_version + 1
     assert fixture_qts.sort_column_key == QuoteTableState._TICKER_COLUMN_KEY
-
-
-# TODO - add tests for the following:
-# - add_quote
-# - remove_quote
-# - move_column ?
-# - current_row
-# - thread_running (tricky... using mock?)

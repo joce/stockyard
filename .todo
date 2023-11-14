@@ -1,0 +1,58 @@
+0.1:
+    DevOps:
+        ☐ investigate using code coverage (VS Code, coverage.py (github workflow))
+        ☐ fluke8 usage
+            https://www.sefidian.com/2021/08/03/how-to-use-black-flake8-and-isort-to-format-python-codes/
+        ☐ Poetry (?)
+            https://browniebroke.com/blog/migrating-project-to-poetry/
+            https://python.land/virtual-environments/python-poetry
+            https://python-poetry.org/docs/basic-usage/
+        ☐ Typing thing
+            https://github.com/microsoft/pyright
+        ☐ pydoc?
+            https://docs.python.org/3/library/pydoc.html
+        GitHub workflows:
+            ☐ use github actions for pytest
+                https://blog.dennisokeeffe.com/blog/2021-08-08-pytest-with-github-actions
+
+    App:
+        Quotes:
+            ☐ Add
+                Need to add a flag to refresh the data from the YClient source immediately
+            ☐ Remove
+            ☐ Filtering
+        General:
+            ☐ Command system
+            ☐ use `@override`
+                Implies dropping support for < 3.12
+
+    Tests:
+        QuoteTableState:
+            ✔ Test using the threads @done(23-11-13 22:03)
+            ☐ parametrize sorting tests
+            ☐ add_quote
+            ☐ remove_quote
+            ☐ current_row
+            ☐ thread_running (tricky... using mock?)
+
+0.2:
+    App:
+        Clock:
+            ☐ Support for AM/PM
+        Columns:
+            ☐ Add
+            ☐ Remove
+            ☐ Move
+        Loading widget:
+            ☐ loading widget with text
+        Logging:
+            ☐ Respect logging level set in config
+            ☐ Add a way to change it "live"
+
+    Tests:
+        QuoteTableState:
+            ☐ move_column (?)
+
+Other:
+    DevOps:
+        ☐  review .pylintc file
