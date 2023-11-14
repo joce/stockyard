@@ -199,7 +199,7 @@ class QuoteTableState:
             quote_info: list[QuoteRow] = [
                 QuoteRow(
                     q.symbol,
-                    # TODO... Could it be possible to have this array be fixed and
+                    # TODO Could it be possible to have this array be fixed and
                     # saved whenever we change the columns?
                     [
                         QuoteCell(
