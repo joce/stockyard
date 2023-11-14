@@ -35,7 +35,7 @@ class FloatTestEnum(Enum):
         (FloatTestEnum, 1.99, FloatTestEnum.ONE_NINETY_NINE),
     ],
 )
-def test_get_enum_member(enum_type: Type, value: Any, enum_member: Any):
+def test_get_enum_member(enum_type: Type[Enum], value: Any, enum_member: Any):
     assert get_enum_member(enum_type, value) == enum_member
 
 
