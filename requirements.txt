@@ -1,0 +1,7 @@
+black >= 23.10
+pylint >= 3.0
+pyright >= 1.1.335
+pytest >= 7.4
+requests >= 2.31
+textual >= 0.40
+tzdata >= 2023.3
