@@ -60,7 +60,7 @@ def thread_running_context(qts: QuoteTableState):
 
 
 ##############################################################################
-## load_config tests
+# load_config tests
 ##############################################################################
 
 
@@ -234,7 +234,7 @@ def test_load_config_duplicate_quote_symbol(quote_table_state: QuoteTableState):
 
 
 ##############################################################################
-## save_config tests
+# save_config tests
 ##############################################################################
 
 
@@ -310,7 +310,7 @@ def test_round_trip_config(quote_table_state: QuoteTableState):
 
 
 ##############################################################################
-## quotes_rows tests
+# quotes_rows tests
 ##############################################################################
 
 
@@ -346,7 +346,7 @@ def test_default_get_quotes_rows(quote_table_state: QuoteTableState):
 
 
 ##############################################################################
-## quotes_rows (sorting) tests
+# quotes_rows (sorting) tests
 ##############################################################################
 
 # TODO: Try and parametrize the sorting tests as to only have one.
@@ -509,8 +509,8 @@ def test_rows_sorted_on_shrunken_int_and_equal_values(
             )
             assert cmp <= 0
             if cmp == 0:
-                # If the values are equals (N/A, most likely), it should then be sorted by
-                # the ticker.
+                # If the values are equals (N/A, most likely), it should then be sorted
+                # by the ticker.
                 # Note that we'er hardcoding the "lower" ticker, as it's the value used
                 # for sorting in the ALL_QUOTES_COLUMNS definitions for the ticker.
                 assert prev.values[0].value.lower() < row.values[0].value.lower()
@@ -535,7 +535,7 @@ def test_rows_sorted_on_shrunken_int_and_equal_values(
 
 
 ##############################################################################
-## Columns operations tests
+# Columns operations tests
 ##############################################################################
 
 

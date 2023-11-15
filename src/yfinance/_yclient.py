@@ -20,7 +20,7 @@ class YClient:
     _YAHOO_FINANCE_URL: str = "https://finance.yahoo.com"
     _YAHOO_FINANCE_QUERY_URL: str = "https://query1.finance.yahoo.com"
     _CRUMB_URL: str = _YAHOO_FINANCE_QUERY_URL + "/v1/test/getcrumb"
-    _USER_AGENT: str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36"
+    _USER_AGENT: str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36"  # noqa: E501
     _USER_AGENT_CLIENT_HINT_BRANDING_AND_VERSION: str = (
         '"Google Chrome";v="113", "Chromium";v="113", "Not-A.Brand";v="24"'
     )
@@ -28,7 +28,7 @@ class YClient:
 
     _COOKIE_HEADERS: dict[str, str] = {
         "authority": "finance.yahoo.com",
-        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",  # noqa: E501
         "accept-language": "en-US,en;q=0.9",
         "sec-ch-ua": _USER_AGENT_CLIENT_HINT_BRANDING_AND_VERSION,
         "sec-ch-ua-mobile": "?0",
@@ -189,7 +189,7 @@ class YClient:
             "origin": "https://consent.yahoo.com",
             "host": "consent.yahoo.com",
             "content-type": "application/x-www-form-urlencoded",
-            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",  # noqa: E501
             "accept-language": "en-US,en;q=0.5",
             "accept-encoding": "gzip, deflate, br",
             "dnt": "1",

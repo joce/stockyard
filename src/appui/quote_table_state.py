@@ -364,7 +364,7 @@ class QuoteTableState:
         )
 
     ##############################################################################
-    ## Configuration load and save
+    # Configuration load and save
     ##############################################################################
     def load_config(self, config: dict[str, Any]) -> None:
         """

@@ -1,5 +1,6 @@
 """
-This module contains the YQuote class, which represents a quote for a security, as retrieved from the Yahoo! Finance API.
+This module contains the YQuote class, which represents a quote for a security, as
+retrieved from the Yahoo! Finance API.
 """
 
 from datetime import UTC, date, datetime
@@ -39,9 +40,12 @@ class MarketState(Enum):
 
     Attributes:
         PREPRE (str): Pre-pre market state.
-        PRE (str): Pre market state; usually weekdays from 4:00am - 9:30am Eastern, excluding holidays.
-        REGULAR (str): Regular market state; usually weekdays from 9:30am - 4:00pm Eastern, excluding holidays.
-        POST (str): Post market state; usually weekdays from 4:00pm - 8:00pm Eastern, excluding holidays.
+        PRE (str): Pre market state;
+            usually weekdays from 4:00am - 9:30am Eastern, excluding holidays.
+        REGULAR (str): Regular market state;
+            usually weekdays from 9:30am - 4:00pm Eastern, excluding holidays.
+        POST (str): Post market state;
+            usually weekdays from 4:00pm - 8:00pm Eastern, excluding holidays.
         POSTPOST (str): Post-post market.
         CLOSED (str): Closed market.
     """
@@ -84,13 +88,15 @@ class PriceAlertConfidence(Enum):
 
 class YQuote:
     """
-    YQuote is a class representing a quote for a stock or security, as retrieved from the Yahoo! Finance API.
+    YQuote is a class representing a quote for a stock or security, as retrieved from
+    the Yahoo! Finance API.
     """
 
     @property
     def ask(self) -> Optional[float]:
         """
-        The asking price, or the lowest price that a seller is willing to accept for a unit of the security.
+        The asking price, or the lowest price that a seller is willing to accept for a
+        unit of the security.
 
         Applies to CURRENCY, EQUITY, ETF, FUTURE, INDEX and OPTION quotes.
         """
@@ -99,7 +105,8 @@ class YQuote:
     @property
     def ask_size(self) -> Optional[int]:
         """
-        The total number of shares that are currently being asked for at the asking price.
+        The total number of shares that are currently being asked for at the asking
+        price.
 
         Applies to CURRENCY, EQUITY, ETF and INDEX quotes.
         """
@@ -108,7 +115,8 @@ class YQuote:
     @property
     def average_analyst_rating(self) -> Optional[str]:
         """
-        A measure of the consensus recommendation for a given stock by financial analysts.
+        A measure of the consensus recommendation for a given stock by financial
+        analysts.
 
         Applies to EQUITY quotes.
         """
@@ -119,7 +127,8 @@ class YQuote:
         """
         The average number of shares traded each day over the last 10 days.
 
-        Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and MUTUALFUND quotes.
+        Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and MUTUALFUND
+        quotes.
         """
         return self._average_daily_volume_10_day
 
@@ -128,14 +137,16 @@ class YQuote:
         """
         The average number of shares traded each day over the last 3 months.
 
-        Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and MUTUALFUND quotes.
+        Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and MUTUALFUND
+        quotes.
         """
         return self._average_daily_volume_3_month
 
     @property
     def bid(self) -> Optional[float]:
         """
-        The bid price, or the highest price that a buyer is willing to pay for a unit of the security.
+        The bid price, or the highest price that a buyer is willing to pay for a unit
+        of the security.
 
         Applies to CURRENCY, EQUITY, ETF, FUTURE, INDEX and OPTION quotes.
         """
@@ -153,7 +164,8 @@ class YQuote:
     @property
     def book_value(self) -> Optional[float]:
         """
-        The net asset value of a company, calculated by total assets minus intangible assets (patents, goodwill) and liabilities.
+        The net asset value of a company, calculated by total assets minus intangible
+        assets (patents, goodwill) and liabilities.
 
         Applies to EQUITY, ETF and MUTUALFUND quotes.
         """
@@ -162,7 +174,8 @@ class YQuote:
     @property
     def circulating_supply(self) -> Optional[int]:
         """
-        In the context of cryptocurrencies, the amount of coins that are publicly available and circulating in the market.
+        In the context of cryptocurrencies, the amount of coins that are publicly
+        available and circulating in the market.
 
         Applies to CRYPTOCURRENCY quotes.
         """
@@ -253,7 +266,8 @@ class YQuote:
     @property
     def dividend_yield(self) -> Optional[float]:
         """
-        The dividend yield of a company, calculated as the amount of dividends paid per year divided by the stock price.
+        The dividend yield of a company, calculated as the amount of dividends paid per
+        year divided by the stock price.
 
         Applies to EQUITY, ETF and MUTUALFUND quotes.
         """
@@ -316,7 +330,8 @@ class YQuote:
     @property
     def esg_populated(self) -> bool:
         """
-        A boolean indicating whether the company's environmental, social, and governance (ESG) ratings are populated.
+        A boolean indicating whether the company's environmental, social, and
+        governance (ESG) ratings are populated.
 
         Applies to ALL quotes.
         """
@@ -381,7 +396,8 @@ class YQuote:
         """
         The average closing price of the stock over the past 50 trading days.
 
-        Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and MUTUALFUND quotes.
+        Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and MUTUALFUND
+        quotes.
         """
         return self._fifty_day_average
 
@@ -390,7 +406,8 @@ class YQuote:
         """
         The change in the 50-day average price from the previous trading day.
 
-        Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and MUTUALFUND quotes.
+        Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and MUTUALFUND
+        quotes.
         """
         return self._fifty_day_average_change
 
@@ -399,7 +416,8 @@ class YQuote:
         """
         The percent change in the 50-day average price from the previous trading day.
 
-        Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and MUTUALFUND quotes.
+        Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and MUTUALFUND
+        quotes.
         """
         return self._fifty_day_average_change_percent
 
@@ -408,7 +426,8 @@ class YQuote:
         """
         The percentage change in price over the past 52 weeks.
 
-        Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and MUTUALFUND quotes.
+        Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and MUTUALFUND
+        quotes.
         """
         return self._fifty_two_week_change_percent
 
@@ -469,7 +488,8 @@ class YQuote:
     @property
     def fifty_two_week_range(self) -> str:
         """
-        The range of the highest and lowest prices the stock has traded at over the past 52 weeks.
+        The range of the highest and lowest prices the stock has traded at over the
+        past 52 weeks.
 
         Applies to ALL quotes.
         """
@@ -496,7 +516,8 @@ class YQuote:
     @property
     def forward_pe(self) -> Optional[float]:
         """
-        The forward price-to-earnings ratio, calculated as the current share price divided by projected earnings per share for
+        The forward price-to-earnings ratio, calculated as the current share price
+        divided by projected earnings per share for
         the next 12 months.
 
         Applies to EQUITY quotes.
@@ -596,7 +617,8 @@ class YQuote:
     @property
     def market_cap(self) -> Optional[int]:
         """
-        The market capitalization of the company, calculated as the current stock price multiplied by the number of shares
+        The market capitalization of the company, calculated as the current stock price
+        multiplied by the number of shares
         outstanding.
 
         Applies to EQUITY, ETF and MUTUALFUND quotes.
@@ -750,7 +772,8 @@ class YQuote:
     @property
     def price_eps_current_year(self) -> Optional[float]:
         """
-        The price of the stock divided by the company's earnings per share (EPS) for the current year.
+        The price of the stock divided by the company's earnings per share (EPS) for
+        the current year.
 
         Applies to EQUITY quotes.
         """
@@ -759,7 +782,8 @@ class YQuote:
     @property
     def price_hint(self) -> int:
         """
-        A hint about the precision of the price data (e.g. the number of decimal places).
+        A hint about the precision of the price data (e.g. the number of decimal
+        places).
 
         Applies to ALL quotes.
         """
@@ -768,7 +792,8 @@ class YQuote:
     @property
     def price_to_book(self) -> Optional[float]:
         """
-        The price-to-book ratio, calculated as the market price per share divided by the book value per share.
+        The price-to-book ratio, calculated as the market price per share divided by
+        the book value per share.
 
         Applies to EQUITY, ETF and MUTUALFUND quotes.
         """
@@ -822,36 +847,44 @@ class YQuote:
     @property
     def regular_market_day_high(self) -> Optional[float]:
         """
-        The highest price the security has traded at in the most recent regular trading session.
+        The highest price the security has traded at in the most recent regular trading
+        session.
 
-        Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and OPTION quotes.
+        Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and OPTION
+        quotes.
         """
         return self._regular_market_day_high
 
     @property
     def regular_market_day_low(self) -> Optional[float]:
         """
-        The lowest price the security has traded at in the most recent regular trading session.
+        The lowest price the security has traded at in the most recent regular trading
+        session.
 
-        Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and OPTION quotes.
+        Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and OPTION
+        quotes.
         """
         return self._regular_market_day_low
 
     @property
     def regular_market_day_range(self) -> Optional[str]:
         """
-        The range of prices at which the security has traded during the most recent regular trading session.
+        The range of prices at which the security has traded during the most recent
+        regular trading session.
 
-        Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and OPTION quotes.
+        Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and OPTION
+        quotes.
         """
         return self._regular_market_day_range
 
     @property
     def regular_market_open(self) -> Optional[float]:
         """
-        The price at which the security first traded in the most recent regular trading session.
+        The price at which the security first traded in the most recent regular trading
+        session.
 
-        Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and OPTION quotes.
+        Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and OPTION
+        quotes.
         """
         return self._regular_market_open
 
@@ -867,7 +900,8 @@ class YQuote:
     @property
     def regular_market_price(self) -> float:
         """
-        The last traded price of the security in the most recent regular trading session.
+        The last traded price of the security in the most recent regular trading
+        session.
 
         Applies to ALL quotes.
         """
@@ -885,9 +919,11 @@ class YQuote:
     @property
     def regular_market_volume(self) -> Optional[int]:
         """
-        The total number of shares traded during the most recent regular trading session.
+        The total number of shares traded during the most recent regular trading
+        session.
 
-        Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and OPTION quotes.
+        Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and OPTION
+        quotes.
         """
         return self._regular_market_volume
 
@@ -930,7 +966,8 @@ class YQuote:
     @property
     def strike(self) -> Optional[float]:
         """
-        The strike price of an options contract, which is the price at which the contract can be exercised.
+        The strike price of an options contract, which is the price at which the
+        contract can be exercised.
 
         Applies to OPTION quotes.
         """
@@ -984,7 +1021,8 @@ class YQuote:
     @property
     def trailing_pe(self) -> Optional[float]:
         """
-        The trailing price-to-earnings ratio, calculated as the current share price divided by the earnings per share (EPS) over
+        The trailing price-to-earnings ratio, calculated as the current share price
+        divided by the earnings per share (EPS) over
         the past 12 months.
 
         Applies to EQUITY, ETF and MUTUALFUND quotes.
@@ -1023,7 +1061,8 @@ class YQuote:
         """
         The average closing price of the stock over the past 200 trading days.
 
-        Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and MUTUALFUND quotes.
+        Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and MUTUALFUND
+        quotes.
         """
         return self._two_hundred_day_average
 
@@ -1032,7 +1071,8 @@ class YQuote:
         """
         The change in the 200-day average price from the previous trading day.
 
-        Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and MUTUALFUND quotes.
+        Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and MUTUALFUND
+        quotes.
         """
         return self._two_hundred_day_average_change
 
@@ -1041,7 +1081,8 @@ class YQuote:
         """
         The percent change in the 200-day average price from the previous trading day.
 
-        Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and MUTUALFUND quotes.
+        Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and MUTUALFUND
+        quotes.
         """
         return self._two_hundred_day_average_change_percent
 
@@ -1057,7 +1098,8 @@ class YQuote:
     @property
     def underlying_exchange_symbol(self) -> Optional[str]:
         """
-        The symbol of the exchange on which the underlying security of a derivative is traded.
+        The symbol of the exchange on which the underlying security of a derivative is
+        traded.
 
         Applies to FUTURE quotes.
         """
@@ -1093,7 +1135,8 @@ class YQuote:
     @property
     def volume_all_currencies(self) -> Optional[int]:
         """
-        The total trading volume of a cryptocurrency across all currencies in the past 24 hours.
+        The total trading volume of a cryptocurrency across all currencies in the past
+        24 hours.
 
         Applies to CRYPTOCURRENCY quotes.
         """
@@ -1119,9 +1162,11 @@ class YQuote:
             ValueError: if input_data is None
         """
 
-        # load the values of the dictionary into the object, if they exist. Otherwise set them to None
+        # load the values of the dictionary into the object, if they exist. Otherwise
+        # set them to None
 
-        # start with timezone, since it's going to be required for parsing the timestamps
+        # start with timezone, since it's going to be required for parsing the
+        # timestamps
         self._exchange_timezone_name: str = input_data["exchangeTimezoneName"]
         self._exchange_timezone_short_name: str = input_data[
             "exchangeTimezoneShortName"
