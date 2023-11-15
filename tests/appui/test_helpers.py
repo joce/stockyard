@@ -1,5 +1,7 @@
-# pylint: disable=protected-access
 # pylint: disable=missing-module-docstring
+# pylint: disable=protected-access
+
+# pyright: reportPrivateUsage=none
 
 import pytest
 
@@ -51,5 +53,5 @@ from .helpers import compare_shrunken_ints
         ("974.01T", "999.87T", -1),
     ],
 )
-def test_compare_shrunken_ints(a, b, expected_output):
+def test_compare_shrunken_ints(a: str, b: str, expected_output: int):
     assert compare_shrunken_ints(a, b) == expected_output

@@ -6,11 +6,12 @@
         "editor.defaultFormatter": "ms-python.black-formatter"
     },
     "python.formatting.provider": "black",
-    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.typeCheckingMode": "strict",
     "python.languageServer": "Pylance",
     "autoDocstring.startOnNewLine": true,
     "python.analysis.autoFormatStrings": true,
     "python.analysis.completeFunctionParens": true,
     "python.analysis.diagnosticMode": "workspace",
-    "python.analysis.importFormat": "relative"
+    "python.analysis.importFormat": "relative",
+    "python.analysis.autoImportCompletions": true
 }

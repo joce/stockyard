@@ -2,6 +2,8 @@
 Test helpers.
 """
 
+# pyright: reportPrivateUsage=none
+
 from appui._formatting import _NO_VALUE
 
 

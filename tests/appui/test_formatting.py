@@ -1,5 +1,9 @@
-# pylint: disable=protected-access
 # pylint: disable=missing-module-docstring
+# pylint: disable=protected-access
+
+# pyright: reportPrivateUsage=none
+
+from typing import Optional
 
 import pytest
 
@@ -19,7 +23,7 @@ from appui import _formatting as fmt
         (-892.76324765, "-892.76%"),
     ],
 )
-def test_as_percent(input_value, expected_output):
+def test_as_percent(input_value: float, expected_output: str):
     assert fmt.as_percent(input_value) == expected_output
 
 
@@ -31,7 +35,7 @@ def test_as_percent(input_value, expected_output):
         (1234.5678, 3, "1234.568"),
     ],
 )
-def test_as_float(input_value, precision, expected_output):
+def test_as_float(input_value: float, precision: Optional[int], expected_output: str):
     if precision is None:
         assert fmt.as_float(input_value) == expected_output
     else:
@@ -51,5 +55,5 @@ def test_as_float(input_value, precision, expected_output):
         (1000000000000, "1.00T"),
     ],
 )
-def test_as_shrunk_int(input_value, expected_output):
+def test_as_shrunk_int(input_value: int, expected_output: str):
     assert fmt.as_shrunk_int(input_value) == expected_output

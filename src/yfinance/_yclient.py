@@ -1,5 +1,7 @@
 """This module provides a client for the Yahoo! Finance API."""
 
+# pylint: disable=line-too-long
+
 import json
 import logging
 from datetime import datetime, timedelta
@@ -9,8 +11,6 @@ from urllib.parse import parse_qs, urlencode, urlparse
 
 import requests
 from requests.cookies import RequestsCookieJar
-
-# pylint: disable=line-too-long
 
 
 class YClient:
@@ -173,7 +173,7 @@ class YClient:
             # Look in the history to find the right cookie
             gucs_cookie: RequestsCookieJar = RequestsCookieJar()
             for hist in response.history:
-                if hist.cookies.get("GUCS") is not None:
+                if hist.cookies.get("GUCS") is not None:  # pyright: ignore
                     gucs_cookie: RequestsCookieJar = hist.cookies
                     break
 
@@ -219,7 +219,7 @@ class YClient:
             allow_redirects=True,
         ) as response:
             for hist in response.history:
-                if hist.cookies.get("A3") is not None:
+                if hist.cookies.get("A3") is not None:  # pyright: ignore
                     return hist.cookies
 
         return RequestsCookieJar()
@@ -239,7 +239,7 @@ class YClient:
             except requests.exceptions.HTTPError as e:
                 logging.exception("Can't fetch crumb: %s", e)
 
-        if self._crumb is not None and self._crumb != "":
+        if self._crumb != "":
             logging.debug(
                 "Crumb refreshed: %s. Expires on %s",
                 self._crumb,
@@ -275,7 +275,7 @@ class YClient:
             res_body: str = response.text
             logging.debug("Response: %s", res_body)
 
-            if res_body is None or res_body == "":
+            if res_body == "":
                 logging.error("Can't parse response")
                 return {}
 
@@ -314,10 +314,10 @@ class YClient:
         if query_params is None:
             query_params = {}
 
-        if self._crumb is not None and self._crumb != "":
+        if self._crumb != "":
             query_params["crumb"] = self._crumb
 
-        if query_params is not None and len(query_params) > 0:
+        if len(query_params) > 0:
             query_string = urlencode(query_params)
             api_url += "?" + query_string
 

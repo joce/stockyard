@@ -1,6 +1,8 @@
-# pylint: disable=protected-access
-# pylint: disable=missing-module-docstring
 # pylint: disable=missing-function-docstring
+# pylint: disable=missing-module-docstring
+# pylint: disable=protected-access
+
+# pyright: reportPrivateUsage=none
 
 import logging
 from typing import Any

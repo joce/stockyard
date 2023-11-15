@@ -56,3 +56,7 @@
 Other:
     DevOps:
         ☐  review .pylintc file
+
+    Tests:
+        yfinance:
+            ☐ test YClient

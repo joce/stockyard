@@ -34,7 +34,7 @@ class YFinance:
             list[YQuote]: The quotes for the given symbols.
         """
 
-        if symbols is None or len(symbols) == 0:
+        if len(symbols) == 0:
             logging.error("No symbols provided")
             raise ValueError("No symbols provided")
 
@@ -43,7 +43,7 @@ class YFinance:
             self._QUOTE_API, {"symbols": ",".join([s.strip() for s in symbols])}
         )
 
-        if json_data is None or "quoteResponse" not in json_data:
+        if "quoteResponse" not in json_data:
             logging.error("No quote response from Yahoo!")
             return []
 

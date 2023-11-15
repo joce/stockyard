@@ -2,7 +2,7 @@
 This module contains the QuoteTable class which is a DataTable for displaying quotes.
 """
 
-from typing import Any
+from typing import Any, override
 
 from rich.style import Style
 from rich.text import Text
@@ -14,7 +14,7 @@ from ._quote_table_data import QuoteCell, QuoteColumn, QuoteRow
 from .quote_table_state import QuoteTableState
 
 
-class QuoteTable(DataTable):
+class QuoteTable(DataTable[Text]):
     """A DataTable for displaying quotes."""
 
     _GAINING_COLOR: str = "#00DD00"
@@ -33,8 +33,7 @@ class QuoteTable(DataTable):
 
     def __del__(self) -> None:
         # Make sure the query thread is stopped
-        if self._state is not None:
-            self._state.query_thread_running = False
+        self._state.query_thread_running = False
 
     def on_mount(self) -> None:
         """The event handler called when the widget is added to the app."""
@@ -55,6 +54,7 @@ class QuoteTable(DataTable):
         self._version = self._state.version - 1
         self._state.query_thread_running = True
 
+    @override
     def _on_unmount(self) -> None:
         """
         The event handler called when the widget is removed from the app.
@@ -85,7 +85,7 @@ class QuoteTable(DataTable):
             # rows as needed
             quote_key: str = str(i)
             # Update existing rows
-            if quote_key in self.rows:
+            if quote_key in self.rows:  # pyright: ignore [reportUnnecessaryContains]
                 for j, cell in enumerate(quote.values):
                     self.update_cell(
                         quote_key,
@@ -179,6 +179,7 @@ class QuoteTable(DataTable):
 
         super().watch_hover_coordinate(old, value)
 
+    @override
     def _render_cell(
         self,
         row_index: int,
@@ -199,18 +200,19 @@ class QuoteTable(DataTable):
             row_index, column_index, base_style, width, cursor, hover
         )
 
+    @override
     def watch_cursor_coordinate(
-        self, _: Coordinate, new_coordinate: Coordinate
+        self, old_coordinate: Coordinate, new_coordinate: Coordinate
     ) -> None:
         """
         Watch the cursor coordinate and update the current row accordingly.
 
         Args:
-            _ (Coordinate): The old coordinate. Unused.
+            old_coordinate (Coordinate): The old coordinate. Unused.
             new_coordinate (Coordinate): The current cursor coordinate.
         """
 
-        super().watch_cursor_coordinate(_, new_coordinate)
+        super().watch_cursor_coordinate(old_coordinate, new_coordinate)
         self._state.current_row = new_coordinate.row
 
     def on_data_table_header_selected(self, evt: DataTable.HeaderSelected) -> None:

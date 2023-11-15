@@ -1118,8 +1118,6 @@ class YQuote:
         Raises:
             ValueError: if input_data is None
         """
-        if input_data is None:
-            raise ValueError("input_data cannot be None")
 
         # load the values of the dictionary into the object, if they exist. Otherwise set them to None
 
@@ -1501,6 +1499,7 @@ class YQuote:
         Returns:
             str: a string representation of the object
         """
+
         return (
             f"YQuote({self._symbol}: {self._regular_market_price}"
             + f" ({self._regular_market_change_percent:.2f}%)"

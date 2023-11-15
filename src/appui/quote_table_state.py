@@ -1,7 +1,6 @@
 """The state of the quote table."""
 
 import logging
-from re import S
 from threading import Lock, Thread
 from time import monotonic, sleep
 from typing import Any, Callable, Optional

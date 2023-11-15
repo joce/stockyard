@@ -107,8 +107,7 @@ class StockyardAppState:
             else None
         )
 
-        if quote_table_config is not None:
-            self._quote_table_state.load_config(quote_table_config)
+        self._quote_table_state.load_config(quote_table_config)
 
         try:
             self._time_display = get_enum_member(TimeFormat, time_format)

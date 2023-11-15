@@ -1,7 +1,7 @@
 {
     "version": "0.2",
     "language": "en",
-    "ignorePaths": [".cspell.json"],
+    "ignorePaths": [".cspell.json", "pyproject.toml"],
     "dictionaryDefinitions": [],
     "dictionaries": [],
     "words": ["legault", "renderable", "triggerable"],

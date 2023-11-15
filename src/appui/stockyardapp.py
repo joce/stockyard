@@ -3,12 +3,13 @@
 import json
 import logging
 from io import TextIOWrapper
-from typing import Any, Optional
+from typing import Any, ClassVar, Optional
 
 from textual import work
 from textual.app import App, ComposeResult
 from textual.binding import BindingType
 from textual.containers import Horizontal
+from textual.css.query import NoMatches
 from textual.logging import TextualHandler
 from textual.widgets import Footer, LoadingIndicator
 from textual.worker import Worker
@@ -25,12 +26,12 @@ logging.basicConfig(
 )
 
 
-class StockyardApp(App):
+class StockyardApp(App[None]):
     """A Textual app for the Stockyard application."""
 
     CSS_PATH = "./stockyardapp.tcss"
 
-    BINDINGS: list[BindingType] = [
+    BINDINGS: ClassVar[list[BindingType]] = [
         ("q", "exit", "Exit"),
     ]
 
@@ -109,11 +110,14 @@ class StockyardApp(App):
     def _finish_loading(self) -> None:
         """Finish loading."""
 
-        indicator: LoadingIndicator = self.query_one(
-            "LoadingIndicator", LoadingIndicator
-        )
-        if indicator is not None:
+        try:
+            indicator: LoadingIndicator = self.query_one(
+                "LoadingIndicator", LoadingIndicator
+            )
             indicator.remove()
+        except NoMatches:
+            # No indicator was found
+            pass
 
         qt: QuoteTable = QuoteTable(self._state.quote_table_state)
         self.mount(qt, before="#clock-footer")
