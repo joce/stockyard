@@ -9,7 +9,7 @@
             "type": "python",
             "request": "launch",
             // start the stockyard app
-            "program": "${workspaceFolder}/stockyard.py",
+            "program": "${workspaceFolder}/src/stockyard.py",
             //"console": "integratedTerminal",
             "console": "externalTerminal",
             "justMyCode": true

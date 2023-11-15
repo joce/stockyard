@@ -28,6 +28,8 @@ jobs=4
 # active Python interpreter and may run arbitrary code.
 unsafe-load-any-extension=no
 
+# To make sure we can access the src directory
+init-hook='import sys; sys.path.append("src")'
 
 [MESSAGES CONTROL]
 
