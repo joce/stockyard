@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt isort black flake8 pylint pyright pytest-md
+      - name:
+          Checking imports with isort
+          # change to python 3.12 when isort supports it
+        run: |
+          isort -c --profile black --python-version 3 .
+      - name: Checking formatting with black
+        run: |
+          black --check --target-version py312 .
+      - name: Checking style with flake8
+        run: |
+          flake8 .
+      - name: Analysing the code with pylint
+        run: |
+          pylint $(git ls-files '*.py')
+      - name: Analysing typing with pyright
+        run: |
+          pyright --version ${{ matrix.python-version }}
+      - name: Run pytest
+        uses: pavelzw/pytest-action@v2
+        with:
+          verbose: true
+          emoji: false
+          job-summary: true
+          custom-arguments: "-q"
+          click-to-expand: true
+          report-title: "Test Report"

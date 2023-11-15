@@ -1,4 +1,4 @@
-[![Pylint](https://github.com/joce/stockyard/actions/workflows/pylint.yml/badge.svg)](https://github.com/joce/stockyard/actions/workflows/pylint.yml)
+[![CI](https://github.com/joce/stockyard/actions/workflows/ci.yml/badge.svg)](https://github.com/joce/stockyard/actions/workflows/ci.yml)
 
 # stockyard
 

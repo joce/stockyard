@@ -12,10 +12,10 @@
         ☐ pydoc?
             https://docs.python.org/3/library/pydoc.html
         GitHub workflows:
-            ☐ use github actions for pytest
+            ✔ use github actions for pytest @done(23-11-15 09:43)
                 https://blog.dennisokeeffe.com/blog/2021-08-08-pytest-with-github-actions
-            ☐ github action for pyright
-            ☐ github action for black, flake8, isort
+            ✔ github action for pyright @done(23-11-15 09:43)
+            ✔ github action for black, flake8, isort @done(23-11-15 09:43)
 
 
     App:
@@ -58,7 +58,8 @@
 
 Other:
     DevOps:
-        ☐  review .pylintc file
+        ☐  review .pylinrc file
+        ☐  attempt at parallelizing some workflows.
 
     Tests:
         yfinance:
