@@ -10,39 +10,49 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.12"]
+        poetry-version: ["1.7.1"]
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
+
+      - name: Install poetry ${{ matrix.poetry-version }}
         run: |
+          python -m ensurepip
           python -m pip install --upgrade pip
-          pip install -r requirements.txt isort black flake8 pylint pyright pytest-md
+          pip install poetry==${{ matrix.poetry-version }}
+      - name: View poetry --help
+        run: poetry --help
+      - name: Install dependencies
+        shell: bash
+        run: poetry install
+
       - name:
           Checking imports with isort
           # change to python 3.12 when isort supports it
         run: |
-          isort -c --profile black --python-version 3 .
+          poetry run isort -c --profile black --python-version 3 .
       - name: Checking formatting with black
         run: |
-          black --check --target-version py312 .
+          poetry run black --check --target-version py312 .
       - name: Checking style with flake8
         run: |
-          flake8 .
+          poetry run flake8 .
       - name: Analysing the code with pylint
         run: |
-          pylint $(git ls-files '*.py')
+          poetry run pylint $(git ls-files '*.py')
       - name: Analysing typing with pyright
         run: |
-          pyright --version ${{ matrix.python-version }}
+          poetry run pyright --version ${{ matrix.python-version }}
       - name: Run pytest
         uses: pavelzw/pytest-action@v2
         with:
           verbose: true
           emoji: false
           job-summary: true
+          custom-pytest: "poetry run pytest"
           custom-arguments: "-q"
           click-to-expand: true
           report-title: "Test Report"

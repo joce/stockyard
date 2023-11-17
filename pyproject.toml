@@ -1,7 +1,34 @@
 [tool.pytest.ini_options]
 pythonpath = "src"
-testpaths = ["src", "tests"]
+testpaths = ["tests"]
 
 [tool.pyright]
 include = ["src", "tests"]
 typeCheckingMode = "strict"
+
+[tool.poetry]
+name = "stockyard"
+version = "0.1.0"
+description = "A Yahoo! finance-based TUI stock viewer"
+authors = ["Jocelyn Legault <jocelynlegault@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+requests = "^2.23.0"
+textual = "^0.40"
+tzdata = "^2023.3"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.11.0"
+flake8 = "^6.1"
+isort = "^5.12"
+pylint = "^3.0"
+pyright = "^1.1"
+pytest = "^7.4"
+pytest-md = "^0.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

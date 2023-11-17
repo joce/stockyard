@@ -1,6 +1,0 @@
-#pylint >= 3.0 # not required
-#pyright >= 1.1.335 # not required
-pytest >= 7.4
-requests >= 2.31
-textual >= 0.40
-tzdata >= 2023.3
