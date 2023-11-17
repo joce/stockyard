@@ -3,7 +3,7 @@
 import json
 import logging
 from io import TextIOWrapper
-from typing import Any, ClassVar, Optional
+from typing import Any, ClassVar, Optional, override
 
 from textual import work
 from textual.app import App, ComposeResult
@@ -44,6 +44,7 @@ class StockyardApp(App[None]):
         self._state: StockyardAppState = StockyardAppState(self.__yfinance)
         self._priming_worker: Optional[Worker[None]] = None
 
+    @override
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
 

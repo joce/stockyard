@@ -35,6 +35,7 @@ class QuoteTable(DataTable[Text]):
         # Make sure the query thread is stopped
         self._state.query_thread_running = False
 
+    @override
     def on_mount(self) -> None:
         """The event handler called when the widget is added to the app."""
 
@@ -163,6 +164,7 @@ class QuoteTable(DataTable[Text]):
             else "",
         )
 
+    @override
     def watch_hover_coordinate(self, old: Coordinate, value: Coordinate) -> None:
         """
         Watch the hover coordinate and update the cursor type accordingly.
