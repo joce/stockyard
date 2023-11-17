@@ -1,6 +1,5 @@
 0.1:
     DevOps:
-        ☐ investigate using code coverage (VS Code, coverage.py (github workflow))
         ✔ fluke8 usage @done(23-11-15 08:45)
             https://www.sefidian.com/2021/08/03/how-to-use-black-flake8-and-isort-to-format-python-codes/
         ☐ Poetry (?)
@@ -9,8 +8,6 @@
             https://python-poetry.org/docs/basic-usage/
         ✔ Typing thing @done(23-11-15 08:03)
             https://github.com/microsoft/pyright
-        ☐ pydoc?
-            https://docs.python.org/3/library/pydoc.html
         GitHub workflows:
             ✔ use github actions for pytest @done(23-11-15 09:43)
                 https://blog.dennisokeeffe.com/blog/2021-08-08-pytest-with-github-actions
@@ -58,8 +55,11 @@
 
 Other:
     DevOps:
-        ☐  review .pylinrc file
-        ☐  attempt at parallelizing some workflows.
+        ☐ review .pylinrc file
+        ☐ attempt at parallelizing some workflows.
+        ☐ investigate using code coverage (VS Code, coverage.py (github workflow))
+        ☐ pydoc?
+            https://docs.python.org/3/library/pydoc.html
 
     Tests:
         yfinance:
