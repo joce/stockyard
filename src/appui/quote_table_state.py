@@ -3,7 +3,7 @@
 import logging
 from threading import Lock, Thread
 from time import monotonic, sleep
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Final, Optional
 
 from yfinance import YFinance, YQuote
 
@@ -15,16 +15,16 @@ from ._quote_table_data import QuoteCell, QuoteColumn, QuoteRow
 class QuoteTableState:
     """The state of the quote table."""
 
-    _TICKER_COLUMN_KEY: str = "ticker"
+    _TICKER_COLUMN_KEY: Final[str] = "ticker"
 
     # Default values
-    _DEFAULT_COLUMN_KEYS: list[str] = [
+    _DEFAULT_COLUMN_KEYS: Final[list[str]] = [
         "last",
         "change_percent",
         "volume",
         "market_cap",
     ]
-    _DEFAULT_QUOTES: list[str] = [
+    _DEFAULT_QUOTES: Final[list[str]] = [
         "AAPL",
         "F",
         "VT",
@@ -34,15 +34,15 @@ class QuoteTableState:
         "EURUSD=X",
         "BTC-USD",
     ]
-    _DEFAULT_SORT_DIRECTION: SortDirection = SortDirection.ASCENDING
-    _DEFAULT_QUERY_FREQUENCY: int = 60
+    _DEFAULT_SORT_DIRECTION: Final[SortDirection] = SortDirection.ASCENDING
+    _DEFAULT_QUERY_FREQUENCY: Final[int] = 60
 
     # Config file keys
-    _COLUMNS: str = "columns"
-    _SORT_COLUMN: str = "sort_column"
-    _SORT_DIRECTION: str = "sort_direction"
-    _QUOTES: str = "quotes"
-    _QUERY_FREQUENCY: str = "query_frequency"
+    _COLUMNS: Final[str] = "columns"
+    _SORT_COLUMN: Final[str] = "sort_column"
+    _SORT_DIRECTION: Final[str] = "sort_direction"
+    _QUOTES: Final[str] = "quotes"
+    _QUERY_FREQUENCY: Final[str] = "query_frequency"
 
     def __init__(self, yfin: YFinance) -> None:
         self._yfin: YFinance = yfin

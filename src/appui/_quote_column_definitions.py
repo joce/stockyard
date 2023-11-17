@@ -1,7 +1,7 @@
 """Definitions of the available columns for the quote table."""
 
 from math import inf
-from typing import Optional, TypeVar
+from typing import Final, Optional, TypeVar
 
 from ._enums import Justify
 from ._formatting import as_float, as_percent, as_shrunk_int
@@ -42,7 +42,7 @@ def _sign(v: T) -> int:
     return 1 if v > 0 else -1 if v < 0 else 0
 
 
-ALL_QUOTE_COLUMNS: dict[str, QuoteColumn] = {
+ALL_QUOTE_COLUMNS: Final[dict[str, QuoteColumn]] = {
     "ticker": (
         QuoteColumn(
             "Ticker",

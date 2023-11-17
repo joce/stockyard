@@ -1,8 +1,9 @@
 """
 Functions for formatting various data types into strings for the Stockyard application.
 """
+from typing import Final
 
-_NO_VALUE: str = "N/A"  # TODO Maybe use "" instead?
+_NO_VALUE: Final[str] = "N/A"  # TODO Maybe use "" instead?
 
 
 def as_percent(value: float | None) -> str:

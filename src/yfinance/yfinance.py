@@ -1,7 +1,7 @@
 """A Python interface to the Yahoo! Finance API."""
 
 import logging
-from typing import Any
+from typing import Any, Final
 
 from ._yclient import YClient
 from .yquote import YQuote
@@ -10,7 +10,7 @@ from .yquote import YQuote
 class YFinance:
     """A Python interface to the Yahoo! Finance API."""
 
-    _QUOTE_API: str = "/v7/finance/quote"
+    _QUOTE_API: Final[str] = "/v7/finance/quote"
 
     def __init__(self) -> None:
         self._yclient = YClient()

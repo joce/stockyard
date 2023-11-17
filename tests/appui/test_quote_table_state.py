@@ -9,7 +9,7 @@ import re
 import sys
 from contextlib import contextmanager
 from time import sleep
-from typing import Any
+from typing import Any, Final
 
 import pytest
 
@@ -21,13 +21,15 @@ from .fake_yfinance import FakeYFinance
 from .helpers import compare_shrunken_ints
 
 # A number with 2 decimal values
-NUMBER_RE: re.Pattern[str] = re.compile(r"^(?:-?\d+\.\d{2}|N/A)$", re.M)
+NUMBER_RE: Final[re.Pattern[str]] = re.compile(r"^(?:-?\d+\.\d{2}|N/A)$", re.M)
 
 # A percentage with 2 decimal values
-PERCENT_RE: re.Pattern[str] = re.compile(r"^(?:-?\d+\.\d{2}%|N/A)$", re.M)
+PERCENT_RE: Final[re.Pattern[str]] = re.compile(r"^(?:-?\d+\.\d{2}%|N/A)$", re.M)
 
 # A shrunken int
-SHRUNK_RE: re.Pattern[str] = re.compile(r"^(?:\d{1,3}(?:\.\d{2}[KMBT])?|N/A)$", re.M)
+SHRUNKEN_INT_RE: Final[re.Pattern[str]] = re.compile(
+    r"^(?:\d{1,3}(?:\.\d{2}[KMBT])?|N/A)$", re.M
+)
 
 
 @pytest.fixture(name="quote_table_state")
@@ -342,7 +344,7 @@ def test_default_get_quotes_rows(quote_table_state: QuoteTableState):
             assert row.values[0].value == quotes[i]
             assert NUMBER_RE.match(row.values[1].value)  # last
             assert PERCENT_RE.match(row.values[2].value)  # change_percent
-            assert SHRUNK_RE.match(row.values[3].value)  # market_cap
+            assert SHRUNKEN_INT_RE.match(row.values[3].value)  # market_cap
 
 
 ##############################################################################

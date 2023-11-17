@@ -2,7 +2,7 @@
 This module contains the QuoteTable class which is a DataTable for displaying quotes.
 """
 
-from typing import Any, override
+from typing import Any, Final, override
 
 from rich.style import Style
 from rich.text import Text
@@ -17,8 +17,8 @@ from .quote_table_state import QuoteTableState
 class QuoteTable(DataTable[Text]):
     """A DataTable for displaying quotes."""
 
-    _GAINING_COLOR: str = "#00DD00"
-    _LOSING_COLOR: str = "#DD0000"
+    _GAINING_COLOR: Final[str] = "#00DD00"
+    _LOSING_COLOR: Final[str] = "#DD0000"
 
     def __init__(self, state: QuoteTableState) -> None:
         super().__init__()

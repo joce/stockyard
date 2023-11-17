@@ -6,7 +6,7 @@ import json
 import logging
 from datetime import datetime, timedelta
 from http.cookiejar import Cookie
-from typing import Any
+from typing import Any, Final
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import requests
@@ -16,17 +16,19 @@ from requests.cookies import RequestsCookieJar
 class YClient:
     """Yahoo! Finance API client."""
 
-    _DEFAULT_HTTP_TIMEOUT: int = 80
-    _YAHOO_FINANCE_URL: str = "https://finance.yahoo.com"
-    _YAHOO_FINANCE_QUERY_URL: str = "https://query1.finance.yahoo.com"
-    _CRUMB_URL: str = _YAHOO_FINANCE_QUERY_URL + "/v1/test/getcrumb"
-    _USER_AGENT: str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36"  # noqa: E501
-    _USER_AGENT_CLIENT_HINT_BRANDING_AND_VERSION: str = (
-        '"Google Chrome";v="113", "Chromium";v="113", "Not-A.Brand";v="24"'
-    )
-    _USER_AGENT_CLIENT_HINT_PLATFORM: str = '"Windows"'
+    _DEFAULT_HTTP_TIMEOUT: Final[int] = 80
+    _YAHOO_FINANCE_URL: Final[str] = "https://finance.yahoo.com"
+    _YAHOO_FINANCE_QUERY_URL: Final[str] = "https://query1.finance.yahoo.com"
+    _CRUMB_URL: Final[str] = _YAHOO_FINANCE_QUERY_URL + "/v1/test/getcrumb"
+    _USER_AGENT: Final[
+        str
+    ] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36"  # noqa: E501
+    _USER_AGENT_CLIENT_HINT_BRANDING_AND_VERSION: Final[
+        str
+    ] = '"Google Chrome";v="113", "Chromium";v="113", "Not-A.Brand";v="24"'
+    _USER_AGENT_CLIENT_HINT_PLATFORM: Final[str] = '"Windows"'
 
-    _COOKIE_HEADERS: dict[str, str] = {
+    _COOKIE_HEADERS: Final[dict[str, str]] = {
         "authority": "finance.yahoo.com",
         "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",  # noqa: E501
         "accept-language": "en-US,en;q=0.9",

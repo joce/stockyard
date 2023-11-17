@@ -1,7 +1,7 @@
 """The state of the whole stockyard application."""
 
 import logging
-from typing import Any, Optional
+from typing import Any, Final, Optional
 
 from yfinance import YFinance
 
@@ -13,7 +13,7 @@ class StockyardAppState:
     """The state of the Stockyard app."""
 
     # Human readable logging levels
-    _LOGGING_LEVELS: dict[int, str] = {
+    _LOGGING_LEVELS: Final[dict[int, str]] = {
         logging.NOTSET: "NOTSET",
         logging.DEBUG: "DEBUG",
         logging.INFO: "INFO",
@@ -23,13 +23,13 @@ class StockyardAppState:
     }
 
     # Default values
-    _DEFAULT_LOG_LEVEL: int = logging.INFO
-    _DEFAULT_TIME_FORMAT: TimeFormat = TimeFormat.TWENTY_FOUR_HOUR
+    _DEFAULT_LOG_LEVEL: Final[int] = logging.INFO
+    _DEFAULT_TIME_FORMAT: Final[TimeFormat] = TimeFormat.TWENTY_FOUR_HOUR
 
     # Config file keys
-    _QUOTE_TABLE: str = "quote_table"
-    _LOG_LEVEL: str = "log_level"
-    _TIME_FORMAT: str = "time_format"
+    _QUOTE_TABLE: Final[str] = "quote_table"
+    _LOG_LEVEL: Final[str] = "log_level"
+    _TIME_FORMAT: Final[str] = "time_format"
 
     def __init__(self, yfin: YFinance, *, title: str = "Stockyard") -> None:
         # Transient members
