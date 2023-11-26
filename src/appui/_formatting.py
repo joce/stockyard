@@ -1,17 +1,17 @@
 """
 Functions for formatting various data types into strings for the Stockyard application.
 """
-from typing import Final
+from typing import Final, Optional
 
 _NO_VALUE: Final[str] = "N/A"  # TODO Maybe use "" instead?
 
 
-def as_percent(value: float | None) -> str:
+def as_percent(value: Optional[float]) -> str:
     """
     Converts the given value into a percentage string.
 
     Args:
-        value (float | None): The value to be formatted as a percentage.
+        value (Optional[float]): The value to be formatted as a percentage.
 
     Returns:
         str: The percentage representation of the value. If the value is None, returns
@@ -23,13 +23,13 @@ def as_percent(value: float | None) -> str:
     return f"{value:.2f}%"
 
 
-def as_float(value: float | None, precision: int = 2) -> str:
+def as_float(value: Optional[float], precision: int = 2) -> str:
     """
     Returns a string representation of the given value as a float with the specified
     precision.
 
     Args:
-        value (float | None): The value to be formatted as a float.
+        value (Optional[float]): The value to be formatted as a float.
         precision (int): The number of decimal places to include in the formatted
             output.
 
@@ -43,14 +43,14 @@ def as_float(value: float | None, precision: int = 2) -> str:
     return f"{value:.{precision}f}"
 
 
-def as_shrunk_int(value: int | None) -> str:
+def as_shrunk_int(value: Optional[int]) -> str:
     """
     Returns a string representation of the given value as a shrunk integer. A "shrunk
     integer" is an integer that is scaled down and represented with a suffix. For
     example, 1500 would be represented as "1.5K".
 
     Args:
-        value (int | None): The value to be formatted as a shrunk integer.
+        value (Optional[int]): The value to be formatted as a shrunk integer.
 
     Returns:
         str: The shrunk integer representation of the value. If the value is None,
