@@ -6,7 +6,6 @@
 
 import math
 import re
-import sys
 from contextlib import contextmanager
 from time import sleep
 from typing import Any, Final
@@ -330,21 +329,22 @@ def test_default_get_quotes_rows(quote_table_state: QuoteTableState):
     config: dict[str, Any] = {
         QuoteTableState._QUOTES: quotes,
         QuoteTableState._COLUMNS: columns,
-        QuoteTableState._QUERY_FREQUENCY: sys.maxsize,
     }
 
     quote_table_state.load_config(config)
     with thread_running_context(quote_table_state):
-        rows: list[QuoteRow] = quote_table_state.quotes_rows
+        sleep(0)
 
-        assert len(rows) == len(quotes)
+    rows: list[QuoteRow] = quote_table_state.quotes_rows
 
-        for i, row in enumerate(rows):
-            assert len(row.values) == len(columns) + 1  # +1 for symbol; always there
-            assert row.values[0].value == quotes[i]
-            assert NUMBER_RE.match(row.values[1].value)  # last
-            assert PERCENT_RE.match(row.values[2].value)  # change_percent
-            assert SHRUNKEN_INT_RE.match(row.values[3].value)  # market_cap
+    assert len(rows) == len(quotes)
+
+    for i, row in enumerate(rows):
+        assert len(row.values) == len(columns) + 1  # +1 for symbol; always there
+        assert row.values[0].value == quotes[i]
+        assert NUMBER_RE.match(row.values[1].value)  # last
+        assert PERCENT_RE.match(row.values[2].value)  # change_percent
+        assert SHRUNKEN_INT_RE.match(row.values[3].value)  # market_cap
 
 
 ##############################################################################
@@ -361,179 +361,179 @@ def test_rows_sorted_on_string(quote_table_state: QuoteTableState):
     quotes: list[str] = ["^DJI", "AAPL", "F", "VT"]  # This is the default sort order
     config: dict[str, Any] = {
         QuoteTableState._QUOTES: quotes,
-        QuoteTableState._QUERY_FREQUENCY: sys.maxsize,
     }
 
     quote_table_state.load_config(config)
     with thread_running_context(quote_table_state):
-        # this is the default sort key and direction
-        assert quote_table_state.sort_column_key == QuoteTableState._TICKER_COLUMN_KEY
-        assert quote_table_state.sort_direction == SortDirection.ASCENDING
+        sleep(0)
 
-        rows: list[QuoteRow] = quote_table_state.quotes_rows
-        for i, row in enumerate(rows):
-            assert row.values[0].value == quotes[i]
+    # this is the default sort key and direction
+    assert quote_table_state.sort_column_key == QuoteTableState._TICKER_COLUMN_KEY
+    assert quote_table_state.sort_direction == SortDirection.ASCENDING
 
-        orig_version: int = quote_table_state.version
+    rows: list[QuoteRow] = quote_table_state.quotes_rows
+    for i, row in enumerate(rows):
+        assert row.values[0].value == quotes[i]
 
-        quote_table_state.sort_direction = SortDirection.DESCENDING
-        new_version: int = quote_table_state.version
+    orig_version: int = quote_table_state.version
 
-        # The version should have changed following the sort direction change
-        assert new_version == orig_version + 1
+    quote_table_state.sort_direction = SortDirection.DESCENDING
+    new_version: int = quote_table_state.version
 
-        rows = quote_table_state.quotes_rows
-        for i, row in enumerate(rows):
-            # The quotes are in reverse order now
-            assert row.values[0].value == quotes[len(quotes) - 1 - i]
+    # The version should have changed following the sort direction change
+    assert new_version == orig_version + 1
+
+    rows = quote_table_state.quotes_rows
+    for i, row in enumerate(rows):
+        # The quotes are in reverse order now
+        assert row.values[0].value == quotes[len(quotes) - 1 - i]
 
 
 def test_rows_sorted_on_float(quote_table_state: QuoteTableState):
     columns: list[str] = ["last"]
     config: dict[str, Any] = {
         QuoteTableState._COLUMNS: columns,
-        QuoteTableState._QUERY_FREQUENCY: sys.maxsize,
     }
 
     quote_table_state.load_config(config)
     with thread_running_context(quote_table_state):
-        orig_version: int = quote_table_state.version
-        quote_table_state.sort_column_key = "last"
-        new_version: int = quote_table_state.version
+        sleep(0)
 
-        # Get the column index of the sort column
-        sort_column_index: int = quote_table_state.column_keys.index(
-            quote_table_state.sort_column_key
-        )
+    orig_version: int = quote_table_state.version
+    quote_table_state.sort_column_key = "last"
+    new_version: int = quote_table_state.version
 
-        # The version should have changed following the sort column change
-        assert new_version == orig_version + 1
-        assert quote_table_state.sort_direction == SortDirection.ASCENDING
+    # Get the column index of the sort column
+    sort_column_index: int = quote_table_state.column_keys.index(
+        quote_table_state.sort_column_key
+    )
 
-        rows: list[QuoteRow] = quote_table_state.quotes_rows
+    # The version should have changed following the sort column change
+    assert new_version == orig_version + 1
+    assert quote_table_state.sort_direction == SortDirection.ASCENDING
 
-        prev: float = -math.inf  # Init to a value below anything we can encounter
+    rows: list[QuoteRow] = quote_table_state.quotes_rows
 
-        for row in rows:
-            val: float = float(row.values[sort_column_index].value)
-            assert val > prev
-            prev = val
+    prev: float = -math.inf  # Init to a value below anything we can encounter
 
-        quote_table_state.sort_direction = SortDirection.DESCENDING
+    for row in rows:
+        val: float = float(row.values[sort_column_index].value)
+        assert val > prev
+        prev = val
 
-        rows = quote_table_state.quotes_rows
+    quote_table_state.sort_direction = SortDirection.DESCENDING
 
-        prev: float = math.inf  # Init to a value above anything we can encounter
+    rows = quote_table_state.quotes_rows
 
-        # The quotes are in reverse order now
-        for row in rows:
-            val: float = float(row.values[sort_column_index].value)
-            assert val < prev
-            prev = val
+    prev: float = math.inf  # Init to a value above anything we can encounter
+
+    # The quotes are in reverse order now
+    for row in rows:
+        val: float = float(row.values[sort_column_index].value)
+        assert val < prev
+        prev = val
 
 
 def test_rows_sorted_on_percent(quote_table_state: QuoteTableState):
     columns: list[str] = ["change_percent"]
     config: dict[str, Any] = {
         QuoteTableState._COLUMNS: columns,
-        QuoteTableState._QUERY_FREQUENCY: sys.maxsize,
     }
 
     quote_table_state.load_config(config)
     with thread_running_context(quote_table_state):
-        orig_version: int = quote_table_state.version
-        quote_table_state.sort_column_key = "change_percent"
-        new_version: int = quote_table_state.version
+        sleep(0)
 
-        # Get the column index of the sort column
-        sort_column_index: int = quote_table_state.column_keys.index(
-            quote_table_state.sort_column_key
-        )
+    orig_version: int = quote_table_state.version
+    quote_table_state.sort_column_key = "change_percent"
+    new_version: int = quote_table_state.version
 
-        # The version should have changed following the sort column change
-        assert new_version == orig_version + 1
-        assert quote_table_state.sort_direction == SortDirection.ASCENDING
+    # Get the column index of the sort column
+    sort_column_index: int = quote_table_state.column_keys.index(
+        quote_table_state.sort_column_key
+    )
 
-        rows: list[QuoteRow] = quote_table_state.quotes_rows
+    # The version should have changed following the sort column change
+    assert new_version == orig_version + 1
+    assert quote_table_state.sort_direction == SortDirection.ASCENDING
 
-        prev: float = -math.inf  # Init to a value below anything we can encounter
+    rows: list[QuoteRow] = quote_table_state.quotes_rows
 
-        for row in rows:
-            assert row.values[sort_column_index].value[-1] == "%"
-            val: float = float(row.values[sort_column_index].value[:-1])
-            assert val > prev
-            prev = val
+    prev: float = -math.inf  # Init to a value below anything we can encounter
 
-        quote_table_state.sort_direction = SortDirection.DESCENDING
+    for row in rows:
+        assert row.values[sort_column_index].value[-1] == "%"
+        val: float = float(row.values[sort_column_index].value[:-1])
+        assert val > prev
+        prev = val
 
-        rows = quote_table_state.quotes_rows
+    quote_table_state.sort_direction = SortDirection.DESCENDING
 
-        prev: float = math.inf  # Init to a value above anything we can encounter
+    rows = quote_table_state.quotes_rows
 
-        # The quotes are in reverse order now
-        for row in rows:
-            assert row.values[sort_column_index].value[-1] == "%"
-            val: float = float(row.values[sort_column_index].value[:-1])
-            assert val < prev
-            prev = val
+    prev: float = math.inf  # Init to a value above anything we can encounter
+
+    # The quotes are in reverse order now
+    for row in rows:
+        assert row.values[sort_column_index].value[-1] == "%"
+        val: float = float(row.values[sort_column_index].value[:-1])
+        assert val < prev
+        prev = val
 
 
 def test_rows_sorted_on_shrunken_int_and_equal_values(
     quote_table_state: QuoteTableState,
 ):
-    config: dict[str, Any] = {
-        QuoteTableState._QUERY_FREQUENCY: sys.maxsize,
-    }
-
-    quote_table_state.load_config(config)
     with thread_running_context(quote_table_state):
-        orig_version: int = quote_table_state.version
-        quote_table_state.sort_column_key = "market_cap"
-        new_version: int = quote_table_state.version
+        sleep(0)
 
-        # Get the column index of the sort column
-        sort_column_index: int = quote_table_state.column_keys.index(
-            quote_table_state.sort_column_key
+    orig_version: int = quote_table_state.version
+    quote_table_state.sort_column_key = "market_cap"
+    new_version: int = quote_table_state.version
+
+    # Get the column index of the sort column
+    sort_column_index: int = quote_table_state.column_keys.index(
+        quote_table_state.sort_column_key
+    )
+
+    # The version should have changed following the sort column change
+    assert new_version == orig_version + 1
+    assert quote_table_state.sort_direction == SortDirection.ASCENDING
+
+    rows: list[QuoteRow] = quote_table_state.quotes_rows
+
+    prev: QuoteRow = rows[0]
+
+    for row in rows[1:]:
+        cmp: int = compare_shrunken_ints(
+            prev.values[sort_column_index].value,
+            row.values[sort_column_index].value,
         )
+        assert cmp <= 0
+        if cmp == 0:
+            # If the values are equals (N/A, most likely), it should then be sorted
+            # by the ticker.
+            # Note that we're hardcoding the "lower" ticker, as it's the value used
+            # for sorting in the ALL_QUOTES_COLUMNS definitions for the ticker.
+            assert prev.values[0].value.lower() < row.values[0].value.lower()
+        prev = row
 
-        # The version should have changed following the sort column change
-        assert new_version == orig_version + 1
-        assert quote_table_state.sort_direction == SortDirection.ASCENDING
+    quote_table_state.sort_direction = SortDirection.DESCENDING
 
-        rows: list[QuoteRow] = quote_table_state.quotes_rows
+    rows = quote_table_state.quotes_rows
 
-        prev: QuoteRow = rows[0]
+    prev: QuoteRow = rows[0]
 
-        for row in rows[1:]:
-            cmp: int = compare_shrunken_ints(
-                prev.values[sort_column_index].value,
-                row.values[sort_column_index].value,
-            )
-            assert cmp <= 0
-            if cmp == 0:
-                # If the values are equals (N/A, most likely), it should then be sorted
-                # by the ticker.
-                # Note that we're hardcoding the "lower" ticker, as it's the value used
-                # for sorting in the ALL_QUOTES_COLUMNS definitions for the ticker.
-                assert prev.values[0].value.lower() < row.values[0].value.lower()
-            prev = row
-
-        quote_table_state.sort_direction = SortDirection.DESCENDING
-
-        rows = quote_table_state.quotes_rows
-
-        prev: QuoteRow = rows[0]
-
-        for row in rows[1:]:
-            cmp: int = compare_shrunken_ints(
-                prev.values[sort_column_index].value,
-                row.values[sort_column_index].value,
-            )
-            assert cmp >= 0
-            if cmp == 0:
-                # See above
-                assert prev.values[0].value.lower() > row.values[0].value.lower()
-            prev = row
+    for row in rows[1:]:
+        cmp: int = compare_shrunken_ints(
+            prev.values[sort_column_index].value,
+            row.values[sort_column_index].value,
+        )
+        assert cmp >= 0
+        if cmp == 0:
+            # See above
+            assert prev.values[0].value.lower() > row.values[0].value.lower()
+        prev = row
 
 
 ##############################################################################
@@ -796,35 +796,36 @@ def test_add_column(quote_table_state: QuoteTableState):
     columns: list[str] = ["market_cap"]
     config: dict[str, Any] = {
         QuoteTableState._COLUMNS: columns,
-        QuoteTableState._QUERY_FREQUENCY: sys.maxsize,
     }
 
     quote_table_state.load_config(config)
     with thread_running_context(quote_table_state):
-        column_count: int = len(columns) + 1  # +1 for the ticker; always there
+        sleep(0)
 
-        assert len(quote_table_state.quotes_columns) == column_count
-        assert quote_table_state.quotes_columns[1].key == columns[0]
+    column_count: int = len(columns) + 1  # +1 for the ticker; always there
 
-        rows: list[QuoteRow] = quote_table_state.quotes_rows
-        for row in rows:
-            assert len(row.values) == column_count
+    assert len(quote_table_state.quotes_columns) == column_count
+    assert quote_table_state.quotes_columns[1].key == columns[0]
 
-        orig_version: int = quote_table_state.version
-        new_column: str = "change_percent"
-        quote_table_state.append_column(new_column)
-        column_count += 1  # +1 for the new column
-        new_version: int = quote_table_state.version
+    rows: list[QuoteRow] = quote_table_state.quotes_rows
+    for row in rows:
+        assert len(row.values) == column_count
 
-        # Check the rows again and see if the new column has been added
-        rows = quote_table_state.quotes_rows
-        for row in rows:
-            assert len(row.values) == column_count
+    orig_version: int = quote_table_state.version
+    new_column: str = "change_percent"
+    quote_table_state.append_column(new_column)
+    column_count += 1  # +1 for the new column
+    new_version: int = quote_table_state.version
 
-        # The version should have changed following the column addition
-        assert new_version == orig_version + 1
-        assert len(quote_table_state.quotes_columns) == column_count
-        assert quote_table_state.quotes_columns[2].key == new_column
+    # Check the rows again and see if the new column has been added
+    rows = quote_table_state.quotes_rows
+    for row in rows:
+        assert len(row.values) == column_count
+
+    # The version should have changed following the column addition
+    assert new_version == orig_version + 1
+    assert len(quote_table_state.quotes_columns) == column_count
+    assert quote_table_state.quotes_columns[2].key == new_column
 
 
 @pytest.mark.parametrize(
