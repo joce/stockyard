@@ -33,10 +33,10 @@ jobs:
           Checking imports with isort
           # change to python 3.12 when isort supports it
         run: |
-          poetry run isort -c --profile black --python-version 3 .
+          poetry run isort -c --python-version 3 .
       - name: Checking formatting with black
         run: |
-          poetry run black --check --target-version py312 .
+          poetry run black --check .
       - name: Checking style with flake8
         run: |
           poetry run flake8 .

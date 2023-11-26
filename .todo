@@ -13,6 +13,10 @@
                 https://blog.dennisokeeffe.com/blog/2021-08-08-pytest-with-github-actions
             ✔ github action for pyright @done(23-11-15 09:43)
             ✔ github action for black, flake8, isort @done(23-11-15 09:43)
+        ☐ Consider ruff @created(23-11-25 11:57)
+            https://github.com/astral-sh/ruff
+        ☐ Move .pylintrc to pyproject.toml @created(23-11-25 22:41)
+            https://pylint.pycqa.org/en/latest/user_guide/usage/run.html
 
 
     App:

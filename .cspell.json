@@ -4,7 +4,7 @@
     "ignorePaths": [".cspell.json", "pyproject.toml"],
     "dictionaryDefinitions": [],
     "dictionaries": [],
-    "words": ["legault", "renderable", "triggerable"],
+    "words": ["joce", "legault", "renderable", "triggerable"],
     "ignoreWords": [
         "EURUSD",
         "KHTML",

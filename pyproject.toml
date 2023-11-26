@@ -1,3 +1,10 @@
+[tool.black]
+target-version = ["py312"]
+line-length = 88
+
+[tool.isort]
+profile = "black"
+
 [tool.pytest.ini_options]
 pythonpath = "src"
 testpaths = ["tests"]
@@ -10,7 +17,7 @@ typeCheckingMode = "strict"
 [tool.poetry]
 name = "stockyard"
 version = "0.1.0"
-description = "A Yahoo! finance-based TUI stock viewer"
+description = "A Yahoo! finance-based TUI toy stock viewer"
 authors = ["Jocelyn Legault <jocelynlegault@gmail.com>"]
 license = "MIT"
 readme = "README.md"
