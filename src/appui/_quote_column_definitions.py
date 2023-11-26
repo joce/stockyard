@@ -50,7 +50,7 @@ ALL_QUOTE_COLUMNS: Final[dict[str, QuoteColumn]] = {
             "ticker",
             lambda q: q.symbol.upper(),
             lambda q: q.symbol.lower(),
-            justify=Justify.LEFT,
+            justification=Justify.LEFT,
         )
     ),
     "last": (
