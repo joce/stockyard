@@ -1,22 +1,9 @@
-[tool.black]
-target-version = ["py312"]
-line-length = 88
-
-[tool.isort]
-profile = "black"
-
-[tool.pytest.ini_options]
-pythonpath = "src"
-testpaths = ["tests"]
-timeout = 10
-
-[tool.pyright]
-include = ["src", "tests"]
-typeCheckingMode = "strict"
-
 [tool.poetry]
 name = "stockyard"
 version = "0.1.0"
+repository = "https://github.com/joce/stockyard"
+homepage = "https://github.com/joce/stockyard"
+
 description = "A Yahoo! finance-based TUI toy stock viewer"
 authors = ["Jocelyn Legault <jocelynlegault@gmail.com>"]
 license = "MIT"
@@ -37,6 +24,22 @@ pyright = "^1.1"
 pytest = "^7.4"
 pytest-timeout = "^2.2.0"
 pytest-md = "^0.2"
+
+[tool.black]
+target-version = ["py312"]
+line-length = 88
+
+[tool.isort]
+profile = "black"
+
+[tool.pyright]
+include = ["src", "tests"]
+typeCheckingMode = "strict"
+
+[tool.pytest.ini_options]
+pythonpath = "src"
+testpaths = ["tests"]
+timeout = 10
 
 [build-system]
 requires = ["poetry-core"]
