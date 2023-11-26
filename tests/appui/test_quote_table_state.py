@@ -513,7 +513,7 @@ def test_rows_sorted_on_shrunken_int_and_equal_values(
             if cmp == 0:
                 # If the values are equals (N/A, most likely), it should then be sorted
                 # by the ticker.
-                # Note that we'er hardcoding the "lower" ticker, as it's the value used
+                # Note that we're hardcoding the "lower" ticker, as it's the value used
                 # for sorting in the ALL_QUOTES_COLUMNS definitions for the ticker.
                 assert prev.values[0].value.lower() < row.values[0].value.lower()
             prev = row
@@ -534,6 +534,252 @@ def test_rows_sorted_on_shrunken_int_and_equal_values(
                 # See above
                 assert prev.values[0].value.lower() > row.values[0].value.lower()
             prev = row
+
+
+##############################################################################
+# Row operations tests
+##############################################################################
+
+
+def test_set_current_row(quote_table_state: QuoteTableState):
+    """
+    Check setting the current row.
+    This is expected to work.
+    """
+
+    # Ensure everything is loaded
+    with thread_running_context(quote_table_state):
+        sleep(0)
+
+    # By default, current row should not be set
+    assert quote_table_state.cursor_row == -1
+    assert quote_table_state._cursor_symbol == ""
+
+    # Set the current row
+    new_cursor_row = 2
+    orig_version: int = quote_table_state.version
+    quote_table_state.cursor_row = new_cursor_row
+    new_version: int = quote_table_state.version
+
+    # Setting the cursor row should not change the version
+    assert new_version == orig_version
+    assert quote_table_state.cursor_row == new_cursor_row
+    assert (
+        quote_table_state._cursor_symbol
+        == quote_table_state.quotes_rows[new_cursor_row].key
+    )
+
+    symbol = quote_table_state._cursor_symbol
+
+    # Change the sort order, and verify the row points to the same symbol, but the index
+    # of the row has changed
+    quote_table_state.sort_direction = (
+        SortDirection.DESCENDING
+        if quote_table_state.sort_direction == SortDirection.ASCENDING
+        else SortDirection.ASCENDING
+    )
+    assert quote_table_state.cursor_row != new_cursor_row
+    assert symbol == quote_table_state._cursor_symbol
+    assert symbol == quote_table_state.quotes_rows[quote_table_state.cursor_row].key
+
+
+def test_delete_row_after_cursor(quote_table_state: QuoteTableState):
+    """
+    Delete a row after the cursor row.
+    This is expected to work.
+    """
+
+    # Ensure everything is loaded
+    with thread_running_context(quote_table_state):
+        sleep(0)
+
+    new_cursor_row = 2
+    quote_table_state.cursor_row = new_cursor_row
+    symbol = quote_table_state._cursor_symbol
+
+    row_to_remove = len(quote_table_state._cursor_symbol) - 1  # remove last row
+    symbol_to_remove = quote_table_state.quotes_rows[row_to_remove].key
+    row_count = len(quote_table_state.quotes_rows)
+    symbols_count = len(quote_table_state._quotes_symbols)
+
+    orig_version: int = quote_table_state.version
+    quote_table_state.remove_row(row_to_remove)
+    new_version: int = quote_table_state.version
+
+    assert new_version == orig_version + 1
+    assert quote_table_state.cursor_row == new_cursor_row  # This has not moved
+    assert symbol == quote_table_state._cursor_symbol  # This has not changed
+    assert len(quote_table_state.quotes_rows) == row_count - 1
+    assert len(quote_table_state._quotes_symbols) == symbols_count - 1
+    assert symbol_to_remove not in quote_table_state._quotes_symbols
+    assert symbol_to_remove not in [row.key for row in quote_table_state.quotes_rows]
+
+
+def test_delete_row_before_cursor(quote_table_state: QuoteTableState):
+    """
+    Delete a row before the cursor row.
+    This is expected to work.
+    """
+
+    # Ensure everything is loaded
+    with thread_running_context(quote_table_state):
+        sleep(0)
+
+    new_cursor_row = 2
+    quote_table_state.cursor_row = new_cursor_row
+    symbol = quote_table_state._cursor_symbol
+
+    row_to_remove = 0  # remove first row
+    symbol_to_remove = quote_table_state.quotes_rows[row_to_remove].key
+    row_count = len(quote_table_state.quotes_rows)
+    symbols_count = len(quote_table_state._quotes_symbols)
+
+    orig_version: int = quote_table_state.version
+    quote_table_state.remove_row(row_to_remove)
+    new_version: int = quote_table_state.version
+
+    assert new_version == orig_version + 1
+    assert quote_table_state.cursor_row == new_cursor_row - 1  # This is now one less
+    assert symbol == quote_table_state._cursor_symbol  # This has not changed
+    assert len(quote_table_state.quotes_rows) == row_count - 1
+    assert len(quote_table_state._quotes_symbols) == symbols_count - 1
+    assert symbol_to_remove not in quote_table_state._quotes_symbols
+    assert symbol_to_remove not in [row.key for row in quote_table_state.quotes_rows]
+
+
+def test_delete_on_cursor_row_middle(quote_table_state: QuoteTableState):
+    """
+    Delete the cursor row. There are items before and after it.
+    This is expected to work.
+    """
+
+    # Ensure everything is loaded
+    with thread_running_context(quote_table_state):
+        sleep(0)
+
+    new_cursor_row = 2
+    quote_table_state.cursor_row = new_cursor_row
+
+    row_to_remove = new_cursor_row  # same as cursor row!
+    symbol_to_remove = quote_table_state.quotes_rows[row_to_remove].key
+    row_count = len(quote_table_state.quotes_rows)
+    symbols_count = len(quote_table_state._quotes_symbols)
+    expected_new_symbol = quote_table_state.quotes_rows[row_to_remove + 1].key
+
+    orig_version: int = quote_table_state.version
+    quote_table_state.remove_row(row_to_remove)
+    new_version: int = quote_table_state.version
+
+    assert new_version == orig_version + 1
+    assert quote_table_state.cursor_row == new_cursor_row  # This is unchanged
+    # This is the new symbol
+    assert expected_new_symbol == quote_table_state._cursor_symbol
+    assert len(quote_table_state.quotes_rows) == row_count - 1
+    assert len(quote_table_state._quotes_symbols) == symbols_count - 1
+    assert symbol_to_remove not in quote_table_state._quotes_symbols
+    assert symbol_to_remove not in [row.key for row in quote_table_state.quotes_rows]
+
+
+def test_delete_on_cursor_row_last(quote_table_state: QuoteTableState):
+    """
+    Delete the cursor row. The cursor is at the last row.
+    This is expected to work.
+    """
+
+    # Ensure everything is loaded
+    with thread_running_context(quote_table_state):
+        sleep(0)
+
+    new_cursor_row = len(quote_table_state.quotes_rows) - 1
+    quote_table_state.cursor_row = new_cursor_row
+
+    row_to_remove = new_cursor_row  # same as cursor row!
+    symbol_to_remove = quote_table_state.quotes_rows[row_to_remove].key
+    row_count = len(quote_table_state.quotes_rows)
+    symbols_count = len(quote_table_state._quotes_symbols)
+    expected_new_symbol = quote_table_state.quotes_rows[row_to_remove - 1].key
+
+    orig_version: int = quote_table_state.version
+    quote_table_state.remove_row(row_to_remove)
+    new_version: int = quote_table_state.version
+
+    assert new_version == orig_version + 1
+    # This will be the former penultimate row
+    assert quote_table_state.cursor_row == new_cursor_row - 1
+    # This is the new symbol
+    assert expected_new_symbol == quote_table_state._cursor_symbol
+    assert len(quote_table_state.quotes_rows) == row_count - 1
+    assert len(quote_table_state._quotes_symbols) == symbols_count - 1
+    assert symbol_to_remove not in quote_table_state._quotes_symbols
+    assert symbol_to_remove not in [row.key for row in quote_table_state.quotes_rows]
+
+
+def test_delete_on_cursor_row_first(quote_table_state: QuoteTableState):
+    """
+    Delete the cursor row. The cursor is at the first row and there are other rows after
+    it.
+    This is expected to work.
+    """
+
+    # Ensure everything is loaded
+    with thread_running_context(quote_table_state):
+        sleep(0)
+
+    new_cursor_row = 0
+    quote_table_state.cursor_row = new_cursor_row
+
+    row_to_remove = new_cursor_row  # same as cursor row!
+    symbol_to_remove = quote_table_state.quotes_rows[row_to_remove].key
+    row_count = len(quote_table_state.quotes_rows)
+    symbols_count = len(quote_table_state._quotes_symbols)
+    expected_new_symbol = quote_table_state.quotes_rows[row_to_remove + 1].key
+
+    orig_version: int = quote_table_state.version
+    quote_table_state.remove_row(row_to_remove)
+    new_version: int = quote_table_state.version
+
+    assert new_version == orig_version + 1
+    assert quote_table_state.cursor_row == new_cursor_row  # We stay at position 0!
+    # This is the new symbol
+    assert expected_new_symbol == quote_table_state._cursor_symbol
+    assert len(quote_table_state.quotes_rows) == row_count - 1
+    assert len(quote_table_state._quotes_symbols) == symbols_count - 1
+    assert symbol_to_remove not in quote_table_state._quotes_symbols
+    assert symbol_to_remove not in [row.key for row in quote_table_state.quotes_rows]
+
+
+def test_delete_on_cursor_row_only(quote_table_state: QuoteTableState):
+    """
+    Delete the cursor row. The cursor is at the first row and it's the only row.
+    This is expected to work.
+    """
+
+    config: dict[str, Any] = {
+        QuoteTableState._QUOTES: ["AAPL"],
+    }
+
+    quote_table_state.load_config(config)
+
+    # Ensure everything is loaded
+    with thread_running_context(quote_table_state):
+        sleep(0)
+
+    new_cursor_row = 0
+    quote_table_state.cursor_row = new_cursor_row
+
+    row_to_remove = new_cursor_row  # same as cursor row!
+    expected_new_symbol = ""
+
+    orig_version: int = quote_table_state.version
+    quote_table_state.remove_row(row_to_remove)
+    new_version: int = quote_table_state.version
+
+    assert new_version == orig_version + 1
+    assert quote_table_state.cursor_row == -1  # No more rows, no more cursor
+    # This is the new symbol
+    assert expected_new_symbol == quote_table_state._cursor_symbol
+    assert len(quote_table_state.quotes_rows) == 0
+    assert len(quote_table_state._quotes_symbols) == 0
 
 
 ##############################################################################

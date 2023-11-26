@@ -65,11 +65,11 @@ class QuoteTableState:
             self._sort_column_key
         ].sort_key_func
 
-        self._cursor_symbol: str = self._quotes_symbols[0]
+        self._cursor_symbol: str = ""
 
         self._query_thread_running: bool = False
         self._query_thread: Thread = Thread(target=self._retrieve_quotes)
-        self._last_query_time = monotonic()
+        self._last_query_time: float = monotonic()
         self._version: int = 0
 
         self._quotes: list[YQuote] = []
@@ -147,36 +147,65 @@ class QuoteTableState:
         # Don't change the version. This is a setting for the backend, not the UI.
 
     @property
-    def current_row(self) -> int:
+    def cursor_row(self) -> int:
         """The current row of the cursor."""
 
         with self._quotes_lock:
-            # Return the index of the quote (from _quotes) whose ticker symbol matches
-            # the cursor symbol
-            return next(
-                (
-                    i
-                    for i, quote in enumerate(self._quotes)
-                    if quote.symbol == self._cursor_symbol
-                ),
-                -1,
+            return self.__get_cursor_row_no_lock()
+
+    def __get_cursor_row_no_lock(self) -> int:
+        """
+        Get the current row of the cursor.
+        This method expects the _quotes_lock to have been acquired beforehand.
+        """
+
+        if not self._quotes_lock.locked():
+            raise RuntimeError(
+                "The _quotes_lock must be acquired before calling"
+                " __get_cursor_row_no_lock"
             )
 
-    @current_row.setter
-    def current_row(self, value: int) -> None:
+        # Return the index of the quote (from _quotes) whose ticker symbol matches the
+        # cursor symbol
+        return next(
+            (
+                i
+                for i, quote in enumerate(self._quotes)
+                if quote.symbol == self._cursor_symbol
+            ),
+            -1,
+        )
+
+    @cursor_row.setter
+    def cursor_row(self, value: int) -> None:
+        with self._quotes_lock:
+            # Setting the current row does not change the version. It's just used to
+            # mirror the cursor position from the UI.
+            self.__set_cursor_row_no_lock(value)
+
+    def __set_cursor_row_no_lock(self, value: int) -> None:
+        """
+        Set the current row of the cursor.
+        This method expects the _quotes_lock to have been acquired beforehand.
+        """
+
+        if not self._quotes_lock.locked():
+            raise RuntimeError(
+                "The _quotes_lock must be acquired before calling"
+                " __set_cursor_row_no_lock"
+            )
+
         if value >= len(self._quotes_symbols):
             raise ValueError("Invalid row index")
 
-        if (
-            value < len(self._quotes_symbols)
-            and self._quotes_symbols[value] == self._cursor_symbol
-        ):
+        if value < 0:
+            self._cursor_symbol = ""
             return
 
-        with self._quotes_lock:
-            self._cursor_symbol = self._quotes[value].symbol
-        # Setting the current row does not change the version. It's just mirroring the
-        # cursor position from the UI.
+        if self._quotes[value].symbol == self._cursor_symbol:
+            return
+
+        self._cursor_symbol = self._quotes[value].symbol
 
     @property
     def quotes_columns(self) -> list[QuoteColumn]:
@@ -321,6 +350,36 @@ class QuoteTableState:
 
         return True
 
+    def remove_row(self, index: int) -> None:
+        """
+        Remove a row from the quote table.
+
+        Args:
+            index (int): The index of the row to remove.
+        """
+
+        if index < 0 or index >= len(self._quotes):
+            raise ValueError("Invalid row index")
+
+        with self._quotes_lock:
+            # Can't use cursor_row here because it's also using the lock.
+
+            # Compute a new current row if the removed row is the current row
+            if index == self.__get_cursor_row_no_lock():
+                if len(self._quotes) == 1:
+                    self.__set_cursor_row_no_lock(-1)
+                elif index == len(self._quotes) - 1:
+                    self.__set_cursor_row_no_lock(index - 1)
+                else:
+                    self.__set_cursor_row_no_lock(index + 1)
+
+            # remove the symbol from both the list of quotes to fetch and the current
+            # list of quotes
+            symbol = self._quotes[index].symbol
+            self._quotes_symbols.remove(symbol)
+            self._quotes.pop(index)
+            self._version += 1
+
     def _retrieve_quotes(self) -> None:
         """Query for the quotes and update the change version."""
 
@@ -355,7 +414,7 @@ class QuoteTableState:
 
         if not self._quotes_lock.locked():
             raise RuntimeError(
-                "The _quotes_lock must be acquired before calling this function"
+                "The _quotes_lock must be acquired before calling this _sort_quotes"
             )
 
         self._quotes.sort(

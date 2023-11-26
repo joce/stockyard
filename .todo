@@ -19,7 +19,7 @@
         Quotes:
             ☐ Add
                 Need to add a flag to refresh the data from the YClient source immediately
-            ☐ Remove
+            ✔ Remove @done(23-11-25 22:10)
             ☐ Filtering
         General:
             ☐ Command system

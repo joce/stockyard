@@ -31,9 +31,24 @@ class StockyardApp(App[None]):
 
     CSS_PATH = "./stockyardapp.tcss"
 
+    ENABLE_COMMAND_PALETTE = False  # TODO: Consider enabling this
+
     BINDINGS: ClassVar[list[BindingType]] = [
         ("q", "exit", "Exit"),
     ]
+
+    class Footer(Footer):
+        """
+        The footer for the stockyard app.
+
+        This is required to be able to call the `refresh_bindings` method without
+        triggering pyright errors.
+        """
+
+        def refresh_bindings(self) -> None:
+            """Expose the binding refresh for the footer."""
+
+            self._bindings_changed(None)
 
     def __init__(self) -> None:
         """Initialize the app."""
@@ -44,12 +59,14 @@ class StockyardApp(App[None]):
         self._state: StockyardAppState = StockyardAppState(self.__yfinance)
         self._priming_worker: Optional[Worker[None]] = None
 
+        # Widgets
+        self._footer: StockyardApp.Footer = StockyardApp.Footer()
+        self._clock: Clock = Clock()
+
     @override
     def compose(self) -> ComposeResult:
-        """Create child widgets for the app."""
-
         yield LoadingIndicator()
-        yield Horizontal(Footer(), Clock(), id="clock-footer")
+        yield Horizontal(self._footer, self._clock, id="clock-footer")
 
     def on_unmount(self) -> None:
         """Handle unmount events."""
@@ -62,6 +79,20 @@ class StockyardApp(App[None]):
 
         self._priming_worker = self._prime_yfinance()
         self.title = self._state.title
+
+    def on_quote_table_bindings_changed(self) -> None:
+        """Refresh the bindings for the app."""
+
+        # One way of achieving the footer refresh is to just reset the focus to the
+        # currently focused widget:
+        #
+        # focused: Optional[Widget] = self.focused
+        # if focused is not None:
+        #     self.set_focus(None)
+        #     self.set_focus(focused)
+
+        # Another way is to just refresh the footer...
+        self._footer.refresh_bindings()
 
     def action_exit(self) -> None:
         """Handle exit actions."""
@@ -86,6 +117,8 @@ class StockyardApp(App[None]):
                 e.colno,
                 e.msg,
             )
+        # TODO once the config is loaded, we need to update the logging level and the
+        # clock's time format
 
     def save_config(self, path: str) -> None:
         """Save the configuration for the app."""
@@ -118,7 +151,7 @@ class StockyardApp(App[None]):
             indicator.remove()
         except NoMatches:
             # No indicator was found
-            pass
+            logging.exception("No loading indicator found")
 
         qt: QuoteTable = QuoteTable(self._state.quote_table_state)
         self.mount(qt, before="#clock-footer")

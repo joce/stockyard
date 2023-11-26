@@ -2,11 +2,14 @@
 This module contains the QuoteTable class which is a DataTable for displaying quotes.
 """
 
+from enum import Enum
 from typing import Any, Final, override
 
 from rich.style import Style
 from rich.text import Text
+from textual.binding import _Bindings  # type: ignore
 from textual.coordinate import Coordinate
+from textual.message import Message
 from textual.widgets import DataTable
 
 from ._enums import Justify, SortDirection
@@ -20,6 +23,16 @@ class QuoteTable(DataTable[Text]):
     _GAINING_COLOR: Final[str] = "#00DD00"
     _LOSING_COLOR: Final[str] = "#DD0000"
 
+    class BindingsChanged(Message):
+        """A message sent when the bindings have changed."""
+
+    class BM(Enum):
+        """The binding mode enum for the quote table."""
+
+        DEFAULT = "default"
+        WITH_DELETE = "with_delete"
+        IN_ORDERING = "in_ordering"
+
     def __init__(self, state: QuoteTableState) -> None:
         super().__init__()
         self._state: QuoteTableState = state
@@ -31,14 +44,38 @@ class QuoteTable(DataTable[Text]):
         self.zebra_stripes = True
         self.cursor_foreground_priority = "renderable"
 
+        # Bindings
+        self._bindings_modes: dict[QuoteTable.BM, _Bindings] = {
+            QuoteTable.BM.DEFAULT: self._bindings.copy(),
+            QuoteTable.BM.IN_ORDERING: self._bindings.copy(),
+        }
+
+        self._bindings_modes[QuoteTable.BM.DEFAULT].bind(
+            "o", "order_quotes", "Change sort order"
+        )
+        self._bindings_modes[QuoteTable.BM.DEFAULT].bind(
+            "insert", "add_quote", "Add quote", key_display="Ins"
+        )
+        self._bindings_modes[QuoteTable.BM.IN_ORDERING].bind(
+            "escape", "exit_ordering", "Done", key_display="Esc"
+        )
+        self._bindings_modes[QuoteTable.BM.WITH_DELETE] = self._bindings_modes[
+            QuoteTable.BM.DEFAULT
+        ].copy()
+        self._bindings_modes[QuoteTable.BM.WITH_DELETE].bind(
+            "delete", "remove_quote", "Remove quote", key_display="Del"
+        )
+
+        # TODO This maybe should be part of the state... hum...
+        self._current_bindings = QuoteTable.BM.DEFAULT
+        self._bindings = self._bindings_modes[self._current_bindings]
+
     def __del__(self) -> None:
         # Make sure the query thread is stopped
         self._state.query_thread_running = False
 
     @override
     def on_mount(self) -> None:
-        """The event handler called when the widget is added to the app."""
-
         super().on_mount()
         quote_column: QuoteColumn
         for quote_column in self._state.quotes_columns:
@@ -48,8 +85,10 @@ class QuoteTable(DataTable[Text]):
             )
             self._column_key_map[quote_column.key] = key
 
-        self.set_interval(0.01, self._update_table)
+        self.set_interval(0.1, self._update_table)
         self.fixed_columns = 1
+
+        self._bindings.bind("insert", "add_quote", "Add quote")
 
         # Force a first update
         self._version = self._state.version - 1
@@ -57,14 +96,17 @@ class QuoteTable(DataTable[Text]):
 
     @override
     def _on_unmount(self) -> None:
-        """
-        The event handler called when the widget is removed from the app.
-
-        Required to stop the query thread.
-        """
-
         self._state.query_thread_running = False
         super()._on_unmount()
+
+    def _switch_bindings(self, mode: "QuoteTable.BM") -> None:
+        """Switch the bindings to the given mode."""
+
+        if self._current_bindings == mode:
+            return
+        self._current_bindings = mode
+        self._bindings = self._bindings_modes[self._current_bindings]
+        self.post_message(self.BindingsChanged())
 
     def _update_table(self) -> None:
         """Update the table with the latest quotes (if any)"""
@@ -79,6 +121,14 @@ class QuoteTable(DataTable[Text]):
             self.columns[self._column_key_map[quote_column.key]].label = styled_column
 
         quotes: list[QuoteRow] = self._state.quotes_rows
+
+        if len(quotes) > 0:
+            if self._current_bindings == QuoteTable.BM.DEFAULT:
+                self._switch_bindings(QuoteTable.BM.WITH_DELETE)
+        else:
+            if self._current_bindings == QuoteTable.BM.WITH_DELETE:
+                self._switch_bindings(QuoteTable.BM.DEFAULT)
+
         i: int = 0
         quote: QuoteRow
         for i, quote in enumerate(quotes):
@@ -101,12 +151,16 @@ class QuoteTable(DataTable[Text]):
                 self.add_row(*stylized_row, key=quote_key)
 
         # Remove extra rows, if any
-        for i in range(i + 1, len(self.rows)):
+        for i in range(i, len(self.rows)):
             self.remove_row(row_key=str(i))
 
-        current_row: int = self._state.current_row
+        current_row: int = self._state.cursor_row
         if current_row >= 0:
+            if self.cursor_type == "none":
+                self.cursor_type = "row"
             self.move_cursor(row=current_row)
+        else:
+            self.cursor_type = "none"
 
         self._version = self._state.version
 
@@ -166,14 +220,6 @@ class QuoteTable(DataTable[Text]):
 
     @override
     def watch_hover_coordinate(self, old: Coordinate, value: Coordinate) -> None:
-        """
-        Watch the hover coordinate and update the cursor type accordingly.
-
-        Args:
-            old (Coordinate): The old hover coordinate.
-            value (Coordinate): The current hover coordinate.
-        """
-
         if value.row == -1:
             self._current_hover_column = value.column
         else:
@@ -191,10 +237,6 @@ class QuoteTable(DataTable[Text]):
         cursor: bool = False,
         hover: bool = False,
     ):
-        """
-        Override the default _render_cell method to allow for hover on the header.
-        """
-
         if row_index == -1:
             hover = self._current_hover_column == column_index
 
@@ -206,16 +248,8 @@ class QuoteTable(DataTable[Text]):
     def watch_cursor_coordinate(
         self, old_coordinate: Coordinate, new_coordinate: Coordinate
     ) -> None:
-        """
-        Watch the cursor coordinate and update the current row accordingly.
-
-        Args:
-            old_coordinate (Coordinate): The old coordinate. Unused.
-            new_coordinate (Coordinate): The current cursor coordinate.
-        """
-
         super().watch_cursor_coordinate(old_coordinate, new_coordinate)
-        self._state.current_row = new_coordinate.row
+        self._state.cursor_row = new_coordinate.row
 
     def on_data_table_header_selected(self, evt: DataTable.HeaderSelected) -> None:
         """Event handler called when the header is clicked."""
@@ -236,3 +270,26 @@ class QuoteTable(DataTable[Text]):
                 if self._state.sort_direction == SortDirection.DESCENDING
                 else SortDirection.DESCENDING
             )
+
+    def action_add_quote(self) -> None:
+        """Add a new quote to the table."""
+
+        self.app.exit()
+
+    def action_remove_quote(self) -> None:
+        """Remove the selected quote from the table."""
+
+        self._state.remove_row(self.cursor_row)
+
+    def action_order_quotes(self) -> None:
+        """Order the quotes in the table."""
+
+        self._switch_bindings(QuoteTable.BM.IN_ORDERING)
+
+    def action_exit_ordering(self) -> None:
+        """Exit the ordering mode."""
+
+        if len(self._state.quotes_rows) > 0:
+            self._switch_bindings(QuoteTable.BM.WITH_DELETE)
+        else:
+            self._switch_bindings(QuoteTable.BM.DEFAULT)
