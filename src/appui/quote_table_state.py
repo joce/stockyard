@@ -45,10 +45,8 @@ class QuoteTableState:
     _QUERY_FREQUENCY: Final[str] = "query_frequency"
 
     def __init__(self, yfin: YFinance) -> None:
-        self._yfin: YFinance = yfin
-
+        # Persistent state
         self._quotes_symbols: list[str] = QuoteTableState._DEFAULT_QUOTES[:]
-
         self._sort_column_key: str = QuoteTableState._TICKER_COLUMN_KEY
         self._sort_direction: SortDirection = QuoteTableState._DEFAULT_SORT_DIRECTION
         self._query_frequency: int = QuoteTableState._DEFAULT_QUERY_FREQUENCY
@@ -61,18 +59,22 @@ class QuoteTableState:
             ALL_QUOTE_COLUMNS[column] for column in columns_keys
         ]
 
+        # Transient state
+        self._cursor_symbol: str = ""
+        self._hovered_column: int = -1
+        self._version: int = 0
+        self._quotes: list[YQuote] = []
         self._sort_key_func: Callable[[YQuote], Any] = ALL_QUOTE_COLUMNS[
             self._sort_column_key
         ].sort_key_func
 
-        self._cursor_symbol: str = ""
-
+        # Query thread
         self._query_thread_running: bool = False
         self._query_thread: Thread = Thread(target=self._retrieve_quotes)
         self._last_query_time: float = monotonic()
-        self._version: int = 0
 
-        self._quotes: list[YQuote] = []
+        # Other
+        self._yfin: YFinance = yfin
         self._quotes_lock = Lock()
 
     def __del__(self) -> None:
@@ -121,6 +123,16 @@ class QuoteTableState:
         self._version += 1
 
     @property
+    def sort_column_idx(self) -> int:
+        """The index of the column to sort by."""
+
+        return self._columns.index(ALL_QUOTE_COLUMNS[self._sort_column_key])
+
+    @sort_column_idx.setter
+    def sort_column_idx(self, value: int) -> None:
+        self.sort_column_key = self._columns[value].key
+
+    @property
     def sort_direction(self) -> SortDirection:
         """The direction of the sort."""
 
@@ -145,6 +157,21 @@ class QuoteTableState:
     def query_frequency(self, value: int) -> None:
         self._query_frequency = value
         # Don't change the version. This is a setting for the backend, not the UI.
+
+    @property
+    def hovered_column(self) -> int:
+        """
+        The index of the column currently hovered by the mouse, or highlighted in column
+        ordering mode.
+        """
+        return self._hovered_column
+
+    @hovered_column.setter
+    def hovered_column(self, value: int) -> None:
+        if value == self._hovered_column or value < -1 or value >= len(self._columns):
+            return
+        self._hovered_column = value
+        self._version += 1
 
     @property
     def cursor_row(self) -> int:
@@ -231,11 +258,11 @@ class QuoteTableState:
                     # saved whenever we change the columns?
                     [
                         QuoteCell(
-                            ALL_QUOTE_COLUMNS[column].format_func(q),
-                            ALL_QUOTE_COLUMNS[column].sign_indicator_func(q),
-                            ALL_QUOTE_COLUMNS[column].justification,
+                            ALL_QUOTE_COLUMNS[column.key].format_func(q),
+                            ALL_QUOTE_COLUMNS[column.key].sign_indicator_func(q),
+                            ALL_QUOTE_COLUMNS[column.key].justification,
                         )
-                        for column in self.column_keys
+                        for column in self._columns
                     ],
                 )
                 for q in self._quotes

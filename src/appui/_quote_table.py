@@ -7,6 +7,7 @@ from typing import Any, Final, override
 
 from rich.style import Style
 from rich.text import Text
+from textual import events
 from textual.binding import _Bindings  # type: ignore
 from textual.coordinate import Coordinate
 from textual.message import Message
@@ -38,16 +39,11 @@ class QuoteTable(DataTable[Text]):
         self._state: QuoteTableState = state
         self._version: int
         self._column_key_map: dict[str, Any] = {}
-        self._current_hover_column: int = -1
-
-        self.cursor_type = "row"
-        self.zebra_stripes = True
-        self.cursor_foreground_priority = "renderable"
 
         # Bindings
         self._bindings_modes: dict[QuoteTable.BM, _Bindings] = {
             QuoteTable.BM.DEFAULT: self._bindings.copy(),
-            QuoteTable.BM.IN_ORDERING: self._bindings.copy(),
+            QuoteTable.BM.IN_ORDERING: _Bindings(),
         }
 
         self._bindings_modes[QuoteTable.BM.DEFAULT].bind(
@@ -56,9 +52,8 @@ class QuoteTable(DataTable[Text]):
         self._bindings_modes[QuoteTable.BM.DEFAULT].bind(
             "insert", "add_quote", "Add quote", key_display="Ins"
         )
-        self._bindings_modes[QuoteTable.BM.IN_ORDERING].bind(
-            "escape", "exit_ordering", "Done", key_display="Esc"
-        )
+
+        # For Delete, we want the same bindings as default, plus delete
         self._bindings_modes[QuoteTable.BM.WITH_DELETE] = self._bindings_modes[
             QuoteTable.BM.DEFAULT
         ].copy()
@@ -66,9 +61,30 @@ class QuoteTable(DataTable[Text]):
             "delete", "remove_quote", "Remove quote", key_display="Del"
         )
 
+        # For Ordering, we want to drop all default binding. No add / delete, or cursor
+        # movement.
+        self._bindings_modes[QuoteTable.BM.IN_ORDERING].bind(
+            "escape", "exit_ordering", "Done", key_display="Esc"
+        )
+        self._bindings_modes[QuoteTable.BM.IN_ORDERING].bind(
+            "right", "order_move_right", show=False
+        )
+        self._bindings_modes[QuoteTable.BM.IN_ORDERING].bind(
+            "left", "order_move_left", show=False
+        )
+        self._bindings_modes[QuoteTable.BM.IN_ORDERING].bind(
+            "enter", "order_toggle", show=False
+        )
+
         # TODO This maybe should be part of the state... hum...
         self._current_bindings = QuoteTable.BM.DEFAULT
         self._bindings = self._bindings_modes[self._current_bindings]
+
+        # The following (especially the cursor type) need to be set after the binding
+        # modes have been created
+        self.cursor_type = "row"
+        self.zebra_stripes = True
+        self.cursor_foreground_priority = "renderable"
 
     def __del__(self) -> None:
         # Make sure the query thread is stopped
@@ -220,12 +236,29 @@ class QuoteTable(DataTable[Text]):
 
     @override
     def watch_hover_coordinate(self, old: Coordinate, value: Coordinate) -> None:
+        if self._current_bindings == QuoteTable.BM.IN_ORDERING:
+            return
+
         if value.row == -1:
-            self._current_hover_column = value.column
+            self._state.hovered_column = value.column
         else:
-            self._current_hover_column = -1
+            self._state.hovered_column = -1
 
         super().watch_hover_coordinate(old, value)
+
+    @override
+    async def _on_click(self, event: events.Click) -> None:
+        # Prevent mouse interaction when in ordering (KB-only) mode
+        if self._current_bindings == QuoteTable.BM.IN_ORDERING:
+            event.prevent_default()
+            return
+
+    @override
+    def _on_mouse_move(self, event: events.MouseMove) -> None:
+        # Prevent mouse interaction when in ordering (KB-only) mode
+        if self._current_bindings == QuoteTable.BM.IN_ORDERING:
+            event.prevent_default()
+            return
 
     @override
     def _render_cell(
@@ -237,12 +270,20 @@ class QuoteTable(DataTable[Text]):
         cursor: bool = False,
         hover: bool = False,
     ):
+        current_show_hover_cursor: bool = self._show_hover_cursor
         if row_index == -1:
-            hover = self._current_hover_column == column_index
+            if self._current_bindings == QuoteTable.BM.IN_ORDERING:
+                self._show_hover_cursor = True
+            hover = self._state.hovered_column == column_index  # Mouse mode
 
-        return super()._render_cell(
-            row_index, column_index, base_style, width, cursor, hover
-        )
+        try:
+            return super()._render_cell(
+                row_index, column_index, base_style, width, cursor, hover
+            )
+        finally:
+            if row_index == -1:
+                if self._current_bindings == QuoteTable.BM.IN_ORDERING:
+                    self._show_hover_cursor = current_show_hover_cursor
 
     @override
     def watch_cursor_coordinate(
@@ -285,6 +326,10 @@ class QuoteTable(DataTable[Text]):
         """Order the quotes in the table."""
 
         self._switch_bindings(QuoteTable.BM.IN_ORDERING)
+        self._set_hover_cursor(False)
+        if self._state.hovered_column == -1:
+            self._state.hovered_column = self._state.sort_column_idx
+        self._version -= 1  # Force refresh
 
     def action_exit_ordering(self) -> None:
         """Exit the ordering mode."""
@@ -293,3 +338,33 @@ class QuoteTable(DataTable[Text]):
             self._switch_bindings(QuoteTable.BM.WITH_DELETE)
         else:
             self._switch_bindings(QuoteTable.BM.DEFAULT)
+
+        self._set_hover_cursor(True)
+
+        # TODO Might want to set to whatever the mouse hover is now
+        self._state.hovered_column = -1
+
+    def action_order_move_right(self) -> None:
+        """Move the cursor right in order mode."""
+
+        self._state.hovered_column += 1
+
+    def action_order_move_left(self) -> None:
+        """Move the cursor left in order mode."""
+
+        # We need the check here cause hovered_column can go to -1 (which signifies
+        # the hovered column is inactive)
+        if self._state.hovered_column > 0:
+            self._state.hovered_column -= 1
+
+    def action_order_toggle(self) -> None:
+        """Toggle the order of the current column in order mode."""
+
+        if self._state.hovered_column != self._state.sort_column_idx:
+            self._state.sort_column_idx = self._state.hovered_column
+        else:
+            self._state.sort_direction = (
+                SortDirection.ASCENDING
+                if self._state.sort_direction == SortDirection.DESCENDING
+                else SortDirection.DESCENDING
+            )
