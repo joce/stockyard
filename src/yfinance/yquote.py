@@ -2,11 +2,22 @@
 This module contains the YQuote class, which represents a quote for a security, as
 retrieved from the Yahoo! Finance API.
 """
+from __future__ import annotations
 
-from datetime import UTC, date, datetime
+import sys
+from datetime import date, datetime
 from enum import Enum
 from typing import Any, Optional
-from zoneinfo import ZoneInfo
+
+if sys.version_info < (3, 11):
+    import pytz
+
+    UTC = pytz.UTC
+else:
+    from datetime import UTC as UTC_datetime
+    from zoneinfo import ZoneInfo
+
+    UTC = UTC_datetime
 
 
 class QuoteType(Enum):
@@ -1172,7 +1183,17 @@ class YQuote:
             "exchangeTimezoneShortName"
         ]
 
-        tz_info = ZoneInfo(self._exchange_timezone_name)
+        if sys.version_info < (3, 11):
+            tz_info = pytz.timezone(self._exchange_timezone_name)
+
+            def get_datetime(timestamp: int) -> datetime:
+                return datetime.fromtimestamp(timestamp).astimezone(tz_info)
+
+        else:
+            tz_info: ZoneInfo = ZoneInfo(self._exchange_timezone_name)
+
+            def get_datetime(timestamp: int) -> datetime:
+                return datetime.fromtimestamp(timestamp, tz_info)
 
         self._ask: Optional[float] = input_data["ask"] if "ask" in input_data else None
         self._ask_size: Optional[int] = (
@@ -1227,7 +1248,7 @@ class YQuote:
             input_data["displayName"] if "displayName" in input_data else None
         )
         self._dividend_date: Optional[date] = (
-            date.fromtimestamp(input_data["dividendDate"])
+            get_datetime(input_data["dividendDate"])
             if "dividendDate" in input_data
             else None
         )
@@ -1238,17 +1259,17 @@ class YQuote:
             input_data["dividendYield"] if "dividendYield" in input_data else None
         )
         self._earnings_datetime: Optional[datetime] = (
-            datetime.fromtimestamp(input_data["earningsTimestamp"], tz_info)
+            get_datetime(input_data["earningsTimestamp"])
             if "earningsTimestamp" in input_data
             else None
         )
         self._earnings_datetime_end: Optional[datetime] = (
-            datetime.fromtimestamp(input_data["earningsTimestampEnd"], tz_info)
+            get_datetime(input_data["earningsTimestampEnd"])
             if "earningsTimestampEnd" in input_data
             else None
         )
         self._earnings_datetime_start: Optional[datetime] = (
-            datetime.fromtimestamp(input_data["earningsTimestampStart"], tz_info)
+            get_datetime(input_data["earningsTimestampStart"])
             if "earningsTimestampStart" in input_data
             else None
         )
@@ -1309,8 +1330,8 @@ class YQuote:
             else None
         )
         # We need to pass the timestamp in seconds, not milliseconds
-        self._first_trade_datetime: datetime = datetime.fromtimestamp(
-            input_data["firstTradeDateMilliseconds"] / 1000, tz_info
+        self._first_trade_datetime: datetime = (
+            get_datetime(input_data["firstTradeDateMilliseconds"] / 1000)
         ).replace(  # Now add the milliseconds back in
             microsecond=(input_data["firstTradeDateMilliseconds"] % 1000) * 1000
         )
@@ -1379,7 +1400,7 @@ class YQuote:
             input_data["postMarketPrice"] if "postMarketPrice" in input_data else None
         )
         self._post_market_datetime: Optional[datetime] = (
-            datetime.fromtimestamp(input_data["postMarketTime"], tz_info)
+            get_datetime(input_data["postMarketTime"])
             if "postMarketTime" in input_data
             else None
         )
@@ -1395,7 +1416,7 @@ class YQuote:
             input_data["preMarketPrice"] if "preMarketPrice" in input_data else None
         )
         self._pre_market_datetime: Optional[datetime] = (
-            datetime.fromtimestamp(input_data["preMarketTime"], tz_info)
+            get_datetime(input_data["preMarketTime"])
             if "preMarketTime" in input_data
             else None
         )
@@ -1444,8 +1465,8 @@ class YQuote:
             "regularMarketPreviousClose"
         ]
         self._regular_market_price: float = input_data["regularMarketPrice"]
-        self._regular_market_datetime: datetime = datetime.fromtimestamp(
-            input_data["regularMarketTime"], tz_info
+        self._regular_market_datetime: datetime = get_datetime(
+            input_data["regularMarketTime"]
         )
         self._regular_market_volume: Optional[int] = (
             input_data["regularMarketVolume"]
@@ -1460,9 +1481,7 @@ class YQuote:
         self._short_name: str = input_data["shortName"]
         self._source_interval: int = input_data["sourceInterval"]
         self._start_date: Optional[date] = (
-            date.fromtimestamp(input_data["startDate"])
-            if "startDate" in input_data
-            else None
+            get_datetime(input_data["startDate"]) if "startDate" in input_data else None
         )
         self._strike: Optional[float] = (
             input_data["strike"] if "strike" in input_data else None

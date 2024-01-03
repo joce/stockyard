@@ -12,7 +12,7 @@
             "program": "${workspaceFolder}/src/stockyard.py",
             //"console": "integratedTerminal",
             "console": "externalTerminal",
-            "justMyCode": true
+            "justMyCode": false
         }
     ]
 }

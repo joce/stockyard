@@ -1,9 +1,12 @@
 """The stockyard application"""
 
+from __future__ import annotations
+
 import json
 import logging
+import sys
 from io import TextIOWrapper
-from typing import Any, ClassVar, Optional, override
+from typing import Any, ClassVar, Optional
 
 from textual import work
 from textual.app import App, ComposeResult
@@ -19,6 +22,11 @@ from yfinance import YFinance
 from ._clock import Clock
 from ._quote_table import QuoteTable
 from .stockyardapp_state import StockyardAppState
+
+if sys.version_info < (3, 12):
+    from typing_extensions import override
+else:
+    from typing import override
 
 logging.basicConfig(
     level="NOTSET",

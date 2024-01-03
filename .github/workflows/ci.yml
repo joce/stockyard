@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.12"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
         poetry-version: ["1.7.1"]
     steps:
       - uses: actions/checkout@v3
@@ -29,11 +29,9 @@ jobs:
         shell: bash
         run: poetry install
 
-      - name:
-          Checking imports with isort
-          # change to python 3.12 when isort supports it
+      - name: Checking imports with isort
         run: |
-          poetry run isort -c --python-version 3 .
+          poetry run isort -c --profile black --python-version 3 .
       - name: Checking formatting with black
         run: |
           poetry run black --check .
@@ -45,7 +43,7 @@ jobs:
           poetry run pylint $(git ls-files '*.py')
       - name: Analysing typing with pyright
         run: |
-          poetry run pyright --version ${{ matrix.python-version }}
+          poetry run pyright --pythonversion ${{ matrix.python-version }}
       - name: Run pytest
         uses: pavelzw/pytest-action@v2
         with:

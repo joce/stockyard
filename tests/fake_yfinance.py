@@ -1,5 +1,7 @@
 """Fake YFinance client that pulls data from a test data file."""
 
+from __future__ import annotations
+
 import json
 import os.path
 from io import TextIOWrapper

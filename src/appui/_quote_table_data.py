@@ -5,6 +5,8 @@ It defines the QuoteCell, QuoteRow and QuoteColumn classes, which represent a ce
 row and a column in the quote table respectively.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Any, Callable
 

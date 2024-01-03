@@ -1,5 +1,7 @@
 """A Python interface to the Yahoo! Finance API."""
 
+from __future__ import annotations
+
 import logging
 from typing import Any, Final
 

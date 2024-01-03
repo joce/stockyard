@@ -1,5 +1,7 @@
 """The state of the quote table."""
 
+from __future__ import annotations
+
 import logging
 from threading import Lock, Thread
 from time import monotonic, sleep

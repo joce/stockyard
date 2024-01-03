@@ -1,5 +1,7 @@
 """The state of the whole stockyard application."""
 
+from __future__ import annotations
+
 import logging
 from typing import Any, Final, Optional
 

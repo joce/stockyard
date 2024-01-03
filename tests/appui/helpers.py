@@ -4,6 +4,8 @@ Test helpers.
 
 # pyright: reportPrivateUsage=none
 
+from __future__ import annotations
+
 from appui._formatting import _NO_VALUE
 
 

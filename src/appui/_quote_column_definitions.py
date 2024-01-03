@@ -1,5 +1,7 @@
 """Definitions of the available columns for the quote table."""
 
+from __future__ import annotations
+
 from math import inf
 from typing import Final, Optional, TypeVar
 

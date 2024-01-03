@@ -1,5 +1,4 @@
 {
-    "python.testing.pytestArgs": ["tests"],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
     "[python]": {
@@ -13,5 +12,14 @@
     "python.analysis.completeFunctionParens": true,
     "python.analysis.diagnosticMode": "workspace",
     "python.analysis.importFormat": "relative",
-    "python.analysis.autoImportCompletions": true
+    "python.analysis.autoImportCompletions": true,
+    "todo.embedded.provider": "rg",
+    "todo.embedded.providers.rg.args": "-S",
+    "todo.file.name": "*.todo",
+    "pylint.importStrategy": "fromEnvironment",
+    "python.globalModuleInstallation": false,
+    "todo.timekeeping.created.enabled": true,
+    "python.analysis.inlayHints.pytestParameters": false,
+    "todo.embedded.providers.rg.regex": "(?:#|// @|//|/\\*+|<!--|--|\\* @|\\{!|\\{\\{!--|\\{\\{!) *(TODO|FIXME|FIX|BUG|UGLY|HACK|IDEA|REVIEW|DEBUG|OPTIMIZE)",
+    "todo.embedded.regexFlags": "g"
 }

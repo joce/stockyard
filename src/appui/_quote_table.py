@@ -2,8 +2,11 @@
 This module contains the QuoteTable class which is a DataTable for displaying quotes.
 """
 
+from __future__ import annotations
+
+import sys
 from enum import Enum
-from typing import Any, Final, override
+from typing import Any, Final
 
 from rich.style import Style
 from rich.text import Text
@@ -16,6 +19,11 @@ from textual.widgets import DataTable
 from ._enums import Justify, SortDirection
 from ._quote_table_data import QuoteCell, QuoteColumn, QuoteRow
 from .quote_table_state import QuoteTableState
+
+if sys.version_info < (3, 12):
+    from typing_extensions import override
+else:
+    from typing import override
 
 
 class QuoteTable(DataTable[Text]):
@@ -354,6 +362,8 @@ class QuoteTable(DataTable[Text]):
 
         # We need the check here cause hovered_column can go to -1 (which signifies
         # the hovered column is inactive)
+        # TODO Maybe we should just use a different variable for the hovered state
+        # on/off
         if self._state.hovered_column > 0:
             self._state.hovered_column -= 1
 

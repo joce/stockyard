@@ -4,6 +4,8 @@
 
 # pyright: reportPrivateUsage=none
 
+from __future__ import annotations
+
 import math
 import re
 from contextlib import contextmanager
@@ -16,7 +18,7 @@ from appui._enums import SortDirection
 from appui._quote_table_data import QuoteRow
 from appui.quote_table_state import QuoteTableState
 
-from .fake_yfinance import FakeYFinance
+from ..fake_yfinance import FakeYFinance
 from .helpers import compare_shrunken_ints
 
 # A number with 2 decimal values

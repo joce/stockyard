@@ -10,10 +10,12 @@ license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.8.1"
+pytz = { version = "2023.3", python = "<3.11" }
 requests = "^2.23.0"
 textual = "^0.40"
 tzdata = "^2023.3"
+typing_extensions = { version = "^4.9", python = "<3.12" }
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.11.0"
@@ -24,13 +26,16 @@ pyright = "^1.1"
 pytest = "^7.4"
 pytest-timeout = "^2.2.0"
 pytest-md = "^0.2"
+textual-dev = "^1.2"
 
 [tool.black]
-target-version = ["py312"]
+target-version = ["py38", "py39", "py310", "py311", "py312"]
 line-length = 88
 
 [tool.isort]
 profile = "black"
+py_version = "3"
+skip = ["__pycache__", ".venv", ".git", ".pytest_cache"]
 
 [tool.pyright]
 include = ["src", "tests"]
