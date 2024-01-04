@@ -19,7 +19,7 @@
             https://github.com/astral-sh/ruff
         ☐ Move .pylintrc to pyproject.toml @created(23-11-25 22:41)
             https://pylint.pycqa.org/en/latest/user_guide/usage/run.html
-        ☐ SUpport back down to Python 3.8 @created(23-11-26 21:55)
+        ✔ Support back down to Python 3.8 @created(23-11-26 21:55) @done(24-01-03 22:17)
 
 
     App:
