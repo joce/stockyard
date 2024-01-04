@@ -1,10 +1,16 @@
 {
     "version": "0.2",
     "language": "en",
-    "ignorePaths": [".cspell.json", "pyproject.toml"],
+    "ignorePaths": [
+        ".cspell.json",
+        "pyproject.toml",
+        "tests/test_data.json",
+        ".github/workflows/**"
+    ],
+    "useGitignore": true,
     "dictionaryDefinitions": [],
     "dictionaries": [],
-    "words": ["joce", "legault", "renderable", "triggerable"],
+    "words": ["joce", "legault", "referer", "renderable", "triggerable"],
     "ignoreWords": [
         "EURUSD",
         "KHTML",
@@ -14,6 +20,7 @@
         "PREPRE",
         "apng",
         "appui",
+        "datatable",
         "disp",
         "gcrumb",
         "getcrumb",
@@ -21,7 +28,6 @@
         "gucs",
         "pytz",
         "quotetable",
-        "referer",
         "stockyardapp",
         "tcss",
         "yclient",
@@ -33,9 +39,9 @@
     "flagWords": ["hte"],
     "patterns": [
         {
-            "name": "QuoteSymbol",
+            "name": "quote_symbol",
             "pattern": "/\"[A-Z.]{4,7}\"/"
         }
     ],
-    "ignoreRegExpList": ["QuoteSymbol"]
+    "ignoreRegExpList": ["quote_symbol"]
 }

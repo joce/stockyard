@@ -5,7 +5,17 @@ on:
     branches: [master]
 
 jobs:
-  build:
+  spell-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Check spelling
+        uses: streetsidesoftware/cspell-action@v5
+
+  ci-checks:
+    needs: spell-check
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -14,9 +24,6 @@ jobs:
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
-
-      - name: Check spelling
-        uses: streetsidesoftware/cspell-action@v5
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
