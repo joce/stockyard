@@ -112,8 +112,6 @@ class QuoteTable(DataTable[Text]):
         self.set_interval(0.1, self._update_table)
         self.fixed_columns = 1
 
-        self._bindings.bind("insert", "add_quote", "Add quote")
-
         # Force a first update
         self._version = self._state.version - 1
         self._state.query_thread_running = True
