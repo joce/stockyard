@@ -12,11 +12,6 @@ LoadingIndicator {
     height: 1fr;
 }
 
-#clock-footer {
-    height: 1;
-    dock: bottom;
-}
-
 QuoteTable {
     height: 1fr;
 }

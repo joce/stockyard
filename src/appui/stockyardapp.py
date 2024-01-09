@@ -11,15 +11,14 @@ from typing import Any, ClassVar, Optional
 from textual import work
 from textual.app import App, ComposeResult
 from textual.binding import BindingType
-from textual.containers import Horizontal
 from textual.css.query import NoMatches
 from textual.logging import TextualHandler
-from textual.widgets import Footer, LoadingIndicator
+from textual.widgets import LoadingIndicator
 from textual.worker import Worker
 
 from yfinance import YFinance
 
-from ._clock import Clock
+from ._footer import Footer
 from ._quote_table import QuoteTable
 from .stockyardapp_state import StockyardAppState
 
@@ -45,19 +44,6 @@ class StockyardApp(App[None]):
         ("q", "exit", "Exit"),
     ]
 
-    class Footer(Footer):
-        """
-        The footer for the stockyard app.
-
-        This is required to be able to call the `refresh_bindings` method without
-        triggering pyright errors.
-        """
-
-        def refresh_bindings(self) -> None:
-            """Expose the binding refresh for the footer."""
-
-            self._bindings_changed(None)
-
     def __init__(self) -> None:
         """Initialize the app."""
 
@@ -68,13 +54,12 @@ class StockyardApp(App[None]):
         self._priming_worker: Optional[Worker[None]] = None
 
         # Widgets
-        self._footer: StockyardApp.Footer = StockyardApp.Footer()
-        self._clock: Clock = Clock()
+        self._footer: Footer = Footer()
 
     @override
     def compose(self) -> ComposeResult:
         yield LoadingIndicator()
-        yield Horizontal(self._footer, self._clock, id="clock-footer")
+        yield self._footer
 
     def on_unmount(self) -> None:
         """Handle unmount events."""
@@ -162,7 +147,7 @@ class StockyardApp(App[None]):
             logging.exception("No loading indicator found")
 
         qt: QuoteTable = QuoteTable(self._state.quote_table_state)
-        self.mount(qt, before="#clock-footer")
+        self.mount(qt, before="Footer")
 
         # Set the focus to the quote table
         qt.focus()
