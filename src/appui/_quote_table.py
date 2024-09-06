@@ -257,14 +257,12 @@ class QuoteTable(DataTable[Text]):
         # Prevent mouse interaction when in ordering (KB-only) mode
         if self._current_bindings == QuoteTable.BM.IN_ORDERING:
             event.prevent_default()
-            return
 
     @override
     def _on_mouse_move(self, event: events.MouseMove) -> None:
         # Prevent mouse interaction when in ordering (KB-only) mode
         if self._current_bindings == QuoteTable.BM.IN_ORDERING:
             event.prevent_default()
-            return
 
     @override
     def _render_cell(
