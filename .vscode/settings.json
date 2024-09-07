@@ -21,5 +21,9 @@
     "todo.timekeeping.created.enabled": true,
     "python.analysis.inlayHints.pytestParameters": false,
     "todo.embedded.providers.rg.regex": "(?:#|// @|//|/\\*+|<!--|--|\\* @|\\{!|\\{\\{!--|\\{\\{!) *(TODO|FIXME|FIX|BUG|UGLY|HACK|IDEA|REVIEW|DEBUG|OPTIMIZE)",
-    "todo.embedded.regexFlags": "g"
+    "todo.embedded.regexFlags": "g",
+    "isort.args": ["--profile", "black"],
+    "python.analysis.autoIndent": false,
+    "python.analysis.disableTaggedHints": false,
+    "isort.check": true
 }
