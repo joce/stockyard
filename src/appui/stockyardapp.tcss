@@ -4,7 +4,6 @@ Clock {
     dock: bottom;
     padding: 0 1 0 1;
     width: auto;
-    background: $accent-darken-1;
     color: white;
 }
 

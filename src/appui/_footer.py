@@ -19,9 +19,5 @@ class Footer(TextualFooter):
         self._clock: Clock = Clock()
 
     def compose(self) -> ComposeResult:
+        yield from super().compose()
         yield self._clock
-
-    def refresh_bindings(self) -> None:
-        """Expose the binding refresh for the footer."""
-
-        self._bindings_changed(None)

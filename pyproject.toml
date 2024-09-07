@@ -12,21 +12,21 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.8.1"
 pytz = { version = "2023.3", python = "<3.11" }
-requests = "^2.23.0"
-textual = "^0.47"
-tzdata = "^2023.3"
+requests = "^2.32.0"
+textual = "^0.79"
+tzdata = "^2024.1"
 typing_extensions = { version = "^4.9", python = "<3.12" }
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.11.0"
-flake8 = "^6.1"
-isort = "^5.12"
-pylint = "^3.0"
+black = "^24.8.0"
+flake8 = "^7.1"
+isort = "^5.13"
+pylint = "^3.2"
 pyright = "^1.1"
-pytest = "^7.4"
-pytest-timeout = "^2.2.0"
+pytest = "^8.3"
+pytest-timeout = "^2.3.0"
 pytest-md = "^0.2"
-textual-dev = "^1.4"
+textual-dev = "^1.6"
 
 [tool.black]
 target-version = ["py38", "py39", "py310", "py311", "py312"]

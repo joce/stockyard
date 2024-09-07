@@ -11,7 +11,7 @@ from typing import Any, Final
 from rich.style import Style
 from rich.text import Text
 from textual import events
-from textual.binding import _Bindings  # type: ignore
+from textual.binding import BindingsMap  # type: ignore
 from textual.coordinate import Coordinate
 from textual.message import Message
 from textual.widgets import DataTable
@@ -49,9 +49,9 @@ class QuoteTable(DataTable[Text]):
         self._column_key_map: dict[str, Any] = {}
 
         # Bindings
-        self._bindings_modes: dict[QuoteTable.BM, _Bindings] = {
+        self._bindings_modes: dict[QuoteTable.BM, BindingsMap] = {
             QuoteTable.BM.DEFAULT: self._bindings.copy(),
-            QuoteTable.BM.IN_ORDERING: _Bindings(),
+            QuoteTable.BM.IN_ORDERING: BindingsMap(),
         }
 
         self._bindings_modes[QuoteTable.BM.DEFAULT].bind(
@@ -233,11 +233,11 @@ class QuoteTable(DataTable[Text]):
         return Text(
             cell.value,
             justify=cell.justify.value,
-            style=QuoteTable._LOSING_COLOR
-            if cell.sign == -1
-            else QuoteTable._GAINING_COLOR
-            if cell.sign > 0
-            else "",
+            style=(
+                QuoteTable._LOSING_COLOR
+                if cell.sign == -1
+                else QuoteTable._GAINING_COLOR if cell.sign > 0 else ""
+            ),
         )
 
     @override

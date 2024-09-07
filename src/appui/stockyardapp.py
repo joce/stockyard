@@ -76,15 +76,6 @@ class StockyardApp(App[None]):
     def on_quote_table_bindings_changed(self) -> None:
         """Refresh the bindings for the app."""
 
-        # One way of achieving the footer refresh is to just reset the focus to the
-        # currently focused widget:
-        #
-        # focused: Optional[Widget] = self.focused
-        # if focused is not None:
-        #     self.set_focus(None)
-        #     self.set_focus(focused)
-
-        # Another way is to just refresh the footer...
         self._footer.refresh_bindings()
 
     def action_exit(self) -> None:
