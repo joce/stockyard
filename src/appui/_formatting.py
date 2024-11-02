@@ -1,6 +1,7 @@
 """
 Functions for formatting various data types into strings for the Stockyard application.
 """
+
 from typing import Final, Optional
 
 _NO_VALUE: Final[str] = "N/A"  # TODO Maybe use "" instead?

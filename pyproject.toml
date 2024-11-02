@@ -4,37 +4,37 @@ version = "0.1.0"
 repository = "https://github.com/joce/stockyard"
 homepage = "https://github.com/joce/stockyard"
 
-description = "A Yahoo! finance-based TUI toy stock viewer"
+description = "A Yahoo! finance-based TUI **toy** stock viewer"
 authors = ["Jocelyn Legault <jocelynlegault@gmail.com>"]
 license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.8.1"
-pytz = { version = "2023.3", python = "<3.11" }
-requests = "^2.32.0"
-textual = "^0.79"
-tzdata = "^2024.1"
-typing_extensions = { version = "^4.9", python = "<3.12" }
+python = "^3.9"
+pytz = { version = "2024.2", python = "<3.11" }
+requests = "^2.32"
+textual = "^0.85"
+tzdata = "^2024.2"
+typing_extensions = { version = "^4.12", python = "<3.12" }
 
 [tool.poetry.group.dev.dependencies]
-black = "^24.8.0"
+black = "^24.10.0"
 flake8 = "^7.1"
 isort = "^5.13"
-pylint = "^3.2"
+pylint = "^3.3"
 pyright = "^1.1"
 pytest = "^8.3"
-pytest-timeout = "^2.3.0"
+pytest-timeout = "^2.3"
 pytest-md = "^0.2"
 textual-dev = "^1.6"
 
 [tool.black]
-target-version = ["py38", "py39", "py310", "py311", "py312"]
+target-version = ["py39", "py310", "py311", "py312", "py313"]
 line-length = 88
 
 [tool.isort]
 profile = "black"
-py_version = "3"
+py_version = "auto"
 skip = ["__pycache__", ".venv", ".git", ".pytest_cache"]
 
 [tool.pyright]

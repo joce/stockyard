@@ -6,7 +6,8 @@
         ".cspell.json",
         "pyproject.toml",
         "tests/test_data.json",
-        ".github/workflows/**"
+        ".github/workflows/**",
+        ".vscode/**"
     ],
     "useGitignore": true,
     "dictionaryDefinitions": [],

@@ -2,6 +2,7 @@
 This module contains the YQuote class, which represents a quote for a security, as
 retrieved from the Yahoo! Finance API.
 """
+
 from __future__ import annotations
 
 import sys

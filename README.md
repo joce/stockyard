@@ -2,4 +2,4 @@
 
 # stockyard
 
-Yahoo! finance-based TUI stock viewer
+Yahoo! finance-based TUI :joystick: **_TOY_** :joystick: stock viewer. Nothing serious to see here.

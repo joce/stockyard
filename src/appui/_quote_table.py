@@ -265,7 +265,7 @@ class QuoteTable(DataTable[Text]):
             event.prevent_default()
 
     @override
-    def _render_cell(
+    def _render_cell(  # pylint: disable=too-many-positional-arguments
         self,
         row_index: int,
         column_index: int,
