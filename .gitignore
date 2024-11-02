@@ -17,4 +17,6 @@ docs/_build/
 !.vscode/launch.json
 !.vscode/extensions.json
 !.vscode/*.code-snippets
+
+# virtual environment
 /.venv

@@ -2,6 +2,7 @@
     "version": "0.2",
     "language": "en",
     "ignorePaths": [
+        ".gitignore",
         ".cspell.json",
         "pyproject.toml",
         "tests/test_data.json",
