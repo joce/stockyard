@@ -41,6 +41,9 @@ jobs:
         shell: bash
         run: poetry install
 
+      - name: Checking with Ruff
+        run: |
+          poetry run ruff check --target-version ${{ matrix.python-version }} --output-format=github .
       - name: Checking imports with isort
         run: |
           poetry run isort -c --profile black --python-version auto .

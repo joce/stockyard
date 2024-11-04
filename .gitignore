@@ -20,3 +20,6 @@ docs/_build/
 
 # virtual environment
 /.venv
+
+# ruff
+/.ruff_cache

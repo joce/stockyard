@@ -26,6 +26,7 @@ pyright = "^1.1"
 pytest = "^8.3"
 pytest-timeout = "^2.3"
 pytest-md = "^0.2"
+ruff = "^0.7"
 textual-dev = "^1.6"
 
 [tool.black]
@@ -45,6 +46,51 @@ typeCheckingMode = "strict"
 pythonpath = "src"
 testpaths = ["tests"]
 timeout = 10
+
+[tool.ruff]
+exclude = [
+    "__pycache__",
+    ".git",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".venv",
+    ".vscode",
+]
+
+# Same as Black
+line-length = 88
+indent-width = 4
+# Target Python version
+target-version = "py39"
+
+
+[tool.ruff.format]
+# Like Black
+indent-style = "space"
+line-ending = "lf"
+quote-style = "double"
+skip-magic-trailing-comma = false
+
+[tool.ruff.lint]
+select = [
+    "F",
+    "E",
+    "W",
+    #"C90",
+    "I",
+    "N",
+    #"D", NOPE
+    "A",
+    "RUF",
+    "B",
+    #"PL"
+]
+preview = true
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
 
 [build-system]
 requires = ["poetry-core"]
