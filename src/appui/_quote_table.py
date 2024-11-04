@@ -173,8 +173,8 @@ class QuoteTable(DataTable[Text]):
                 self.add_row(*stylized_row, key=quote_key)
 
         # Remove extra rows, if any
-        for i in range(i, len(self.rows)):
-            self.remove_row(row_key=str(i))
+        for r in range(i, len(self.rows)):
+            self.remove_row(row_key=str(r))
 
         current_row: int = self._state.cursor_row
         if current_row >= 0:
@@ -238,7 +238,7 @@ class QuoteTable(DataTable[Text]):
                 if cell.sign == -1
                 else QuoteTable._GAINING_COLOR if cell.sign > 0 else ""
             ),
-        )
+        )  # fmt: skip
 
     @override
     def watch_hover_coordinate(self, old: Coordinate, value: Coordinate) -> None:

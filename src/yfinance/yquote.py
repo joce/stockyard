@@ -15,10 +15,10 @@ if sys.version_info < (3, 11):
 
     UTC = pytz.UTC
 else:
-    from datetime import UTC as UTC_datetime
+    from datetime import UTC as UTC_DT
     from zoneinfo import ZoneInfo
 
-    UTC = UTC_datetime
+    UTC = UTC_DT
 
 
 class QuoteType(Enum):

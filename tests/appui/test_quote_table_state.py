@@ -103,10 +103,10 @@ def test_load_empty_config(quote_table_state: QuoteTableState):
 
     config: dict[str, Any] = {}
     quote_table_state.load_config(config)
-    assert (
-        quote_table_state.column_keys
-        == [QuoteTableState._TICKER_COLUMN_KEY] + QuoteTableState._DEFAULT_COLUMN_KEYS
-    )
+    assert quote_table_state.column_keys == [
+        QuoteTableState._TICKER_COLUMN_KEY,
+        *QuoteTableState._DEFAULT_COLUMN_KEYS,
+    ]
     assert quote_table_state.sort_column_key == QuoteTableState._TICKER_COLUMN_KEY
     assert quote_table_state.sort_direction == QuoteTableState._DEFAULT_SORT_DIRECTION
     assert quote_table_state._quotes_symbols == QuoteTableState._DEFAULT_QUOTES

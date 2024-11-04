@@ -1,8 +1,6 @@
 name: CI
 
-on:
-  push:
-    branches: [master]
+on: [push, pull_request]
 
 jobs:
   spell-check:
@@ -35,15 +33,23 @@ jobs:
           python -m ensurepip
           python -m pip install --upgrade pip
           pip install poetry==${{ matrix.poetry-version }}
-      - name: View poetry --help
-        run: poetry --help
       - name: Install dependencies
         shell: bash
         run: poetry install
 
-      - name: Checking with Ruff
+      - name: Compute output vairables
+        id: vars
         run: |
-          poetry run ruff check --target-version ${{ matrix.python-version }} --output-format=github .
+          # Remove dots and prepend 'py'
+          RUFF_VERSION="py$(echo ${{ matrix.python-version }} | tr -d '.')"
+          echo "RUFF_VERSION=$RUFF_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Validating format with Ruff
+        run: |
+          poetry run ruff format --check --diff --target-version ${{ steps.vars.outputs.RUFF_VERSION }}
+      - name: Linting with Ruff
+        run: |
+          poetry run ruff check --target-version ${{ steps.vars.outputs.RUFF_VERSION }} --output-format=github .
       - name: Checking imports with isort
         run: |
           poetry run isort -c --profile black --python-version auto .
@@ -56,7 +62,7 @@ jobs:
       - name: Analysing the code with pylint
         run: |
           poetry run pylint $(git ls-files '*.py')
-      - name: Analysing typing with pyright
+      - name: Analyzing typing with pyright
         run: |
           poetry run pyright --pythonversion ${{ matrix.python-version }}
       - name: Run pytest

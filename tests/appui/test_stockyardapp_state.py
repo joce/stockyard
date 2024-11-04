@@ -70,10 +70,10 @@ def test_load_regular_config(stockyard_app_state: StockyardAppState):
 def test_load_empty_config(stockyard_app_state: StockyardAppState):
     config: dict[str, Any] = {}
     stockyard_app_state.load_config(config)
-    assert (
-        stockyard_app_state.quote_table_state.column_keys
-        == [QuoteTableState._TICKER_COLUMN_KEY] + QuoteTableState._DEFAULT_COLUMN_KEYS
-    )
+    assert stockyard_app_state.quote_table_state.column_keys == [
+        QuoteTableState._TICKER_COLUMN_KEY,
+        *QuoteTableState._DEFAULT_COLUMN_KEYS,
+    ]
     assert (
         stockyard_app_state.quote_table_state.sort_column_key
         == QuoteTableState._TICKER_COLUMN_KEY
