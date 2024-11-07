@@ -1,6 +1,4 @@
-"""
-Test helpers.
-"""
+"""Test helpers."""
 
 # pyright: reportPrivateUsage=none
 
@@ -20,7 +18,7 @@ def compare_shrunken_ints(a: str, b: str) -> int:
     Returns:
         int: -1 if a < b, 1 if a > b, 0 if a == b
     """
-    if _NO_VALUE in (a, b):
+    if _NO_VALUE in {a, b}:
         return 0 if a == b else 1 if b == _NO_VALUE else -1
 
     if a[-1].isdigit():

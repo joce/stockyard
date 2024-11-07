@@ -3,7 +3,7 @@
 # pylint: disable=missing-module-docstring
 
 from enum import Enum
-from typing import Any, Type
+from typing import Any
 
 import pytest
 
@@ -23,7 +23,7 @@ class FloatTestEnum(Enum):
 
 
 @pytest.mark.parametrize(
-    "enum_type, value, enum_member",
+    ("enum_type", "value", "enum_member"),
     [
         (TimeFormat, "12h", TimeFormat.TWELVE_HOUR),
         (TimeFormat, "24h", TimeFormat.TWENTY_FOUR_HOUR),
@@ -35,10 +35,14 @@ class FloatTestEnum(Enum):
         (FloatTestEnum, 1.99, FloatTestEnum.ONE_NINETY_NINE),
     ],
 )
-def test_get_enum_member(enum_type: Type[Enum], value: Any, enum_member: Any):
+def test_get_enum_member(
+    enum_type: type[Enum], value: Any, enum_member: Any  # noqa: ANN401
+):  # fmt: skip
     assert get_enum_member(enum_type, value) == enum_member
 
 
 def test_get_enum_member_invalid():
-    with pytest.raises(ValueError):
+    with pytest.raises(
+        ValueError, match=r"Value '1h' is not a valid member of TimeFormat"
+    ):
         get_enum_member(TimeFormat, "1h")

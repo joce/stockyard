@@ -19,8 +19,7 @@ from yfinance import YFinance
 @pytest.fixture(name="stockyard_app_state")
 def fixture_sas() -> StockyardAppState:
     yfin = YFinance()
-    sas = StockyardAppState(yfin)
-    return sas
+    return StockyardAppState(yfin)
 
 
 def test_load_regular_config(stockyard_app_state: StockyardAppState):

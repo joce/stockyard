@@ -8,11 +8,12 @@ row and a column in the quote table respectively.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Callable
-
-from yfinance import YQuote
+from typing import TYPE_CHECKING, Any, Callable
 
 from ._enums import Justify
+
+if TYPE_CHECKING:
+    from yfinance import YQuote
 
 
 @dataclass(frozen=True)

@@ -1,13 +1,13 @@
 """Main entry point for the application."""
 
-import os.path
+from pathlib import Path
 
 from appui import StockyardApp
 
-home_dir: str = os.path.expanduser("~")
-config_file: str = os.path.join(home_dir, ".stockyard")
+home_dir: Path = Path("~").expanduser()
+config_file_name: str = (home_dir / ".stockyard").as_posix()
 
 app: StockyardApp = StockyardApp()
-app.load_config(config_file)
+app.load_config(config_file_name)
 app.run()
-app.save_config(config_file)
+app.save_config(config_file_name)

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from math import inf
-from typing import Final, Optional, TypeVar
+from typing import Final, TypeVar
 
 from ._enums import Justify
 from ._formatting import as_float, as_percent, as_shrunk_int
@@ -13,13 +13,14 @@ T = TypeVar("T", int, float)
 """TypeVar T is defined to be either an int or a float."""
 
 
-def _safe_value(v: Optional[T]) -> float:
+def _safe_value(v: T | None) -> float:
     """
-    Safely retrieves the value of v. If v is None, it returns the smallest representable
-    value for type T.
+    Safely retrieves the value of v.
+
+    If v is None, it returns the smallest representable value for type T.
 
     Args:
-        v (Optional[T]): The value to be retrieved. Can be of type int or float.
+        v (T | None): The value to be retrieved. Can be of type int or float.
 
     Returns:
         float: The value of v if it's not None, otherwise the smallest representable
@@ -31,7 +32,7 @@ def _safe_value(v: Optional[T]) -> float:
 
 def _sign(v: T) -> int:
     """
-    Determines the sign of a given value.
+    Determine the sign of a given value.
 
     Args:
         v (T): The value for which the sign is to be determined.

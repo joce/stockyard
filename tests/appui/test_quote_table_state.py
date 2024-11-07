@@ -10,44 +10,53 @@ import math
 import re
 from contextlib import contextmanager
 from time import sleep
-from typing import Any, Final
+from typing import TYPE_CHECKING, Any, Final
 
 import pytest
 
 from appui._enums import SortDirection
-from appui._quote_table_data import QuoteRow
 from appui.quote_table_state import QuoteTableState
+from tests.fake_yfinance import FakeYFinance
 
-from ..fake_yfinance import FakeYFinance
 from .helpers import compare_shrunken_ints
 
+if TYPE_CHECKING:
+    from appui._quote_table_data import QuoteRow
+
 # A number with 2 decimal values
-NUMBER_RE: Final[re.Pattern[str]] = re.compile(r"^(?:-?\d+\.\d{2}|N/A)$", re.M)
+NUMBER_RE: Final[re.Pattern[str]] = re.compile(r"^(?:-?\d+\.\d{2}|N/A)$", re.MULTILINE)
 
 # A percentage with 2 decimal values
-PERCENT_RE: Final[re.Pattern[str]] = re.compile(r"^(?:-?\d+\.\d{2}%|N/A)$", re.M)
+PERCENT_RE: Final[re.Pattern[str]] = re.compile(
+    r"^(?:-?\d+\.\d{2}%|N/A)$", re.MULTILINE
+)
 
 # A shrunken int
 SHRUNKEN_INT_RE: Final[re.Pattern[str]] = re.compile(
-    r"^(?:\d{1,3}(?:\.\d{2}[KMBT])?|N/A)$", re.M
+    r"^(?:\d{1,3}(?:\.\d{2}[KMBT])?|N/A)$", re.MULTILINE
 )
 
 
 @pytest.fixture(name="quote_table_state")
 def fixture_qts() -> QuoteTableState:
     """
-    An instance of the QuoteTableState class, with a FakeYFinance instance to get the
-    quotes.
+    Get a QuoteTableState instance for testing.
+
+    Returns:
+        QuoteTableState: An instance of the QuoteTableState class, with a FakeYFinance
+        instance to get the quotes.
     """
     yfin = FakeYFinance()
-    qts = QuoteTableState(yfin)
-    return qts
+    return QuoteTableState(yfin)
 
 
 @pytest.fixture
-def duplicate_column(qts: QuoteTableState):
+def duplicate_column(qts: QuoteTableState) -> str:
     """
     Helper fixture for testing invalid column addition and insertion.
+
+    Returns:
+        str: the key of the duplicate column.
     """
     return qts.quotes_columns[1].key
 
@@ -70,6 +79,7 @@ def thread_running_context(qts: QuoteTableState):
 def test_load_regular_config(quote_table_state: QuoteTableState):
     """
     Regular config loading.
+
     This is expected to work.
     """
 
@@ -97,8 +107,10 @@ def test_load_regular_config(quote_table_state: QuoteTableState):
 def test_load_empty_config(quote_table_state: QuoteTableState):
     """
     Empty config loading.
-    This is expected to work.
+
     The defaults should be used.
+
+    This is expected to work.
     """
 
     config: dict[str, Any] = {}
@@ -116,8 +128,10 @@ def test_load_empty_config(quote_table_state: QuoteTableState):
 def test_load_config_invalid_columns(quote_table_state: QuoteTableState):
     """
     Config loading with an invalid column.
-    This is expected to work.
+
     The invalid column should be ignored.
+
+    This is expected to work.
     """
 
     config: dict[str, Any] = {
@@ -130,8 +144,10 @@ def test_load_config_invalid_columns(quote_table_state: QuoteTableState):
 def test_load_config_duplicate_columns(quote_table_state: QuoteTableState):
     """
     Config loading with an a column defined more than once.
-    This is expected to work.
+
     The duplicated columns should be ignored.
+
+    This is expected to work.
     """
 
     config: dict[str, Any] = {
@@ -144,8 +160,10 @@ def test_load_config_duplicate_columns(quote_table_state: QuoteTableState):
 def test_load_config_duplicate_default_column(quote_table_state: QuoteTableState):
     """
     Config loading with the default specified in the config.
-    This is expected to work.
+
     The default column should be added again.
+
+    This is expected to work.
     """
 
     config: dict[str, Any] = {
@@ -168,8 +186,10 @@ def test_load_config_duplicate_default_column(quote_table_state: QuoteTableState
 def test_load_config_invalid_sort_column(quote_table_state: QuoteTableState):
     """
     Config loading an invalid sort column.
-    This is expected to work.
+
     The default column should be used as sort column.
+
+    This is expected to work.
     """
 
     config: dict[str, Any] = {
@@ -183,8 +203,10 @@ def test_load_config_invalid_sort_column(quote_table_state: QuoteTableState):
 def test_load_config_invalid_sort_direction(quote_table_state: QuoteTableState):
     """
     Config loading an invalid sort direction.
-    This is expected to work.
+
     The default sort direction should be used.
+
+    This is expected to work.
     """
 
     config: dict[str, Any] = {
@@ -197,8 +219,10 @@ def test_load_config_invalid_sort_direction(quote_table_state: QuoteTableState):
 def test_load_config_invalid_query_frequency(quote_table_state: QuoteTableState):
     """
     Config loading an invalid quote querying frequency.
-    This is expected to work.
+
     The default query frequency should be used.
+
+    This is expected to work.
     """
 
     config: dict[str, Any] = {
@@ -211,8 +235,10 @@ def test_load_config_invalid_query_frequency(quote_table_state: QuoteTableState)
 def test_load_config_empty_quote_symbol(quote_table_state: QuoteTableState):
     """
     Config loading a quote symbol that is an empty string.
-    This is expected to work.
+
     The invalid quote symbol should be ignored.
+
+    This is expected to work.
     """
 
     config: dict[str, Any] = {
@@ -225,8 +251,10 @@ def test_load_config_empty_quote_symbol(quote_table_state: QuoteTableState):
 def test_load_config_duplicate_quote_symbol(quote_table_state: QuoteTableState):
     """
     Config loading with quote symbols defined more than once.
-    This is expected to work.
+
     The duplicated quote symbols should be ignored.
+
+    This is expected to work.
     """
 
     config: dict[str, Any] = {
@@ -244,6 +272,7 @@ def test_load_config_duplicate_quote_symbol(quote_table_state: QuoteTableState):
 def test_save_config(quote_table_state: QuoteTableState):
     """
     Regular config saving.
+
     This is expected to work.
     """
 
@@ -263,6 +292,7 @@ def test_save_config(quote_table_state: QuoteTableState):
 def test_save_config_takes_list_copies(quote_table_state: QuoteTableState):
     """
     Make sure that saving a config takes a copy of lists.
+
     This is expected to work.
     """
 
@@ -276,6 +306,7 @@ def test_save_config_takes_list_copies(quote_table_state: QuoteTableState):
 def test_round_trip_config(quote_table_state: QuoteTableState):
     """
     Make sure that a round trip save and load works.
+
     This is expected to work.
     """
 
@@ -321,6 +352,7 @@ def test_default_get_quotes_rows(quote_table_state: QuoteTableState):
     """
     Make sure quote can be retrieved, their order is correct, and the values
     correct.
+
     This is expected to work.
     """
 
@@ -546,6 +578,7 @@ def test_rows_sorted_on_shrunken_int_and_equal_values(
 def test_set_current_row(quote_table_state: QuoteTableState):
     """
     Check setting the current row.
+
     This is expected to work.
     """
 
@@ -555,7 +588,7 @@ def test_set_current_row(quote_table_state: QuoteTableState):
 
     # By default, current row should not be set
     assert quote_table_state.cursor_row == -1
-    assert quote_table_state._cursor_symbol == ""
+    assert quote_table_state._cursor_symbol == ""  # noqa: PLC1901
 
     # Set the current row
     new_cursor_row = 2
@@ -588,6 +621,7 @@ def test_set_current_row(quote_table_state: QuoteTableState):
 def test_delete_row_after_cursor(quote_table_state: QuoteTableState):
     """
     Delete a row after the cursor row.
+
     This is expected to work.
     """
 
@@ -620,6 +654,7 @@ def test_delete_row_after_cursor(quote_table_state: QuoteTableState):
 def test_delete_row_before_cursor(quote_table_state: QuoteTableState):
     """
     Delete a row before the cursor row.
+
     This is expected to work.
     """
 
@@ -652,6 +687,7 @@ def test_delete_row_before_cursor(quote_table_state: QuoteTableState):
 def test_delete_on_cursor_row_middle(quote_table_state: QuoteTableState):
     """
     Delete the cursor row. There are items before and after it.
+
     This is expected to work.
     """
 
@@ -685,6 +721,7 @@ def test_delete_on_cursor_row_middle(quote_table_state: QuoteTableState):
 def test_delete_on_cursor_row_last(quote_table_state: QuoteTableState):
     """
     Delete the cursor row. The cursor is at the last row.
+
     This is expected to work.
     """
 
@@ -720,6 +757,7 @@ def test_delete_on_cursor_row_first(quote_table_state: QuoteTableState):
     """
     Delete the cursor row. The cursor is at the first row and there are other rows after
     it.
+
     This is expected to work.
     """
 
@@ -753,6 +791,7 @@ def test_delete_on_cursor_row_first(quote_table_state: QuoteTableState):
 def test_delete_on_cursor_row_only(quote_table_state: QuoteTableState):
     """
     Delete the cursor row. The cursor is at the first row and it's the only row.
+
     This is expected to work.
     """
 
@@ -792,6 +831,7 @@ def test_delete_on_cursor_row_only(quote_table_state: QuoteTableState):
 def test_add_column(quote_table_state: QuoteTableState):
     """
     Try to add a valid column to the table.
+
     This is expected to work.
     """
 
@@ -837,6 +877,7 @@ def test_add_column(quote_table_state: QuoteTableState):
 def test_add_invalid_column(quote_table_state: QuoteTableState, column_name: str):
     """
     Try to add an invalid column to the table.
+
     This is not expected to work.
     """
 
@@ -852,7 +893,7 @@ def test_add_invalid_column(quote_table_state: QuoteTableState, column_name: str
 
 
 @pytest.mark.parametrize(
-    "insertion_idx, validation_idx",
+    ("insertion_idx", "validation_idx"),
     [(1, 1), (2, 2), (3, 3), (4, 4), (100, 4), (-1, 3), (-2, 2), (-3, 1)],
 )
 def test_insert_column(
@@ -860,6 +901,7 @@ def test_insert_column(
 ):
     """
     Try to insert a valid column in a valid spot to the table.
+
     This is expected to work.
     """
 
@@ -892,6 +934,7 @@ def test_cant_insert_column_at_invalid_index(
 ):
     """
     Try to insert a valid column at the position of the default column, or below.
+
     This is not expected to work.
     """
 
@@ -922,6 +965,7 @@ def test_cant_insert_column_at_invalid_index(
 def test_insert_invalid_column(quote_table_state: QuoteTableState, column_name: str):
     """
     Try to insert an invalid column at a valid spot to the table.
+
     This is not expected to work.
     """
 
@@ -939,6 +983,7 @@ def test_insert_invalid_column(quote_table_state: QuoteTableState, column_name: 
 def test_remove_regular_column(quote_table_state: QuoteTableState):
     """
     Try to remove a valid column from the table.
+
     This is expected to work.
     """
 
@@ -954,26 +999,38 @@ def test_remove_regular_column(quote_table_state: QuoteTableState):
     assert len(quote_table_state.quotes_columns) == column_count
 
 
-@pytest.mark.parametrize(
-    "column_name",
-    # Can't remove the default column, or a column that doesn't exist
-    [QuoteTableState._TICKER_COLUMN_KEY, "not_a_valid_column"],
-)
-def test_remove_invalid_column(quote_table_state: QuoteTableState, column_name: str):
+def test_remove_ticker_column(quote_table_state: QuoteTableState):
     """
-    Try to remove an invalid column from the table.
+    Try to remove the ticker column from the table.
+
     This is not expected to work.
     """
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Cannot remove ticker column"):
+        quote_table_state.remove_column(QuoteTableState._TICKER_COLUMN_KEY)
+
+
+def test_remove_invalid_column(quote_table_state: QuoteTableState):
+    """
+    Try to remove an invalid column from the table.
+
+    This is not expected to work.
+    """
+
+    column_name: str = "not_a_valid_column"
+    with pytest.raises(
+        ValueError, match=f"Column key {column_name} does not exist in the quote table"
+    ):
         quote_table_state.remove_column(column_name)
 
 
 def test_remove_sorting_column(quote_table_state: QuoteTableState):
     """
     Try to remove the column on which the sorting is based.
-    This is expected to work.
+
     The new sorting column should be the default column.
+
+    This is expected to work.
     """
 
     first_column_name: str = quote_table_state.quotes_columns[1].key

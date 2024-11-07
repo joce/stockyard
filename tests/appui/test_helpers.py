@@ -11,7 +11,7 @@ from .helpers import compare_shrunken_ints
 
 
 @pytest.mark.parametrize(
-    "a, b, expected_output",
+    ("a", "b", "expected_output"),
     [
         ("5", _NO_VALUE, 1),
         (_NO_VALUE, _NO_VALUE, 0),

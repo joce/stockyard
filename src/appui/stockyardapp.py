@@ -1,26 +1,30 @@
-"""The stockyard application"""
+"""The stockyard application."""
 
 from __future__ import annotations
 
 import json
 import logging
 import sys
-from io import TextIOWrapper
-from typing import Any, ClassVar, Optional
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from textual import work
 from textual.app import App, ComposeResult
-from textual.binding import BindingType
 from textual.css.query import NoMatches
 from textual.logging import TextualHandler
 from textual.widgets import LoadingIndicator
-from textual.worker import Worker
 
 from yfinance import YFinance
 
 from ._footer import Footer
 from ._quote_table import QuoteTable
 from .stockyardapp_state import StockyardAppState
+
+if TYPE_CHECKING:
+    from io import TextIOWrapper
+
+    from textual.binding import BindingType
+    from textual.worker import Worker
 
 if sys.version_info < (3, 12):
     from typing_extensions import override
@@ -45,13 +49,11 @@ class StockyardApp(App[None]):
     ]
 
     def __init__(self) -> None:
-        """Initialize the app."""
-
         super().__init__()
 
         self.__yfinance: YFinance = YFinance()
         self._state: StockyardAppState = StockyardAppState(self.__yfinance)
-        self._priming_worker: Optional[Worker[None]] = None
+        self._priming_worker: Worker[None] | None = None
 
         # Widgets
         self._footer: Footer = Footer()
@@ -88,7 +90,7 @@ class StockyardApp(App[None]):
 
         try:
             f: TextIOWrapper
-            with open(path, "r", encoding="utf-8") as f:
+            with Path(path).open(encoding="utf-8") as f:
                 config: dict[str, Any] = json.load(f)
                 self._state.load_config(config)
         except FileNotFoundError:
@@ -109,7 +111,7 @@ class StockyardApp(App[None]):
 
         try:
             f: TextIOWrapper
-            with open(path, "w", encoding="utf-8") as f:
+            with Path(path).open("w", encoding="utf-8") as f:
                 config: dict[str, Any] = self._state.save_config()
                 json.dump(config, f, indent=4)
         except FileNotFoundError:
@@ -143,4 +145,5 @@ class StockyardApp(App[None]):
         # Set the focus to the quote table
         qt.focus()
 
+        self._priming_worker = None
         self._priming_worker = None

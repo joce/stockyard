@@ -7,12 +7,14 @@ from __future__ import annotations
 import json
 import logging
 from datetime import datetime, timedelta
-from http.cookiejar import Cookie
-from typing import Any, Final
+from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import requests
 from requests.cookies import RequestsCookieJar
+
+if TYPE_CHECKING:
+    from http.cookiejar import Cookie
 
 
 class YClient:
@@ -73,7 +75,7 @@ class YClient:
 
     def __refresh_cookies(self) -> None:
         """
-        Logging to Yahoo! finance.
+        Log into Yahoo! finance.
 
         Logging in will set the cookies that are required to fetch the crumb and make
         calls to the Yahoo! finance API.
@@ -132,7 +134,12 @@ class YClient:
             self._expiry = expiry
 
     def __get_cookies_eu(self) -> RequestsCookieJar:
-        """Get cookies from the EU consent page."""
+        """
+        Get cookies from the EU consent page.
+
+        Returns:
+            The cookies from the EU consent page.
+        """
 
         response: requests.Response
         with self._session.get(
@@ -177,7 +184,7 @@ class YClient:
             # Look in the history to find the right cookie
             gucs_cookie: RequestsCookieJar = RequestsCookieJar()
             for hist in response.history:
-                if hist.cookies.get("GUCS") is not None:  # pyright: ignore
+                if hist.cookies.get("GUCS") is not None:
                     gucs_cookie: RequestsCookieJar = hist.cookies
                     break
 
@@ -223,7 +230,7 @@ class YClient:
             allow_redirects=True,
         ) as response:
             for hist in response.history:
-                if hist.cookies.get("A3") is not None:  # pyright: ignore
+                if hist.cookies.get("A3") is not None:
                     return hist.cookies
 
         return RequestsCookieJar()
@@ -243,7 +250,7 @@ class YClient:
             except requests.exceptions.HTTPError as e:
                 logging.exception("Can't fetch crumb: %s", e)
 
-        if self._crumb != "":
+        if self._crumb:
             logging.debug(
                 "Crumb refreshed: %s. Expires on %s",
                 self._crumb,
@@ -279,7 +286,7 @@ class YClient:
             res_body: str = response.text
             logging.debug("Response: %s", res_body)
 
-            if res_body == "":
+            if not res_body:
                 logging.error("Can't parse response")
                 return {}
 
@@ -312,13 +319,13 @@ class YClient:
         if self._expiry < datetime.now():
             self.__refresh_cookies()
 
-        if self._crumb == "":
+        if not self._crumb:
             self.__refresh_crumb()
 
         if query_params is None:
             query_params = {}
 
-        if self._crumb != "":
+        if self._crumb:
             query_params["crumb"] = self._crumb
 
         if len(query_params) > 0:

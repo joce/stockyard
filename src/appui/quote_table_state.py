@@ -5,13 +5,14 @@ from __future__ import annotations
 import logging
 from threading import Lock, Thread
 from time import monotonic, sleep
-from typing import Any, Callable, Final, Optional
-
-from yfinance import YFinance, YQuote
+from typing import TYPE_CHECKING, Any, Callable, Final
 
 from ._enums import SortDirection, get_enum_member
 from ._quote_column_definitions import ALL_QUOTE_COLUMNS
 from ._quote_table_data import QuoteCell, QuoteColumn, QuoteRow
+
+if TYPE_CHECKING:
+    from yfinance import YFinance, YQuote
 
 
 class QuoteTableState:
@@ -185,7 +186,15 @@ class QuoteTableState:
     def __get_cursor_row_no_lock(self) -> int:
         """
         Get the current row of the cursor.
+
         This method expects the _quotes_lock to have been acquired beforehand.
+
+        Raises:
+            RuntimeError: If the _quotes_lock has not been acquired.
+
+        Returns:
+            The index of the quote (from _quotes) whose ticker symbol matches the
+            cursor symbol
         """
 
         if not self._quotes_lock.locked():
@@ -215,7 +224,12 @@ class QuoteTableState:
     def __set_cursor_row_no_lock(self, value: int) -> None:
         """
         Set the current row of the cursor.
+
         This method expects the _quotes_lock to have been acquired beforehand.
+
+        Raises:
+            RuntimeError: If the _quotes_lock has not been acquired.
+            ValueError: If value is out of range.
         """
 
         if not self._quotes_lock.locked():
@@ -337,6 +351,9 @@ class QuoteTableState:
             column_key (str): The identifier of the column to remove.
                 The identifier of the column is expected to match the ones found in the
                 ALL_QUOTE_COLUMNS definition.
+
+        Raises:
+            ValueError: If the column key does not exist in the table.
         """
 
         try:
@@ -354,13 +371,13 @@ class QuoteTableState:
 
     def _can_add_column(self, column_key: str) -> bool:
         """
-        Check if the column can be added to the quote table
+        Check if the column can be added to the quote table.
 
         Args:
             column_key (str): The identifier of the column to add.
 
         Returns:
-            bool: Whether the column can be added to the quote table
+            bool: Whether the column can be added to the quote table.
         """
 
         if column_key not in ALL_QUOTE_COLUMNS:
@@ -385,6 +402,9 @@ class QuoteTableState:
 
         Args:
             index (int): The index of the row to remove.
+
+        Raises:
+            ValueError: If the row index is invalid.
         """
 
         if index < 0 or index >= len(self._quotes):
@@ -438,8 +458,13 @@ class QuoteTableState:
         self._last_query_time = monotonic_clock
         self._version += 1
 
-    def _sort_quotes(self):
-        """Sort the quotes, according to the sort column and direction."""
+    def _sort_quotes(self) -> None:
+        """
+        Sort the quotes, according to the sort column and direction.
+
+        Raises:
+            RuntimeError: If the _quotes_lock is not acquired.
+        """
 
         if not self._quotes_lock.locked():
             raise RuntimeError(
@@ -454,7 +479,7 @@ class QuoteTableState:
     ##############################################################################
     # Configuration load and save
     ##############################################################################
-    def load_config(self, config: dict[str, Any]) -> None:
+    def load_config(self, config: dict[str, Any]) -> None:  # noqa: PLR0912 FIXME?
         """
         Load the configuration for the quote table.
 
@@ -467,26 +492,14 @@ class QuoteTableState:
             if QuoteTableState._COLUMNS in config
             else []
         )
-        sort_key: Optional[str] = (
-            config[QuoteTableState._SORT_COLUMN]
-            if QuoteTableState._SORT_COLUMN in config
-            else None
-        )
-        sort_direction: Optional[str] = (
-            config[QuoteTableState._SORT_DIRECTION]
-            if QuoteTableState._SORT_DIRECTION in config
-            else None
-        )
+        sort_key: str | None = config.get(QuoteTableState._SORT_COLUMN, None)
+        sort_direction: str | None = config.get(QuoteTableState._SORT_DIRECTION, None)
         quotes_symbols: list[str] = (
             config[QuoteTableState._QUOTES][:]
             if QuoteTableState._QUOTES in config
             else []
         )
-        query_frequency: Optional[int] = (
-            config[QuoteTableState._QUERY_FREQUENCY]
-            if QuoteTableState._QUERY_FREQUENCY in config
-            else None
-        )
+        query_frequency: int | None = config.get(QuoteTableState._QUERY_FREQUENCY, None)
 
         # TODO: Check if values are actually changed, and if so, bump the version
 
@@ -524,7 +537,7 @@ class QuoteTableState:
         else:
             self._quotes_symbols.clear()
             for quote_symbol in quotes_symbols:
-                if quote_symbol == "":
+                if quote_symbol == "":  # noqa: PLC1901
                     logging.warning("Empty quote symbol specified in config file")
                 elif quote_symbol in self._quotes_symbols:
                     logging.warning(

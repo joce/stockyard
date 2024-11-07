@@ -1,7 +1,9 @@
 """Various enums used throughout the application."""
 
+from __future__ import annotations
+
 from enum import Enum
-from typing import Optional, Type, TypeVar
+from typing import TypeVar
 
 
 class Justify(Enum):
@@ -32,12 +34,13 @@ T = TypeVar("T", bound=Enum)
 U = TypeVar("U", str, int, float)
 
 
-def get_enum_member(enum_type: Type[T], value: Optional[U]) -> T:
-    """Get the enum member for a given string value.
+def get_enum_member(enum_type: type[T], value: U | None) -> T:
+    """
+    Get the enum member for a given string value.
 
     Args:
         enum_type (Type[T]): The enum type.
-        value (Optional[U]): The value to get the enum member for.
+        value (U | None): The value to get the enum member for.
 
     Raises:
         ValueError: If the value is not a valid member of the enum.
