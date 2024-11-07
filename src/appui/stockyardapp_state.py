@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Final, Optional
-
-from yfinance import YFinance
+from typing import TYPE_CHECKING, Any, Final
 
 from ._enums import TimeFormat, get_enum_member
 from .quote_table_state import QuoteTableState
+
+if TYPE_CHECKING:
+    from yfinance import YFinance
 
 
 class StockyardAppState:
@@ -34,6 +35,14 @@ class StockyardAppState:
     _TIME_FORMAT: Final[str] = "time_format"
 
     def __init__(self, yfin: YFinance, *, title: str = "Stockyard") -> None:
+        """
+        Initialize the StockyardAppState.
+
+        Args:
+            yfin: The YFinance object to fetch the data from.
+            title: The title of the app. Defaults to "Stockyard".
+        """
+
         # Transient members
         self._yfin: YFinance = yfin
         self._version: int = 0
@@ -95,15 +104,9 @@ class StockyardAppState:
             config (dict[str, Any]): A dictionary to load the configuration from.
         """
 
-        quote_table_config: dict[str, Any] = (
-            config[self._QUOTE_TABLE] if self._QUOTE_TABLE in config else {}
-        )
-        time_format: Optional[str] = (
-            config[StockyardAppState._TIME_FORMAT]
-            if StockyardAppState._TIME_FORMAT in config
-            else None
-        )
-        log_level: Optional[str] = (
+        quote_table_config: dict[str, Any] = config.get(self._QUOTE_TABLE, {})
+        time_format: str | None = config.get(StockyardAppState._TIME_FORMAT, None)
+        log_level: str | None = (
             config[StockyardAppState._LOG_LEVEL].upper()
             if StockyardAppState._LOG_LEVEL in config
             else None

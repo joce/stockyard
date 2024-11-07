@@ -7,14 +7,15 @@ from ._clock import Clock
 
 
 class Footer(TextualFooter):
-    """
-    The footer for the stockyard app.
-
-    This is required to be able to call the `refresh_bindings` method without
-    triggering pyright errors.
-    """
+    """The footer for the stockyard app."""
 
     def __init__(self) -> None:
+        """
+        Initialize the footer.
+
+        This initializes the footer with a clock.
+        """
+
         super().__init__()
         self._clock: Clock = Clock()
 

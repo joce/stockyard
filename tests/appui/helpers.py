@@ -1,6 +1,4 @@
-"""
-Test helpers.
-"""
+"""AppUI test helpers."""
 
 # pyright: reportPrivateUsage=none
 
@@ -9,18 +7,19 @@ from __future__ import annotations
 from appui._formatting import _NO_VALUE
 
 
-def compare_shrunken_ints(a: str, b: str) -> int:
+def compare_compact_ints(a: str, b: str) -> int:
     """
-    Compare two shrunk integers, provided as strings.
+    Compare two compact integers, provided as strings.
 
     Args:
-        a (str): first shrunk integer
-        b (str): second shrunk integer
+        a (str): first compact integer
+        b (str): second compact integer
 
     Returns:
         int: -1 if a < b, 1 if a > b, 0 if a == b
     """
-    if _NO_VALUE in (a, b):
+
+    if _NO_VALUE in {a, b}:
         return 0 if a == b else 1 if b == _NO_VALUE else -1
 
     if a[-1].isdigit():

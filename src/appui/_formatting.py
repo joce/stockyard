@@ -1,18 +1,18 @@
-"""
-Functions for formatting various data types into strings for the Stockyard application.
-"""
+"""Functions for formatting various data types into strings."""
 
-from typing import Final, Optional
+from __future__ import annotations
+
+from typing import Final
 
 _NO_VALUE: Final[str] = "N/A"  # TODO Maybe use "" instead?
 
 
-def as_percent(value: Optional[float]) -> str:
+def as_percent(value: float | None) -> str:
     """
-    Converts the given value into a percentage string.
+    Return the value formatted as a percentage.
 
     Args:
-        value (Optional[float]): The value to be formatted as a percentage.
+        value (float | None): The value to be formatted as a percentage.
 
     Returns:
         str: The percentage representation of the value. If the value is None, returns
@@ -24,13 +24,12 @@ def as_percent(value: Optional[float]) -> str:
     return f"{value:.2f}%"
 
 
-def as_float(value: Optional[float], precision: int = 2) -> str:
+def as_float(value: float | None, precision: int = 2) -> str:
     """
-    Returns a string representation of the given value as a float with the specified
-    precision.
+    Return the value formatted as a compact float.
 
     Args:
-        value (Optional[float]): The value to be formatted as a float.
+        value (float | None): The value to be formatted as a float.
         precision (int): The number of decimal places to include in the formatted
             output.
 
@@ -44,29 +43,35 @@ def as_float(value: Optional[float], precision: int = 2) -> str:
     return f"{value:.{precision}f}"
 
 
-def as_shrunk_int(value: Optional[int]) -> str:
+def as_compact(value: int | None) -> str:
     """
-    Returns a string representation of the given value as a shrunk integer. A "shrunk
-    integer" is an integer that is scaled down and represented with a suffix. For
-    example, 1500 would be represented as "1.5K".
+    Return the value formatted as a compact string.
+
+    Large integers are scaled down and suffixed with K, M, B, or T to create a concise,
+    human-readable format.
 
     Args:
-        value (Optional[int]): The value to be formatted as a shrunk integer.
+        value (int | None): The value to be formatted.
 
     Returns:
-        str: The shrunk integer representation of the value. If the value is None,
-            returns a placeholder string.
+        str: The compact representation of the value. If the value is None, returns a
+            placeholder string.
+
+    Examples:
+        1500 would be represented as "1.5K".
+        45605400 would be represented as "4.56M".
+        1000000000 would be represented as "1.00B".
     """
 
     if value is None:
         return _NO_VALUE
-    if value < 1000:
+    if value < 1000:  # noqa: PLR2004
         return str(value)
-    if value < 1000000:
+    if value < 1000000:  # noqa: PLR2004
         return f"{value / 1000:.2f}K"
-    if value < 1000000000:
+    if value < 1000000000:  # noqa: PLR2004
         return f"{value / 1000000:.2f}M"
-    if value < 1000000000000:
+    if value < 1000000000000:  # noqa: PLR2004
         return f"{value / 1000000000:.2f}B"
 
     return f"{value / 1000000000000:.2f}T"

@@ -1,18 +1,19 @@
 """
-This module provides the data structures for the quote table in the application user
-interface (appui).
-It defines the QuoteCell, QuoteRow and QuoteColumn classes, which represent a cell, a
-row and a column in the quote table respectively.
+Define data structures for managing and displaying quote tables in the application UI.
+
+Contains the core classes QuoteCell, QuoteRow, and QuoteColumn that together form the
+building blocks of a quote table's structure and behavior.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Callable
-
-from yfinance import YQuote
+from typing import TYPE_CHECKING, Any, Callable
 
 from ._enums import Justify
+
+if TYPE_CHECKING:
+    from yfinance import YQuote
 
 
 @dataclass(frozen=True)
@@ -43,8 +44,10 @@ class QuoteRow:
 @dataclass(frozen=True)
 class QuoteColumn:
     """
-    This class represents a column in the quote table. It defines the properties and
-    behaviors of the column, such as its name, width, key, and formatting function.
+    Represents a quote table column and defines its display properties and behaviors.
+
+    Contains settings for the column's appearance (name, width, justification) and
+    behavior (formatting, sorting, and sign indication).
     """
 
     name: str
@@ -65,11 +68,13 @@ class QuoteColumn:
     sign_indicator_func: Callable[[YQuote], int] = lambda _: 0
     """
     The function used to provide the sign indicator for the column.
+
     Defaults to a function that returns 0 (neutral).
     """
 
     justification: Justify = Justify.RIGHT
     """
     The justification of the column.
+
     Defaults to Justify.RIGHT.
     """

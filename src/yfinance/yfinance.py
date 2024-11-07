@@ -15,6 +15,8 @@ class YFinance:
     _QUOTE_API: Final[str] = "/v7/finance/quote"
 
     def __init__(self) -> None:
+        """Initialize the Yahoo! Finance API interface."""
+
         self._yclient = YClient()
 
     def prime(self) -> None:
@@ -29,16 +31,13 @@ class YFinance:
         Args:
             symbols (list[str]): The symbols to get quotes for.
 
-        Raises:
-            ValueError: If no symbols are provided.
-
         Returns:
             list[YQuote]: The quotes for the given symbols.
         """
 
         if len(symbols) == 0:
             logging.error("No symbols provided")
-            raise ValueError("No symbols provided")
+            return []
 
         # call YClient.call with symbols stripped of whitespace
         json_data: dict[str, Any] = self._yclient.call(

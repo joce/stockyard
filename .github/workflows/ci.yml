@@ -37,19 +37,12 @@ jobs:
         shell: bash
         run: poetry install
 
-      - name: Compute output vairables
-        id: vars
-        run: |
-          # Remove dots and prepend 'py'
-          RUFF_VERSION="py$(echo ${{ matrix.python-version }} | tr -d '.')"
-          echo "RUFF_VERSION=$RUFF_VERSION" >> $GITHUB_OUTPUT
-
       - name: Validating format with Ruff
         run: |
-          poetry run ruff format --check --diff --target-version ${{ steps.vars.outputs.RUFF_VERSION }}
+          poetry run ruff format --check --quiet --diff --target-version py39
       - name: Linting with Ruff
         run: |
-          poetry run ruff check --target-version ${{ steps.vars.outputs.RUFF_VERSION }} --output-format=github .
+          poetry run ruff check --target-version py39 --output-format=github .
       - name: Checking imports with isort
         run: |
           poetry run isort -c --profile black --python-version auto .

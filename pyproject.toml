@@ -3,7 +3,6 @@ name = "stockyard"
 version = "0.1.0"
 repository = "https://github.com/joce/stockyard"
 homepage = "https://github.com/joce/stockyard"
-
 description = "A Yahoo! finance-based TUI **toy** stock viewer"
 authors = ["Jocelyn Legault <jocelynlegault@gmail.com>"]
 license = "MIT"
@@ -56,13 +55,11 @@ exclude = [
     ".venv",
     ".vscode",
 ]
-
 # Same as Black
 line-length = 88
 indent-width = 4
-# Target Python version
+# Target our oldest supported Python version
 target-version = "py39"
-
 
 [tool.ruff.format]
 # Like Black
@@ -76,21 +73,88 @@ select = [
     "F",
     "E",
     "W",
-    #"C90",
     "I",
     "N",
-    #"D", NOPE
-    "A",
+    "UP",
+    "PL",
+    "FLY",
+    "PERF",
+    "FURB",
+    "DOC",
     "RUF",
-    "B",
-    #"PL"
-]
-preview = true
+    "TRY",
+    "D",
+    #"C90",  # later?
+    #"NPY",  # not using numpy
+    #"FAST", # not using fastapi
+    #"AIR",  # not using airflow
 
+
+    # Flake8 checks
+    "YTT",
+    "ANN",
+    "ASYNC",
+    "S",
+    "BLE",
+    "FBT",
+    "B",
+    "A",
+    "C4",
+    "T10",
+    "FA",
+    "ISC",
+    "ICN",
+    "LOG",
+    "G",
+    "INP",
+    "PIE",
+    "T20",
+    "PYI",
+    "PT",
+    "Q",
+    "RSE",
+    "RET",
+    "SLF",
+    "SLOT",
+    "SIM",
+    "TID",
+    "TCH",
+    "INT",
+    "ARG",
+    "PTH",
+    "ERA",
+    "PGH",
+    "EM",
+    "DTZ",
+    #"TD",  # later?
+    #"COM", # not interested
+    #"CPY", # not interested
+    #"FIX", # not interested
+    #"EXE", # not using shebangs (at the moment at least)
+    #"DJ",  # not using Django
+    #"PD",  # not using pandas
+]
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
 unfixable = []
+ignore = [
+    "D105", # Missing docstring in magic method
+    "D202", # No blank lines allowed after function docstring
+    "D203", # 1 blank line required before class docstring
+    "D212", # Multi-line docstring summary should start at the first line
+    "D413", # Missing blank line after last section
+]
+preview = true
 
+
+[tool.ruff.lint.per-file-ignores]
+# Disable Ruff some rules for tests.
+"tests/*" = [
+    "ANN201",  # Missing type annotation for self in class
+    "S101",    # Use of assert
+    "SLF001",  # Private member access
+    "PLC2701", # Private name import `xxx` from external module `yyy
+]
 
 [build-system]
 requires = ["poetry-core"]

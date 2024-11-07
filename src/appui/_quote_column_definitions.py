@@ -3,23 +3,25 @@
 from __future__ import annotations
 
 from math import inf
-from typing import Final, Optional, TypeVar
+from typing import Final, TypeVar
 
 from ._enums import Justify
-from ._formatting import as_float, as_percent, as_shrunk_int
+from ._formatting import as_compact, as_float, as_percent
 from ._quote_table_data import QuoteColumn
 
 T = TypeVar("T", int, float)
 """TypeVar T is defined to be either an int or a float."""
 
 
-def _safe_value(v: Optional[T]) -> float:
+def _safe_value(v: T | None) -> float:
     """
-    Safely retrieves the value of v. If v is None, it returns the smallest representable
-    value for type T.
+    Safely retrieves the value of v.
+
+    Note:
+        If v is None, it returns the smallest representable value for type T.
 
     Args:
-        v (Optional[T]): The value to be retrieved. Can be of type int or float.
+        v (T | None): The value to be retrieved. Can be of type int or float.
 
     Returns:
         float: The value of v if it's not None, otherwise the smallest representable
@@ -31,7 +33,7 @@ def _safe_value(v: Optional[T]) -> float:
 
 def _sign(v: T) -> int:
     """
-    Determines the sign of a given value.
+    Determine the sign of a given value.
 
     Args:
         v (T): The value for which the sign is to be determined.
@@ -134,7 +136,7 @@ ALL_QUOTE_COLUMNS: Final[dict[str, QuoteColumn]] = {
             "Volume",
             10,
             "volume",
-            lambda q: as_shrunk_int(q.regular_market_volume),
+            lambda q: as_compact(q.regular_market_volume),
             lambda q: (_safe_value(q.regular_market_volume), q.symbol.lower()),
         )
     ),
@@ -143,7 +145,7 @@ ALL_QUOTE_COLUMNS: Final[dict[str, QuoteColumn]] = {
             "Avg Vol",
             10,
             "avg_volume",
-            lambda q: as_shrunk_int(q.average_daily_volume_3_month),
+            lambda q: as_compact(q.average_daily_volume_3_month),
             lambda q: (_safe_value(q.average_daily_volume_3_month), q.symbol.lower()),
         )
     ),
@@ -170,12 +172,13 @@ ALL_QUOTE_COLUMNS: Final[dict[str, QuoteColumn]] = {
             "Mkt Cap",
             10,
             "market_cap",
-            lambda q: as_shrunk_int(q.market_cap),
+            lambda q: as_compact(q.market_cap),
             lambda q: (_safe_value(q.market_cap), q.symbol.lower()),
         )
     ),
 }
 """
 A dictionary that contains QuoteColumns available for the quote table.
+
 Each QuoteColumn is keyed by its key name.
 """

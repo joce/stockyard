@@ -1,4 +1,5 @@
-# pylint: disable=missing-module-docstring
+"""Validate formatted number comparison helper functionality."""
+
 # pylint: disable=protected-access
 
 # pyright: reportPrivateUsage=none
@@ -7,11 +8,11 @@ import pytest
 
 from appui._formatting import _NO_VALUE
 
-from .helpers import compare_shrunken_ints
+from .helpers import compare_compact_ints
 
 
 @pytest.mark.parametrize(
-    "a, b, expected_output",
+    ("a", "b", "expected_output"),
     [
         ("5", _NO_VALUE, 1),
         (_NO_VALUE, _NO_VALUE, 0),
@@ -53,5 +54,7 @@ from .helpers import compare_shrunken_ints
         ("974.01T", "999.87T", -1),
     ],
 )
-def test_compare_shrunken_ints(a: str, b: str, expected_output: int):
-    assert compare_shrunken_ints(a, b) == expected_output
+def test_compare_compact_ints(a: str, b: str, expected_output: int):
+    """Verify the behavior of the compare_compact_ints helper function."""
+
+    assert compare_compact_ints(a, b) == expected_output

@@ -1,29 +1,35 @@
 """
-This module contains the QuoteTable class which is a DataTable for displaying quotes.
+A data table widget to display and manipulate financial quotes.
+
+Features include quote sorting, column reordering, dynamic updates with visual price
+movement indicators, and customizable key bindings for adding and removing entries.
 """
 
 from __future__ import annotations
 
 import sys
 from enum import Enum
-from typing import Any, Final
+from typing import TYPE_CHECKING, Any, Final
 
-from rich.style import Style
 from rich.text import Text
-from textual import events
-from textual.binding import BindingsMap  # type: ignore
-from textual.coordinate import Coordinate
+from textual.binding import BindingsMap
 from textual.message import Message
 from textual.widgets import DataTable
 
 from ._enums import Justify, SortDirection
-from ._quote_table_data import QuoteCell, QuoteColumn, QuoteRow
-from .quote_table_state import QuoteTableState
 
-if sys.version_info < (3, 12):
-    from typing_extensions import override
-else:
+if TYPE_CHECKING:
+    from rich.style import Style
+    from textual import events
+    from textual.coordinate import Coordinate
+
+    from ._quote_table_data import QuoteCell, QuoteColumn, QuoteRow
+    from .quote_table_state import QuoteTableState
+
+if sys.version_info >= (3, 12):
     from typing import override
+else:
+    from typing_extensions import override
 
 
 class QuoteTable(DataTable[Text]):
@@ -121,7 +127,7 @@ class QuoteTable(DataTable[Text]):
         self._state.query_thread_running = False
         super()._on_unmount()
 
-    def _switch_bindings(self, mode: "QuoteTable.BM") -> None:
+    def _switch_bindings(self, mode: QuoteTable.BM) -> None:
         """Switch the bindings to the given mode."""
 
         if self._current_bindings == mode:
@@ -130,8 +136,8 @@ class QuoteTable(DataTable[Text]):
         self._bindings = self._bindings_modes[self._current_bindings]
         self.post_message(self.BindingsChanged())
 
-    def _update_table(self) -> None:
-        """Update the table with the latest quotes (if any)"""
+    def _update_table(self) -> None:  # noqa: PLR0912 FIXME
+        """Update the table with the latest quotes (if any)."""
 
         if self._version == self._state.version:
             return
@@ -147,7 +153,7 @@ class QuoteTable(DataTable[Text]):
         if len(quotes) > 0:
             if self._current_bindings == QuoteTable.BM.DEFAULT:
                 self._switch_bindings(QuoteTable.BM.WITH_DELETE)
-        else:
+        else:  # noqa: PLR5501
             if self._current_bindings == QuoteTable.BM.WITH_DELETE:
                 self._switch_bindings(QuoteTable.BM.DEFAULT)
 
@@ -163,12 +169,12 @@ class QuoteTable(DataTable[Text]):
                     self.update_cell(
                         quote_key,
                         self._state.quotes_columns[j].key,
-                        self._get_styled_cell(cell),
+                        QuoteTable._get_styled_cell(cell),
                     )
             else:
                 # Add new rows, if any
                 stylized_row: list[Text] = [
-                    self._get_styled_cell(cell) for cell in quote.values
+                    QuoteTable._get_styled_cell(cell) for cell in quote.values
                 ]
                 self.add_row(*stylized_row, key=quote_key)
 
@@ -211,7 +217,7 @@ class QuoteTable(DataTable[Text]):
                     column_title = column_title[: quote_column.width - 2] + " ▼"
                 else:
                     column_title = column_title[: quote_column.width - 2] + " ▲"
-            else:
+            else:  # noqa: PLR5501
                 if self._state.sort_direction == SortDirection.ASCENDING:
                     column_title = "▼ " + column_title[: quote_column.width - 2]
                 else:
@@ -219,7 +225,8 @@ class QuoteTable(DataTable[Text]):
 
         return Text(column_title, justify=quote_column.justification.value)
 
-    def _get_styled_cell(self, cell: QuoteCell) -> Text:
+    @classmethod
+    def _get_styled_cell(cls, cell: QuoteCell) -> Text:
         """
         Generate the styled text for a cell based on the quote cell data.
 
@@ -265,7 +272,7 @@ class QuoteTable(DataTable[Text]):
             event.prevent_default()
 
     @override
-    def _render_cell(  # pylint: disable=too-many-positional-arguments
+    def _render_cell(  # pylint: disable=too-many-positional-arguments # noqa: ANN202
         self,
         row_index: int,
         column_index: int,
@@ -285,9 +292,8 @@ class QuoteTable(DataTable[Text]):
                 row_index, column_index, base_style, width, cursor, hover
             )
         finally:
-            if row_index == -1:
-                if self._current_bindings == QuoteTable.BM.IN_ORDERING:
-                    self._show_hover_cursor = current_show_hover_cursor
+            if row_index == -1 and self._current_bindings == QuoteTable.BM.IN_ORDERING:
+                self._show_hover_cursor = current_show_hover_cursor
 
     @override
     def watch_cursor_coordinate(
@@ -330,7 +336,7 @@ class QuoteTable(DataTable[Text]):
         """Order the quotes in the table."""
 
         self._switch_bindings(QuoteTable.BM.IN_ORDERING)
-        self._set_hover_cursor(False)
+        self._set_hover_cursor(active=False)
         if self._state.hovered_column == -1:
             self._state.hovered_column = self._state.sort_column_idx
         self._version -= 1  # Force refresh
@@ -343,7 +349,7 @@ class QuoteTable(DataTable[Text]):
         else:
             self._switch_bindings(QuoteTable.BM.DEFAULT)
 
-        self._set_hover_cursor(True)
+        self._set_hover_cursor(active=True)
 
         # TODO Might want to set to whatever the mouse hover is now
         self._state.hovered_column = -1

@@ -1,6 +1,4 @@
-"""
-This module provides facilities for fetching financial data from Yahoo Finance.
-"""
+"""Access real-time and historical financial market data from Yahoo Finance."""
 
 from .yfinance import YFinance
 from .yquote import MarketState, OptionType, PriceAlertConfidence, QuoteType, YQuote

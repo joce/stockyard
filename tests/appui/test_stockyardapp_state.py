@@ -1,5 +1,5 @@
-# pylint: disable=missing-function-docstring
-# pylint: disable=missing-module-docstring
+"""Validate the stockyard app state management, config & operations functionality."""
+
 # pylint: disable=protected-access
 
 # pyright: reportPrivateUsage=none
@@ -18,12 +18,21 @@ from yfinance import YFinance
 
 @pytest.fixture(name="stockyard_app_state")
 def fixture_sas() -> StockyardAppState:
+    """
+    Provide a StockyardAppState instance for testing.
+
+    Returns:
+        StockyardAppState: An instance of the StockyardAppState class, initialized with
+        a YFinance instance.
+    """
+
     yfin = YFinance()
-    sas = StockyardAppState(yfin)
-    return sas
+    return StockyardAppState(yfin)
 
 
 def test_load_regular_config(stockyard_app_state: StockyardAppState):
+    """Ensure loading a well formed config works."""
+
     config: dict[str, Any] = {
         StockyardAppState._QUOTE_TABLE: {
             QuoteTableState._COLUMNS: ["ticker", "last", "change_percent"],
@@ -68,6 +77,8 @@ def test_load_regular_config(stockyard_app_state: StockyardAppState):
 
 
 def test_load_empty_config(stockyard_app_state: StockyardAppState):
+    """Ensure defaults are used when loading an empty config."""
+
     config: dict[str, Any] = {}
     stockyard_app_state.load_config(config)
     assert stockyard_app_state.quote_table_state.column_keys == [
@@ -95,6 +106,8 @@ def test_load_empty_config(stockyard_app_state: StockyardAppState):
 
 
 def test_load_config_invalid_time_display(stockyard_app_state: StockyardAppState):
+    """Ensure default time format is used when invalid one is provided in config."""
+
     config: dict[str, Any] = {
         StockyardAppState._TIME_FORMAT: "1000000h",
     }
@@ -102,7 +115,9 @@ def test_load_config_invalid_time_display(stockyard_app_state: StockyardAppState
     assert stockyard_app_state._time_display == StockyardAppState._DEFAULT_TIME_FORMAT
 
 
-def test_load_config_invalid_lof_level(stockyard_app_state: StockyardAppState):
+def test_load_config_invalid_log_level(stockyard_app_state: StockyardAppState):
+    """Ensure default log level is used when invalid one is provided in config."""
+
     config: dict[str, Any] = {
         StockyardAppState._LOG_LEVEL: "fishy",
     }
@@ -111,6 +126,8 @@ def test_load_config_invalid_lof_level(stockyard_app_state: StockyardAppState):
 
 
 def test_save_config(stockyard_app_state: StockyardAppState):
+    """Ensure regular config saving works."""
+
     config: dict[str, Any] = stockyard_app_state.save_config()
     assert [QuoteTableState._TICKER_COLUMN_KEY] + config[
         StockyardAppState._QUOTE_TABLE
@@ -142,6 +159,8 @@ def test_save_config(stockyard_app_state: StockyardAppState):
 
 
 def test_round_trip_config(stockyard_app_state: StockyardAppState):
+    """Ensure round-tripping (save/load) config works."""
+
     config: dict[str, Any] = stockyard_app_state.save_config()
     assert (
         config[StockyardAppState._TIME_FORMAT]

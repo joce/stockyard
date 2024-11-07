@@ -1,4 +1,9 @@
-"""This module provides a client for the Yahoo! Finance API."""
+"""
+Provide low-level client interface to Yahoo! Finance API.
+
+Implements session persistence, authentication flow, and request signing required for
+reliable API communication.
+"""
 
 # pylint: disable=line-too-long
 
@@ -6,13 +11,15 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timedelta
-from http.cookiejar import Cookie
-from typing import Any, Final
+from datetime import datetime, timedelta, timezone
+from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import requests
 from requests.cookies import RequestsCookieJar
+
+if TYPE_CHECKING:
+    from http.cookiejar import Cookie
 
 
 class YClient:
@@ -68,12 +75,14 @@ class YClient:
             "corsDomain": "finance.yahoo.com",
         }
 
-        self._expiry: datetime = datetime(1970, 1, 1)
+        self._expiry: datetime = datetime(
+            1970, 1, 1, tzinfo=datetime.now().astimezone().tzinfo
+        )
         self._crumb: str = ""
 
     def __refresh_cookies(self) -> None:
         """
-        Logging to Yahoo! finance.
+        Log into Yahoo! finance.
 
         Logging in will set the cookies that are required to fetch the crumb and make
         calls to the Yahoo! finance API.
@@ -95,8 +104,8 @@ class YClient:
         ) as response:
             try:
                 response.raise_for_status()
-            except requests.exceptions.HTTPError as e:
-                logging.exception("Can't log in: %s", e)
+            except requests.exceptions.HTTPError:
+                logging.exception("Can't log in")
                 return
 
             cookies: RequestsCookieJar = response.cookies
@@ -110,14 +119,18 @@ class YClient:
 
             # Figure out how long the login is valid for.
             # Default expiry is ten years in the future
-            expiry: datetime = datetime.now() + timedelta(days=3650)
+            expiry: datetime = datetime.now(timezone.utc).astimezone() + timedelta(
+                days=3650
+            )
 
             cookie: Cookie
             for cookie in cookies:
                 if cookie.domain != ".yahoo.com" or cookie.expires is None:
                     continue
 
-                cookie_expiry: datetime = datetime.fromtimestamp(cookie.expires)
+                cookie_expiry: datetime = datetime.fromtimestamp(
+                    cookie.expires, tz=datetime.now().astimezone().tzinfo
+                )
 
                 if cookie_expiry >= expiry:
                     continue
@@ -132,7 +145,12 @@ class YClient:
             self._expiry = expiry
 
     def __get_cookies_eu(self) -> RequestsCookieJar:
-        """Get cookies from the EU consent page."""
+        """
+        Get cookies from the EU consent page.
+
+        Returns:
+            The cookies from the EU consent page.
+        """
 
         response: requests.Response
         with self._session.get(
@@ -142,8 +160,8 @@ class YClient:
         ) as response:
             try:
                 response.raise_for_status()
-            except requests.exceptions.HTTPError as e:
-                logging.exception("Can't log in: %s", e)
+            except requests.exceptions.HTTPError:
+                logging.exception("Can't log in")
                 return RequestsCookieJar()
 
             # Extract the session ID from the redirected request URL
@@ -177,7 +195,7 @@ class YClient:
             # Look in the history to find the right cookie
             gucs_cookie: RequestsCookieJar = RequestsCookieJar()
             for hist in response.history:
-                if hist.cookies.get("GUCS") is not None:  # pyright: ignore
+                if hist.cookies.get("GUCS") is not None:
                     gucs_cookie: RequestsCookieJar = hist.cookies
                     break
 
@@ -223,7 +241,7 @@ class YClient:
             allow_redirects=True,
         ) as response:
             for hist in response.history:
-                if hist.cookies.get("A3") is not None:  # pyright: ignore
+                if hist.cookies.get("A3") is not None:
                     return hist.cookies
 
         return RequestsCookieJar()
@@ -240,10 +258,10 @@ class YClient:
             try:
                 response.raise_for_status()
                 self._crumb = response.text
-            except requests.exceptions.HTTPError as e:
-                logging.exception("Can't fetch crumb: %s", e)
+            except requests.exceptions.HTTPError:
+                logging.exception("Can't fetch crumb")
 
-        if self._crumb != "":
+        if self._crumb:
             logging.debug(
                 "Crumb refreshed: %s. Expires on %s",
                 self._crumb,
@@ -272,14 +290,14 @@ class YClient:
         ) as response:
             try:
                 response.raise_for_status()
-            except requests.exceptions.HTTPError as e:
-                logging.exception("Request to api failed: %s", e)
+            except requests.exceptions.HTTPError:
+                logging.exception("Request to api failed")
                 return {}
 
             res_body: str = response.text
             logging.debug("Response: %s", res_body)
 
-            if res_body == "":
+            if not res_body:
                 logging.error("Can't parse response")
                 return {}
 
@@ -295,8 +313,7 @@ class YClient:
         self, api_url: str, query_params: dict[str, str] | None = None
     ) -> dict[str, Any]:
         """
-        Call the given path with the given query parameters (if any) and return the data
-        from the response.
+        Execute Yahoo! Finance API request with optional query parameters.
 
         Args:
             api_url (str): The path of the API to call on the Yahoo! Finance API.
@@ -309,16 +326,16 @@ class YClient:
 
         logging.debug("Calling %s with params %s", api_url, query_params)
 
-        if self._expiry < datetime.now():
+        if self._expiry < datetime.now(timezone.utc).astimezone():
             self.__refresh_cookies()
 
-        if self._crumb == "":
+        if not self._crumb:
             self.__refresh_crumb()
 
         if query_params is None:
             query_params = {}
 
-        if self._crumb != "":
+        if self._crumb:
             query_params["crumb"] = self._crumb
 
         if len(query_params) > 0:

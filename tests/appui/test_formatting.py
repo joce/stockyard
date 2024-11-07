@@ -1,9 +1,10 @@
-# pylint: disable=missing-module-docstring
+"""Validate behavior of text formatting utilities for numerical data presentation."""
+
 # pylint: disable=protected-access
 
 # pyright: reportPrivateUsage=none
 
-from typing import Optional
+from __future__ import annotations
 
 import pytest
 
@@ -11,7 +12,7 @@ from appui import _formatting as fmt
 
 
 @pytest.mark.parametrize(
-    "input_value, expected_output",
+    ("input_value", "expected_output"),
     [
         (None, fmt._NO_VALUE),
         (0, "0.00%"),
@@ -24,18 +25,24 @@ from appui import _formatting as fmt
     ],
 )
 def test_as_percent(input_value: float, expected_output: str):
+    """Verify formatting of numbers into percentage strings."""
+
     assert fmt.as_percent(input_value) == expected_output
 
 
 @pytest.mark.parametrize(
-    "input_value, precision, expected_output",
+    ("input_value", "precision", "expected_output"),
     [
         (None, None, fmt._NO_VALUE),
         (1234.5678, None, "1234.57"),
         (1234.5678, 3, "1234.568"),
     ],
 )
-def test_as_float(input_value: float, precision: Optional[int], expected_output: str):
+def test_as_float(
+    input_value: float | None, precision: int | None, expected_output: str
+):
+    """Verify float formatting with default and custom precision specifications."""
+
     if precision is None:
         assert fmt.as_float(input_value) == expected_output
     else:
@@ -43,7 +50,7 @@ def test_as_float(input_value: float, precision: Optional[int], expected_output:
 
 
 @pytest.mark.parametrize(
-    "input_value, expected_output",
+    ("input_value", "expected_output"),
     [
         (None, fmt._NO_VALUE),
         (1, "1"),
@@ -55,5 +62,8 @@ def test_as_float(input_value: float, precision: Optional[int], expected_output:
         (1000000000000, "1.00T"),
     ],
 )
-def test_as_shrunk_int(input_value: int, expected_output: str):
-    assert fmt.as_shrunk_int(input_value) == expected_output
+def test_as_compact_int(input_value: int, expected_output: str):
+    """Verify compact integer formatting with magnitude-based suffixes (K, M, B, T)."""
+
+    assert fmt.as_compact(input_value) == expected_output
+    assert fmt.as_compact(input_value) == expected_output

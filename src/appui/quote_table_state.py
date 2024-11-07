@@ -5,17 +5,46 @@ from __future__ import annotations
 import logging
 from threading import Lock, Thread
 from time import monotonic, sleep
-from typing import Any, Callable, Final, Optional
-
-from yfinance import YFinance, YQuote
+from typing import TYPE_CHECKING, Any, Callable, Final
 
 from ._enums import SortDirection, get_enum_member
 from ._quote_column_definitions import ALL_QUOTE_COLUMNS
 from ._quote_table_data import QuoteCell, QuoteColumn, QuoteRow
 
+if TYPE_CHECKING:
+    from yfinance import YFinance, YQuote
+
 
 class QuoteTableState:
     """The state of the quote table."""
+
+    class QuoteLockError(RuntimeError):
+        """Quote lock exception."""
+
+        def __init__(self, call_site: str) -> None:
+            """
+            Initialize the exception.
+
+            Args:
+                call_site: The site where the exception was raised.
+            """
+
+            super().__init__(
+                f"The `_quotes_lock` must be acquired before calling `{call_site}`."
+            )
+
+    class InvalidRowIndexError(ValueError):
+        """Invalid row index exception."""
+
+        def __init__(self, index: int) -> None:
+            """
+            Initialize the exception.
+
+            Args:
+                index: The (invalid) row index.
+            """
+
+            super().__init__(f"Invalid row index `{index}`.")
 
     _TICKER_COLUMN_KEY: Final[str] = "ticker"
 
@@ -47,6 +76,16 @@ class QuoteTableState:
     _QUERY_FREQUENCY: Final[str] = "query_frequency"
 
     def __init__(self, yfin: YFinance) -> None:
+        """
+        Initialize state management for the quote table.
+
+        Establishes thread-safe market data fetching, sets up default display
+        preferences, and initializes table sorting behavior.
+
+        Args:
+            yfin: Market data provider instance used for quote retrieval
+        """
+
         # Persistent state
         self._quotes_symbols: list[str] = QuoteTableState._DEFAULT_QUOTES[:]
         self._sort_column_key: str = QuoteTableState._TICKER_COLUMN_KEY
@@ -163,9 +202,15 @@ class QuoteTableState:
     @property
     def hovered_column(self) -> int:
         """
-        The index of the column currently hovered by the mouse, or highlighted in column
-        ordering mode.
+        Index of the focused table column.
+
+        A value of -1 indicates no column is focused.
+
+        Note:
+            Focus can be triggered either by mouse hover or keyboard selection in column
+            ordering mode.
         """
+
         return self._hovered_column
 
     @hovered_column.setter
@@ -185,14 +230,19 @@ class QuoteTableState:
     def __get_cursor_row_no_lock(self) -> int:
         """
         Get the current row of the cursor.
+
         This method expects the _quotes_lock to have been acquired beforehand.
+
+        Raises:
+            QuoteTableState.QuoteLockError: If the _quotes_lock has not been acquired.
+
+        Returns:
+            The index of the quote (from _quotes) whose ticker symbol matches the
+            cursor symbol
         """
 
         if not self._quotes_lock.locked():
-            raise RuntimeError(
-                "The _quotes_lock must be acquired before calling"
-                " __get_cursor_row_no_lock"
-            )
+            raise QuoteTableState.QuoteLockError(__name__)
 
         # Return the index of the quote (from _quotes) whose ticker symbol matches the
         # cursor symbol
@@ -215,17 +265,19 @@ class QuoteTableState:
     def __set_cursor_row_no_lock(self, value: int) -> None:
         """
         Set the current row of the cursor.
+
         This method expects the _quotes_lock to have been acquired beforehand.
+
+        Raises:
+            QuoteTableState.QuoteLockError: If the _quotes_lock has not been acquired.
+            QuoteTableState.InvalidRowIndexError: If value is out of range.
         """
 
         if not self._quotes_lock.locked():
-            raise RuntimeError(
-                "The _quotes_lock must be acquired before calling"
-                " __set_cursor_row_no_lock"
-            )
+            raise QuoteTableState.QuoteLockError(__name__)
 
         if value >= len(self._quotes_symbols):
-            raise ValueError("Invalid row index")
+            raise QuoteTableState.InvalidRowIndexError(value)
 
         if value < 0:
             self._cursor_symbol = ""
@@ -245,8 +297,10 @@ class QuoteTableState:
     @property
     def quotes_rows(self) -> list[QuoteRow]:
         """
-        The quotes to display in the quote table. Each quote is comprised of the
-        elements required for each column.
+        The quotes to display in the quote table.
+
+        Note:
+            Each quote is comprised of the elements required for each column.
 
         Returns:
             list[QuoteRow]: The quotes to display in the quote table.
@@ -337,30 +391,33 @@ class QuoteTableState:
             column_key (str): The identifier of the column to remove.
                 The identifier of the column is expected to match the ones found in the
                 ALL_QUOTE_COLUMNS definition.
+
+        Raises:
+            ValueError: If the column key does not exist in the table.
         """
 
         try:
             if column_key == QuoteTableState._TICKER_COLUMN_KEY:
-                raise ValueError("Cannot remove ticker column")
+                error_msg = "Cannot remove ticker column"
+                raise ValueError(error_msg)
             self._columns.remove(ALL_QUOTE_COLUMNS[column_key])
             if self._sort_column_key == column_key:
                 self._sort_column_key = QuoteTableState._TICKER_COLUMN_KEY
 
             self._version += 1
         except KeyError as exc:
-            raise ValueError(
-                f"Column key {column_key} does not exist in the quote table",
-            ) from exc
+            error_msg = f"Column key {column_key} does not exist in the quote table"
+            raise ValueError(error_msg) from exc
 
     def _can_add_column(self, column_key: str) -> bool:
         """
-        Check if the column can be added to the quote table
+        Check if the column can be added to the quote table.
 
         Args:
             column_key (str): The identifier of the column to add.
 
         Returns:
-            bool: Whether the column can be added to the quote table
+            bool: Whether the column can be added to the quote table.
         """
 
         if column_key not in ALL_QUOTE_COLUMNS:
@@ -385,10 +442,13 @@ class QuoteTableState:
 
         Args:
             index (int): The index of the row to remove.
+
+        Raises:
+            QuoteTableState.InvalidRowIndexError: If the row index is invalid.
         """
 
         if index < 0 or index >= len(self._quotes):
-            raise ValueError("Invalid row index")
+            raise QuoteTableState.InvalidRowIndexError(index)
 
         with self._quotes_lock:
             # Can't use cursor_row here because it's also using the lock.
@@ -426,7 +486,8 @@ class QuoteTableState:
         """
         Query for the quotes from the YFinance interface and update the change version.
 
-        Note: Not for external use. Created for testing purposes only.
+        Note:
+            Not for external use. Created for testing purposes only.
 
         Args:
             monotonic_clock (float): A monotonic clock time.
@@ -438,13 +499,16 @@ class QuoteTableState:
         self._last_query_time = monotonic_clock
         self._version += 1
 
-    def _sort_quotes(self):
-        """Sort the quotes, according to the sort column and direction."""
+    def _sort_quotes(self) -> None:
+        """
+        Sort the quotes, according to the sort column and direction.
+
+        Raises:
+            QuoteTableState.QuoteLockError: If the _quotes_lock is not acquired.
+        """
 
         if not self._quotes_lock.locked():
-            raise RuntimeError(
-                "The _quotes_lock must be acquired before calling this _sort_quotes"
-            )
+            raise QuoteTableState.QuoteLockError(__name__)
 
         self._quotes.sort(
             key=self._sort_key_func,
@@ -454,7 +518,7 @@ class QuoteTableState:
     ##############################################################################
     # Configuration load and save
     ##############################################################################
-    def load_config(self, config: dict[str, Any]) -> None:
+    def load_config(self, config: dict[str, Any]) -> None:  # noqa: PLR0912 FIXME?
         """
         Load the configuration for the quote table.
 
@@ -467,26 +531,14 @@ class QuoteTableState:
             if QuoteTableState._COLUMNS in config
             else []
         )
-        sort_key: Optional[str] = (
-            config[QuoteTableState._SORT_COLUMN]
-            if QuoteTableState._SORT_COLUMN in config
-            else None
-        )
-        sort_direction: Optional[str] = (
-            config[QuoteTableState._SORT_DIRECTION]
-            if QuoteTableState._SORT_DIRECTION in config
-            else None
-        )
+        sort_key: str | None = config.get(QuoteTableState._SORT_COLUMN, None)
+        sort_direction: str | None = config.get(QuoteTableState._SORT_DIRECTION, None)
         quotes_symbols: list[str] = (
             config[QuoteTableState._QUOTES][:]
             if QuoteTableState._QUOTES in config
             else []
         )
-        query_frequency: Optional[int] = (
-            config[QuoteTableState._QUERY_FREQUENCY]
-            if QuoteTableState._QUERY_FREQUENCY in config
-            else None
-        )
+        query_frequency: int | None = config.get(QuoteTableState._QUERY_FREQUENCY, None)
 
         # TODO: Check if values are actually changed, and if so, bump the version
 
@@ -524,7 +576,7 @@ class QuoteTableState:
         else:
             self._quotes_symbols.clear()
             for quote_symbol in quotes_symbols:
-                if quote_symbol == "":
+                if quote_symbol == "":  # noqa: PLC1901
                     logging.warning("Empty quote symbol specified in config file")
                 elif quote_symbol in self._quotes_symbols:
                     logging.warning(

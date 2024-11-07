@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import json
-import os.path
-from io import TextIOWrapper
-from typing import Any
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 from yfinance import YFinance, YQuote
+
+if TYPE_CHECKING:
+    from io import TextIOWrapper
 
 
 class FakeYFinance(YFinance):
@@ -15,6 +17,8 @@ class FakeYFinance(YFinance):
 
     # pylint: disable=super-init-not-called
     def __init__(self) -> None:
+        """Initialize the fake YFinance client."""
+
         self._quotes: list[YQuote] = []
 
     def retrieve_quotes(self, symbols: list[str]) -> list[YQuote]:
@@ -29,12 +33,13 @@ class FakeYFinance(YFinance):
         Returns:
             list[YQuote]: The quotes for the given symbols.
         """
+
         if len(self._quotes) <= 0:
             f: TextIOWrapper
             # Get the directory of the path of this file
-            test_data_dir = os.path.dirname(os.path.realpath(__file__))
-            test_data_file = os.path.join(test_data_dir, "test_data.json")
-            with open(test_data_file, "r", encoding="utf-8") as f:
+            test_data_dir = Path(__file__).resolve().parent
+            test_data_file = test_data_dir / "test_data.json"
+            with Path.open(test_data_file, encoding="utf-8") as f:
                 json_data: dict[str, Any] = json.load(f)
                 self._quotes = [
                     YQuote(q)

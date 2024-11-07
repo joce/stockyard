@@ -1,4 +1,4 @@
-"""This module provides the TUI for the stockyard application."""
+"""AppUI provides the TUI for the stockyard application."""
 
 from .quote_table_state import QuoteTableState
 from .stockyardapp import StockyardApp
