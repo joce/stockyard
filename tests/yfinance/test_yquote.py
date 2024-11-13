@@ -1,8 +1,5 @@
 """Validate The behavior of the `YQuote` class."""
 
-# pylint: disable=missing-function-docstring
-# pylint: disable=missing-module-docstring
-
 from typing import TYPE_CHECKING
 
 from tests.fake_yfinance import FakeYFinance
