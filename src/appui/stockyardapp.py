@@ -96,7 +96,7 @@ class StockyardApp(App[None]):
                 config: dict[str, Any] = json.load(f)
                 self._state.load_config(config)
         except FileNotFoundError:
-            logging.exception("load_config: Config file not found: %s", path)
+            logging.warning("load_config: Config file not found: %s", path)
         except json.JSONDecodeError as e:
             logging.exception(
                 "load_config: error decoding JSON file: %s [%d, %d]: %s",
