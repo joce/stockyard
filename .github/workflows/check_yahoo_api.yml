@@ -3,6 +3,7 @@ name: Check Yahoo! API availability
 on:
   schedule:
     - cron: "7 0,12 * * *"
+  workflow_dispatch:
 
 jobs:
   check_yahoo_api:
