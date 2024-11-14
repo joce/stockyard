@@ -39,12 +39,12 @@ class FloatTestEnum(Enum):
 )
 def test_get_enum_member(
     enum_type: type[Enum], value: Any, enum_member: Any  # noqa: ANN401
-):  # fmt: skip
+) -> None:  # fmt: skip
     """Verify successful conversion of values to their corresponding enum members."""
     assert get_enum_member(enum_type, value) == enum_member
 
 
-def test_get_enum_member_invalid():
+def test_get_enum_member_invalid() -> None:
     """Verify ValueError is raised when converting invalid values to enum members."""
 
     with pytest.raises(

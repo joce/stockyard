@@ -54,7 +54,7 @@ from .helpers import compare_compact_ints
         ("974.01T", "999.87T", -1),
     ],
 )
-def test_compare_compact_ints(a: str, b: str, expected_output: int):
+def test_compare_compact_ints(a: str, b: str, expected_output: int) -> None:
     """Verify the behavior of the compare_compact_ints helper function."""
 
     assert compare_compact_ints(a, b) == expected_output

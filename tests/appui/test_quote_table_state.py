@@ -21,6 +21,8 @@ from tests.fake_yfinance import FakeYFinance
 from .helpers import compare_compact_ints
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
+
     from appui._quote_table_data import QuoteRow
 
 # A number with 2 decimal values
@@ -64,7 +66,7 @@ def duplicate_column(qts: QuoteTableState) -> str:
 
 
 @contextmanager
-def thread_running_context(qts: QuoteTableState):
+def thread_running_context(qts: QuoteTableState) -> Iterator[None]:
     """
     Provide a context manager to temporarily set query_thread_running to True.
 
@@ -86,7 +88,7 @@ def thread_running_context(qts: QuoteTableState):
 ##############################################################################
 
 
-def test_load_regular_config(quote_table_state: QuoteTableState):
+def test_load_regular_config(quote_table_state: QuoteTableState) -> None:
     """Ensure loading a well formed config works."""
 
     config: dict[str, Any] = {
@@ -110,7 +112,7 @@ def test_load_regular_config(quote_table_state: QuoteTableState):
     assert quote_table_state.query_frequency == config[QuoteTableState._QUERY_FREQUENCY]
 
 
-def test_load_empty_config(quote_table_state: QuoteTableState):
+def test_load_empty_config(quote_table_state: QuoteTableState) -> None:
     """Ensure defaults are used when loading an empty config."""
 
     config: dict[str, Any] = {}
@@ -125,7 +127,7 @@ def test_load_empty_config(quote_table_state: QuoteTableState):
     assert quote_table_state.query_frequency == QuoteTableState._DEFAULT_QUERY_FREQUENCY
 
 
-def test_load_config_invalid_columns(quote_table_state: QuoteTableState):
+def test_load_config_invalid_columns(quote_table_state: QuoteTableState) -> None:
     """Ensure invalid columns are ignored when loading config."""
 
     config: dict[str, Any] = {
@@ -135,7 +137,7 @@ def test_load_config_invalid_columns(quote_table_state: QuoteTableState):
     assert quote_table_state.column_keys == [QuoteTableState._TICKER_COLUMN_KEY, "last"]
 
 
-def test_load_config_duplicate_columns(quote_table_state: QuoteTableState):
+def test_load_config_duplicate_columns(quote_table_state: QuoteTableState) -> None:
     """Ensure duplicate columns are ignored when loading config."""
 
     config: dict[str, Any] = {
@@ -145,7 +147,9 @@ def test_load_config_duplicate_columns(quote_table_state: QuoteTableState):
     assert quote_table_state.column_keys == [QuoteTableState._TICKER_COLUMN_KEY, "last"]
 
 
-def test_load_config_duplicate_default_column(quote_table_state: QuoteTableState):
+def test_load_config_duplicate_default_column(
+    quote_table_state: QuoteTableState,
+) -> None:
     """Ensure the default column is ignored if specified in the config."""
 
     config: dict[str, Any] = {
@@ -165,7 +169,7 @@ def test_load_config_duplicate_default_column(quote_table_state: QuoteTableState
     ]
 
 
-def test_load_config_invalid_sort_column(quote_table_state: QuoteTableState):
+def test_load_config_invalid_sort_column(quote_table_state: QuoteTableState) -> None:
     """Ensure default column is used when invalid one is provided in config."""
 
     config: dict[str, Any] = {
@@ -176,7 +180,7 @@ def test_load_config_invalid_sort_column(quote_table_state: QuoteTableState):
     assert quote_table_state.sort_column_key == QuoteTableState._TICKER_COLUMN_KEY
 
 
-def test_load_config_invalid_sort_direction(quote_table_state: QuoteTableState):
+def test_load_config_invalid_sort_direction(quote_table_state: QuoteTableState) -> None:
     """Ensure default sort direction is used when invalid one is provided in config."""
 
     config: dict[str, Any] = {
@@ -186,7 +190,9 @@ def test_load_config_invalid_sort_direction(quote_table_state: QuoteTableState):
     assert quote_table_state.sort_direction == QuoteTableState._DEFAULT_SORT_DIRECTION
 
 
-def test_load_config_invalid_query_frequency(quote_table_state: QuoteTableState):
+def test_load_config_invalid_query_frequency(
+    quote_table_state: QuoteTableState,
+) -> None:
     """Ensure invalid query frequency is ignored when loading config."""
 
     config: dict[str, Any] = {
@@ -196,7 +202,7 @@ def test_load_config_invalid_query_frequency(quote_table_state: QuoteTableState)
     assert quote_table_state.query_frequency == QuoteTableState._DEFAULT_QUERY_FREQUENCY
 
 
-def test_load_config_empty_quote_symbol(quote_table_state: QuoteTableState):
+def test_load_config_empty_quote_symbol(quote_table_state: QuoteTableState) -> None:
     """Ensure empty symbols are ignored when loading config."""
 
     config: dict[str, Any] = {
@@ -206,7 +212,7 @@ def test_load_config_empty_quote_symbol(quote_table_state: QuoteTableState):
     assert quote_table_state._quotes_symbols == ["AAPL", "F", "VT"]
 
 
-def test_load_config_duplicate_quote_symbol(quote_table_state: QuoteTableState):
+def test_load_config_duplicate_quote_symbol(quote_table_state: QuoteTableState) -> None:
     """Ensure duplicated of symbols are ignored when loading config."""
 
     config: dict[str, Any] = {
@@ -221,7 +227,7 @@ def test_load_config_duplicate_quote_symbol(quote_table_state: QuoteTableState):
 ##############################################################################
 
 
-def test_save_config(quote_table_state: QuoteTableState):
+def test_save_config(quote_table_state: QuoteTableState) -> None:
     """Ensure regular config saving works."""
 
     config: dict[str, Any] = quote_table_state.save_config()
@@ -237,7 +243,7 @@ def test_save_config(quote_table_state: QuoteTableState):
     assert config[QuoteTableState._QUERY_FREQUENCY] == quote_table_state.query_frequency
 
 
-def test_save_config_takes_list_copies(quote_table_state: QuoteTableState):
+def test_save_config_takes_list_copies(quote_table_state: QuoteTableState) -> None:
     """Ensure that saving a config takes a copy of lists."""
 
     config: dict[str, Any] = quote_table_state.save_config()
@@ -247,7 +253,7 @@ def test_save_config_takes_list_copies(quote_table_state: QuoteTableState):
     assert config[QuoteTableState._QUOTES] != quote_table_state._quotes_symbols
 
 
-def test_round_trip_config(quote_table_state: QuoteTableState):
+def test_round_trip_config(quote_table_state: QuoteTableState) -> None:
     """Ensure that a round trip save and load works."""
 
     config: dict[str, Any] = quote_table_state.save_config()
@@ -288,7 +294,7 @@ def test_round_trip_config(quote_table_state: QuoteTableState):
 ##############################################################################
 
 
-def test_default_get_quotes_rows(quote_table_state: QuoteTableState):
+def test_default_get_quotes_rows(quote_table_state: QuoteTableState) -> None:
     """Ensure quote can be retrieved in the right order with expected values."""
 
     # Note the quotes are in alphabetical order, the same as the default sort order.
@@ -323,7 +329,7 @@ def test_default_get_quotes_rows(quote_table_state: QuoteTableState):
 # TODO: Try and parametrize the sorting tests as to only have one.
 
 
-def test_rows_sorted_on_string(quote_table_state: QuoteTableState):
+def test_rows_sorted_on_string(quote_table_state: QuoteTableState) -> None:
     """Ensure sorting rows based on string values works."""
 
     # The expectation is that the quotes are in alphabetical order, with symbols first.
@@ -360,7 +366,7 @@ def test_rows_sorted_on_string(quote_table_state: QuoteTableState):
         assert row.values[0].value == quotes[len(quotes) - 1 - i]
 
 
-def test_rows_sorted_on_float(quote_table_state: QuoteTableState):
+def test_rows_sorted_on_float(quote_table_state: QuoteTableState) -> None:
     """Ensure sorting rows based on float values works."""
 
     columns: list[str] = ["last"]
@@ -407,7 +413,7 @@ def test_rows_sorted_on_float(quote_table_state: QuoteTableState):
         prev = val
 
 
-def test_rows_sorted_on_percent(quote_table_state: QuoteTableState):
+def test_rows_sorted_on_percent(quote_table_state: QuoteTableState) -> None:
     """Ensure sorting rows based on percentage values works."""
 
     columns: list[str] = ["change_percent"]
@@ -458,7 +464,7 @@ def test_rows_sorted_on_percent(quote_table_state: QuoteTableState):
 
 def test_rows_sorted_on_compact_int_and_equal_values(
     quote_table_state: QuoteTableState,
-):
+) -> None:
     """Ensure sorting rows based on compact integer values works."""
 
     with thread_running_context(quote_table_state):
@@ -518,7 +524,7 @@ def test_rows_sorted_on_compact_int_and_equal_values(
 ##############################################################################
 
 
-def test_set_current_row(quote_table_state: QuoteTableState):
+def test_set_current_row(quote_table_state: QuoteTableState) -> None:
     """Ensure setting the current row works."""
 
     # Ensure everything is loaded
@@ -557,7 +563,7 @@ def test_set_current_row(quote_table_state: QuoteTableState):
     assert symbol == quote_table_state.quotes_rows[quote_table_state.cursor_row].key
 
 
-def test_delete_row_after_cursor(quote_table_state: QuoteTableState):
+def test_delete_row_after_cursor(quote_table_state: QuoteTableState) -> None:
     """Ensure deleting a row after the cursor row works."""
 
     # Ensure everything is loaded
@@ -586,7 +592,7 @@ def test_delete_row_after_cursor(quote_table_state: QuoteTableState):
     assert symbol_to_remove not in [row.key for row in quote_table_state.quotes_rows]
 
 
-def test_delete_row_before_cursor(quote_table_state: QuoteTableState):
+def test_delete_row_before_cursor(quote_table_state: QuoteTableState) -> None:
     """Ensure deleting a row before the cursor row works."""
 
     # Ensure everything is loaded
@@ -615,7 +621,7 @@ def test_delete_row_before_cursor(quote_table_state: QuoteTableState):
     assert symbol_to_remove not in [row.key for row in quote_table_state.quotes_rows]
 
 
-def test_delete_on_cursor_row_middle(quote_table_state: QuoteTableState):
+def test_delete_on_cursor_row_middle(quote_table_state: QuoteTableState) -> None:
     """Ensure deleting the cursor row when there are items before and after it works."""
 
     # Ensure everything is loaded
@@ -645,7 +651,7 @@ def test_delete_on_cursor_row_middle(quote_table_state: QuoteTableState):
     assert symbol_to_remove not in [row.key for row in quote_table_state.quotes_rows]
 
 
-def test_delete_on_cursor_row_last(quote_table_state: QuoteTableState):
+def test_delete_on_cursor_row_last(quote_table_state: QuoteTableState) -> None:
     """Ensure deleting the cursor row when the cursor is at the last row works."""
 
     # Ensure everything is loaded
@@ -676,7 +682,7 @@ def test_delete_on_cursor_row_last(quote_table_state: QuoteTableState):
     assert symbol_to_remove not in [row.key for row in quote_table_state.quotes_rows]
 
 
-def test_delete_on_cursor_row_first(quote_table_state: QuoteTableState):
+def test_delete_on_cursor_row_first(quote_table_state: QuoteTableState) -> None:
     """Ensure deleting the cursor row when it's top row & table has many rows works."""
 
     # Ensure everything is loaded
@@ -706,7 +712,7 @@ def test_delete_on_cursor_row_first(quote_table_state: QuoteTableState):
     assert symbol_to_remove not in [row.key for row in quote_table_state.quotes_rows]
 
 
-def test_delete_on_cursor_row_only(quote_table_state: QuoteTableState):
+def test_delete_on_cursor_row_only(quote_table_state: QuoteTableState) -> None:
     """Ensure deleting the cursor row when it's top and only row works."""
 
     config: dict[str, Any] = {
@@ -742,7 +748,7 @@ def test_delete_on_cursor_row_only(quote_table_state: QuoteTableState):
 ##############################################################################
 
 
-def test_add_column(quote_table_state: QuoteTableState):
+def test_add_column(quote_table_state: QuoteTableState) -> None:
     """Ensure adding a valid column to the table works."""
 
     columns: list[str] = ["market_cap"]
@@ -784,7 +790,9 @@ def test_add_column(quote_table_state: QuoteTableState):
     "column_name",
     [duplicate_column, QuoteTableState._TICKER_COLUMN_KEY, "not_a_valid_column"],
 )
-def test_add_invalid_column(quote_table_state: QuoteTableState, column_name: str):
+def test_add_invalid_column(
+    quote_table_state: QuoteTableState, column_name: str
+) -> None:
     """Ensure we can't add an invalid column to the table."""
 
     column_count: int = len(quote_table_state.quotes_columns)
@@ -804,7 +812,7 @@ def test_add_invalid_column(quote_table_state: QuoteTableState, column_name: str
 )
 def test_insert_column(
     quote_table_state: QuoteTableState, insertion_idx: int, validation_idx: int
-):
+) -> None:
     """Ensure inserting a valid column in a valid spot to the table works."""
 
     columns: list[str] = ["market_cap", "change_percent", "last"]
@@ -833,7 +841,7 @@ def test_insert_column(
 )
 def test_cant_insert_column_at_invalid_index(
     quote_table_state: QuoteTableState, insertion_idx: int
-):
+) -> None:
     """Ensure no column can be inserted at the default column's index (0), or before."""
 
     columns: list[str] = ["market_cap", "change_percent", "last"]
@@ -860,7 +868,9 @@ def test_cant_insert_column_at_invalid_index(
     "column_name",
     [duplicate_column, "not_a_valid_column"],
 )
-def test_insert_invalid_column(quote_table_state: QuoteTableState, column_name: str):
+def test_insert_invalid_column(
+    quote_table_state: QuoteTableState, column_name: str
+) -> None:
     """Ensure invalid columns can't be inserted."""
 
     column_count: int = len(quote_table_state.quotes_columns)
@@ -874,7 +884,7 @@ def test_insert_invalid_column(quote_table_state: QuoteTableState, column_name: 
     assert len(quote_table_state.quotes_columns) == column_count
 
 
-def test_remove_regular_column(quote_table_state: QuoteTableState):
+def test_remove_regular_column(quote_table_state: QuoteTableState) -> None:
     """Ensure removing a valid column from the table works."""
 
     column_count: int = len(quote_table_state.quotes_columns)
@@ -889,14 +899,14 @@ def test_remove_regular_column(quote_table_state: QuoteTableState):
     assert len(quote_table_state.quotes_columns) == column_count
 
 
-def test_remove_ticker_column(quote_table_state: QuoteTableState):
+def test_remove_ticker_column(quote_table_state: QuoteTableState) -> None:
     """Ensure removing the ticker column from the table raises a ValueError."""
 
     with pytest.raises(ValueError, match="Cannot remove ticker column"):
         quote_table_state.remove_column(QuoteTableState._TICKER_COLUMN_KEY)
 
 
-def test_remove_invalid_column(quote_table_state: QuoteTableState):
+def test_remove_invalid_column(quote_table_state: QuoteTableState) -> None:
     """Ensure removing an invalid column from the table raises a ValueError."""
 
     column_name: str = "not_a_valid_column"
@@ -906,7 +916,7 @@ def test_remove_invalid_column(quote_table_state: QuoteTableState):
         quote_table_state.remove_column(column_name)
 
 
-def test_remove_sorting_column(quote_table_state: QuoteTableState):
+def test_remove_sorting_column(quote_table_state: QuoteTableState) -> None:
     """Ensure removing the sorting column reverts sorting to the default column."""
 
     first_column_name: str = quote_table_state.quotes_columns[1].key
@@ -918,4 +928,5 @@ def test_remove_sorting_column(quote_table_state: QuoteTableState):
     # Even though there has also been a change in the sorting column, the version
     # should only have increased by 1 (the removal).
     assert new_version == orig_version + 1
+    assert quote_table_state.sort_column_key == QuoteTableState._TICKER_COLUMN_KEY
     assert quote_table_state.sort_column_key == QuoteTableState._TICKER_COLUMN_KEY

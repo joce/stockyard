@@ -150,7 +150,6 @@ preview = true
 [tool.ruff.lint.per-file-ignores]
 # Disable Ruff some rules for tests.
 "tests/*" = [
-    "ANN201",  # Missing type annotation for self in class
     "S101",    # Use of assert
     "SLF001",  # Private member access
     "PLC2701", # Private name import `xxx` from external module `yyy

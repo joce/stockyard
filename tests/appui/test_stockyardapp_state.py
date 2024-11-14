@@ -30,7 +30,7 @@ def fixture_sas() -> StockyardAppState:
     return StockyardAppState(yfin)
 
 
-def test_load_regular_config(stockyard_app_state: StockyardAppState):
+def test_load_regular_config(stockyard_app_state: StockyardAppState) -> None:
     """Ensure loading a well formed config works."""
 
     config: dict[str, Any] = {
@@ -76,7 +76,7 @@ def test_load_regular_config(stockyard_app_state: StockyardAppState):
     )
 
 
-def test_load_empty_config(stockyard_app_state: StockyardAppState):
+def test_load_empty_config(stockyard_app_state: StockyardAppState) -> None:
     """Ensure defaults are used when loading an empty config."""
 
     config: dict[str, Any] = {}
@@ -105,7 +105,9 @@ def test_load_empty_config(stockyard_app_state: StockyardAppState):
     assert stockyard_app_state._log_level == StockyardAppState._DEFAULT_LOG_LEVEL
 
 
-def test_load_config_invalid_time_display(stockyard_app_state: StockyardAppState):
+def test_load_config_invalid_time_display(
+    stockyard_app_state: StockyardAppState,
+) -> None:
     """Ensure default time format is used when invalid one is provided in config."""
 
     config: dict[str, Any] = {
@@ -115,7 +117,7 @@ def test_load_config_invalid_time_display(stockyard_app_state: StockyardAppState
     assert stockyard_app_state._time_display == StockyardAppState._DEFAULT_TIME_FORMAT
 
 
-def test_load_config_invalid_log_level(stockyard_app_state: StockyardAppState):
+def test_load_config_invalid_log_level(stockyard_app_state: StockyardAppState) -> None:
     """Ensure default log level is used when invalid one is provided in config."""
 
     config: dict[str, Any] = {
@@ -125,7 +127,7 @@ def test_load_config_invalid_log_level(stockyard_app_state: StockyardAppState):
     assert stockyard_app_state._log_level == StockyardAppState._DEFAULT_LOG_LEVEL
 
 
-def test_save_config(stockyard_app_state: StockyardAppState):
+def test_save_config(stockyard_app_state: StockyardAppState) -> None:
     """Ensure regular config saving works."""
 
     config: dict[str, Any] = stockyard_app_state.save_config()
@@ -158,7 +160,7 @@ def test_save_config(stockyard_app_state: StockyardAppState):
     )
 
 
-def test_round_trip_config(stockyard_app_state: StockyardAppState):
+def test_round_trip_config(stockyard_app_state: StockyardAppState) -> None:
     """Ensure round-tripping (save/load) config works."""
 
     config: dict[str, Any] = stockyard_app_state.save_config()

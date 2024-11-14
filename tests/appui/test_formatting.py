@@ -24,7 +24,7 @@ from appui import _formatting as fmt
         (-892.76324765, "-892.76%"),
     ],
 )
-def test_as_percent(input_value: float, expected_output: str):
+def test_as_percent(input_value: float, expected_output: str) -> None:
     """Verify formatting of numbers into percentage strings."""
 
     assert fmt.as_percent(input_value) == expected_output
@@ -40,7 +40,7 @@ def test_as_percent(input_value: float, expected_output: str):
 )
 def test_as_float(
     input_value: float | None, precision: int | None, expected_output: str
-):
+) -> None:
     """Verify float formatting with default and custom precision specifications."""
 
     if precision is None:
@@ -62,7 +62,7 @@ def test_as_float(
         (1000000000000, "1.00T"),
     ],
 )
-def test_as_compact_int(input_value: int, expected_output: str):
+def test_as_compact_int(input_value: int, expected_output: str) -> None:
     """Verify compact integer formatting with magnitude-based suffixes (K, M, B, T)."""
 
     assert fmt.as_compact(input_value) == expected_output

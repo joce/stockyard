@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from yfinance import YQuote
 
 
-def test_yquote_dates():
+def test_yquote_dates() -> None:
     """Ensure the date formats are consistent for different versions of Python."""
 
     aapl_quote: YQuote
