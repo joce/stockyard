@@ -10,22 +10,22 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-pytz = { version = "2024.2", python = "<3.11" }
+pytz = { version = "2025.1", python = "<3.11" }
 requests = "^2.32"
 textual = "^0.85"
-tzdata = "^2024.2"
+tzdata = "^2025.1"
 typing_extensions = { version = "^4.12", python = "<3.12" }
 
 [tool.poetry.group.dev.dependencies]
-black = "^24.10.0"
+black = "^25.1.0"
 flake8 = "^7.1"
-isort = "^5.13"
+isort = "^6.0.1"
 pylint = "^3.3"
 pyright = "^1.1"
 pytest = "^8.3"
 pytest-timeout = "^2.3"
 pytest-md = "^0.2"
-ruff = "^0.7"
+ruff = "^0.11.0"
 textual-dev = "^1.6"
 
 [tool.black]
