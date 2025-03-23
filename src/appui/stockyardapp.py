@@ -32,9 +32,10 @@ else:
     from typing_extensions import override
 
 logging.basicConfig(
-    level="NOTSET",
+    level=logging.NOTSET,
     handlers=[TextualHandler()],
 )
+logging.getLogger("asyncio").setLevel(logging.ERROR)
 
 
 class StockyardApp(App[None]):
@@ -90,36 +91,41 @@ class StockyardApp(App[None]):
     def load_config(self, path: str) -> None:
         """Load the configuration for the app."""
 
+        logger = logging.getLogger(__name__)
         try:
             f: TextIOWrapper
             with Path(path).open(encoding="utf-8") as f:
                 config: dict[str, Any] = json.load(f)
                 self._state.load_config(config)
         except FileNotFoundError:
-            logging.warning("load_config: Config file not found: %s", path)
+            logger.warning("load_config: Config file not found: %s", path)
         except json.JSONDecodeError as e:
-            logging.exception(
+            logger.exception(
                 "load_config: error decoding JSON file: %s [%d, %d]: %s",
                 path,
                 e.lineno,
                 e.colno,
                 e.msg,
             )
+
         # TODO once the config is loaded, we need to update the logging level and the
         # clock's time format
+
+        # TODO: asyncio's logging needs to be set as the same level as the app's
 
     def save_config(self, path: str) -> None:
         """Save the configuration for the app."""
 
+        logger = logging.getLogger(__name__)
         try:
             f: TextIOWrapper
             with Path(path).open("w", encoding="utf-8") as f:
                 config: dict[str, Any] = self._state.save_config()
                 json.dump(config, f, indent=4)
         except FileNotFoundError:
-            logging.exception("save_config: Config file not found: %s", path)
+            logger.exception("save_config: Config file not found: %s", path)
         except PermissionError:
-            logging.exception("save_config: Permission denied: %s", path)
+            logger.exception("save_config: Permission denied: %s", path)
 
     @work(exclusive=True, thread=True)
     def _prime_yfinance(self) -> None:
@@ -132,6 +138,7 @@ class StockyardApp(App[None]):
     def _finish_loading(self) -> None:
         """Finish loading."""
 
+        logger = logging.getLogger(__name__)
         try:
             indicator: LoadingIndicator = self.query_one(
                 "LoadingIndicator", LoadingIndicator
@@ -139,7 +146,7 @@ class StockyardApp(App[None]):
             indicator.remove()
         except NoMatches:
             # No indicator was found
-            logging.exception("No loading indicator found")
+            logger.exception("No loading indicator found")
 
         qt: QuoteTable = QuoteTable(self._state.quote_table_state)
         self.mount(qt, before="Footer")

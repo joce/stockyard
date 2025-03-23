@@ -117,6 +117,7 @@ class QuoteTableState:
         # Other
         self._yfin: YFinance = yfin
         self._quotes_lock = Lock()
+        self._logger = logging.getLogger(__name__)
 
     def __del__(self) -> None:
         # Make sure the query thread is stopped
@@ -421,14 +422,14 @@ class QuoteTableState:
         """
 
         if column_key not in ALL_QUOTE_COLUMNS:
-            logging.warning(
+            self._logger.warning(
                 "Invalid column key '%s' specified in config file",
                 column_key,
             )
             return False
 
         if column_key in self.column_keys:
-            logging.warning(
+            self._logger.warning(
                 "Duplicate column key '%s' specified in config file",
                 column_key,
             )
@@ -544,7 +545,7 @@ class QuoteTableState:
 
         # Validate the column keys
         if len(columns_keys) == 0:
-            logging.warning("No columns specified in config file")
+            self._logger.warning("No columns specified in config file")
             columns_keys = [
                 QuoteTableState._TICKER_COLUMN_KEY
             ] + QuoteTableState._DEFAULT_COLUMN_KEYS[:]
@@ -571,15 +572,15 @@ class QuoteTableState:
 
         # Validate the quotes symbols
         if len(quotes_symbols) == 0:
-            logging.warning("No quotes specified in config file")
+            self._logger.warning("No quotes specified in config file")
             self._quotes_symbols = QuoteTableState._DEFAULT_QUOTES[:]
         else:
             self._quotes_symbols.clear()
             for quote_symbol in quotes_symbols:
                 if quote_symbol == "":  # noqa: PLC1901
-                    logging.warning("Empty quote symbol specified in config file")
+                    self._logger.warning("Empty quote symbol specified in config file")
                 elif quote_symbol in self._quotes_symbols:
-                    logging.warning(
+                    self._logger.warning(
                         "Duplicate quote symbol %s specified in config file",
                         quote_symbol,
                     )
@@ -588,7 +589,7 @@ class QuoteTableState:
 
         # Validate the query frequency
         if query_frequency is None or query_frequency <= 1:
-            logging.warning("Invalid query frequency specified in config file")
+            self._logger.warning("Invalid query frequency specified in config file")
             self._query_frequency = QuoteTableState._DEFAULT_QUERY_FREQUENCY
         else:
             self._query_frequency = query_frequency

@@ -79,6 +79,7 @@ class YClient:
             1970, 1, 1, tzinfo=datetime.now().astimezone().tzinfo
         )
         self._crumb: str = ""
+        self._logger = logging.getLogger(__name__)
 
     def __refresh_cookies(self) -> None:
         """
@@ -94,7 +95,7 @@ class YClient:
                 and response.is_redirect
             )
 
-        logging.debug("Logging in...")
+        self._logger.debug("Logging in...")
 
         response: requests.Response
         with self._session.get(
@@ -105,7 +106,7 @@ class YClient:
             try:
                 response.raise_for_status()
             except requests.exceptions.HTTPError:
-                logging.exception("Can't log in")
+                self._logger.exception("Can't log in")
                 return
 
             cookies: RequestsCookieJar = response.cookies
@@ -114,7 +115,7 @@ class YClient:
                 cookies = self.__get_cookies_eu()
 
             if not any(cookie.name == "A3" for cookie in cookies):
-                logging.error("Required cookie not set")
+                self._logger.error("Required cookie not set")
                 return
 
             # Figure out how long the login is valid for.
@@ -135,7 +136,7 @@ class YClient:
                 if cookie_expiry >= expiry:
                     continue
 
-                logging.debug(
+                self._logger.debug(
                     "Cookie %s accepted. Setting expiry to %s",
                     cookie.name,
                     cookie_expiry.strftime("%Y-%m-%d %H:%M:%S"),
@@ -161,14 +162,14 @@ class YClient:
             try:
                 response.raise_for_status()
             except requests.exceptions.HTTPError:
-                logging.exception("Can't log in")
+                self._logger.exception("Can't log in")
                 return RequestsCookieJar()
 
             # Extract the session ID from the redirected request URL
             try:
                 session_id: str = parse_qs(urlparse(response.url).query)["sessionId"][0]
             except (NameError, KeyError):
-                logging.exception(
+                self._logger.exception(
                     "Unable to extract session id from redirected request URL: '%s'",
                     response.url,
                 )
@@ -186,7 +187,7 @@ class YClient:
             try:
                 csrf_token: str = parse_qs(urlparse(guce_url).query)["gcrumb"][0]
             except (NameError, KeyError):
-                logging.exception(
+                self._logger.exception(
                     "Unable to extract CSRF token redirected request URL: '%s'",
                     response.url,
                 )
@@ -200,7 +201,7 @@ class YClient:
                     break
 
             if len(gucs_cookie) == 0:
-                logging.error("No cookies set by finance.yahoo.com")
+                self._logger.error("No cookies set by finance.yahoo.com")
                 return RequestsCookieJar()
 
         referrer_url: str = (
@@ -249,7 +250,7 @@ class YClient:
     def __refresh_crumb(self) -> None:
         """Refresh the crumb required to fetch quotes."""
 
-        logging.debug("Refreshing crumb...")
+        self._logger.debug("Refreshing crumb...")
 
         response: requests.Response
         with self._session.get(
@@ -259,16 +260,16 @@ class YClient:
                 response.raise_for_status()
                 self._crumb = response.text
             except requests.exceptions.HTTPError:
-                logging.exception("Can't fetch crumb")
+                self._logger.exception("Can't fetch crumb")
 
         if self._crumb:
-            logging.debug(
+            self._logger.debug(
                 "Crumb refreshed: %s. Expires on %s",
                 self._crumb,
                 self._expiry.strftime("%Y-%m-%d %H:%M:%S"),
             )
         else:
-            logging.debug("Crumb refresh failed")
+            self._logger.debug("Crumb refresh failed")
 
     def _execute_request(self, api_call: str) -> dict[str, Any]:
         """
@@ -282,7 +283,7 @@ class YClient:
             dict[str, Any]: The JSON response.
         """
 
-        logging.debug("Executing request: %s", api_call)
+        self._logger.debug("Executing request: %s", api_call)
 
         response: requests.Response
         with self._session.get(
@@ -291,14 +292,14 @@ class YClient:
             try:
                 response.raise_for_status()
             except requests.exceptions.HTTPError:
-                logging.exception("Request to api failed")
+                self._logger.exception("Request to api failed")
                 return {}
 
             res_body: str = response.text
-            logging.debug("Response: %s", res_body)
+            self._logger.debug("Response: %s", res_body)
 
             if not res_body:
-                logging.error("Can't parse response")
+                self._logger.error("Can't parse response")
                 return {}
 
             return json.loads(res_body)
@@ -324,7 +325,7 @@ class YClient:
             dict[str, Any]: The JSON response.
         """
 
-        logging.debug("Calling %s with params %s", api_url, query_params)
+        self._logger.debug("Calling %s with params %s", api_url, query_params)
 
         if self._expiry < datetime.now(timezone.utc).astimezone():
             self.__refresh_cookies()

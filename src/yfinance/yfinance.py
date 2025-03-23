@@ -35,8 +35,9 @@ class YFinance:
             list[YQuote]: The quotes for the given symbols.
         """
 
+        logger = logging.getLogger(__name__)
         if len(symbols) == 0:
-            logging.error("No symbols provided")
+            logger.error("No symbols provided")
             return []
 
         # call YClient.call with symbols stripped of whitespace
@@ -45,14 +46,14 @@ class YFinance:
         )
 
         if "quoteResponse" not in json_data:
-            logging.error("No quote response from Yahoo!")
+            logger.error("No quote response from Yahoo!")
             return []
 
         if (
             "error" in json_data["quoteResponse"]
             and json_data["quoteResponse"]["error"] is not None
         ):
-            logging.error(
+            logger.error(
                 "Error getting response data from Yahoo!: %s",
                 json_data["quoteResponse"]["error"]["description"],
             )
