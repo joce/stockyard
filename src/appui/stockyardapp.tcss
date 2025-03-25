@@ -1,7 +1,7 @@
 Clock {
     content-align-horizontal: center;
-    align-horizontal: right;
-    dock: bottom;
+    align-horizontal: center;
+    dock: right;
     padding: 0 1 0 1;
     width: auto;
     color: white;

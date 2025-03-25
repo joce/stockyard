@@ -13,9 +13,13 @@ class Clock(Static):
 
         # TODO Make the time display configurable through the config file (24h v. AM/PM)
         # TODO Make the clock update on the system's second change
+        self._show_time()
         self.set_interval(
             1,
-            lambda: self.update(
-                datetime.now(timezone.utc).astimezone().time().strftime("%H:%M:%S")
-            ),
+            self._show_time,
         )
+
+    def _show_time(self) -> None:
+        """Update the time displayed by the widget."""
+
+        self.update(datetime.now(timezone.utc).astimezone().time().strftime("%H:%M:%S"))

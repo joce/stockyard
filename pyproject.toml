@@ -12,7 +12,7 @@ readme = "README.md"
 python = "^3.9"
 pytz = { version = "2025.1", python = "<3.11" }
 requests = "^2.32"
-textual = "^0.85"
+textual = "^1.0.0"
 tzdata = "^2025.1"
 typing_extensions = { version = "^4.12", python = "<3.12" }
 
