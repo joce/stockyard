@@ -94,8 +94,9 @@ class QuoteTableState:
 
         # Ticker is *always* the first column
         columns_keys: list[str] = [
-            QuoteTableState._TICKER_COLUMN_KEY
-        ] + QuoteTableState._DEFAULT_COLUMN_KEYS[:]
+            QuoteTableState._TICKER_COLUMN_KEY,
+            *QuoteTableState._DEFAULT_COLUMN_KEYS,
+        ]
         self._columns: list[QuoteColumn] = [
             ALL_QUOTE_COLUMNS[column] for column in columns_keys
         ]
@@ -547,8 +548,9 @@ class QuoteTableState:
         if len(columns_keys) == 0:
             self._logger.warning("No columns specified in config file")
             columns_keys = [
-                QuoteTableState._TICKER_COLUMN_KEY
-            ] + QuoteTableState._DEFAULT_COLUMN_KEYS[:]
+                QuoteTableState._TICKER_COLUMN_KEY,
+                *QuoteTableState._DEFAULT_COLUMN_KEYS,
+            ]
         else:
             # Ticker is *always* the first column
             columns_keys.insert(0, QuoteTableState._TICKER_COLUMN_KEY)

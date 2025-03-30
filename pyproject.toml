@@ -1,24 +1,25 @@
-[tool.poetry]
+[project]
 name = "stockyard"
 version = "0.1.0"
 repository = "https://github.com/joce/stockyard"
 homepage = "https://github.com/joce/stockyard"
 description = "A Yahoo! finance-based TUI **toy** stock viewer"
-authors = ["Jocelyn Legault <jocelynlegault@gmail.com>"]
-license = "MIT"
+authors = [{ name = "Jocelyn Legault", email = "jocelynlegault@gmail.com" }]
+license = { text = "MIT" }
 readme = "README.md"
+requires-python = ">=3.9, < 4.0"
 
-[tool.poetry.dependencies]
-python = "^3.9"
-pytz = { version = "2025.1", python = "<3.11" }
-requests = "^2.32"
-textual = "^2.1"
-tzdata = "^2025.1"
-typing_extensions = { version = "^4.12", python = "<3.12" }
+dependencies = [
+    "requests >= 2.32, < 3.0",
+    "textual >= 3.1",
+    "tzdata >= 2025.2",
+    "pytz >= 2025.2; python_version < '3.11'",
+    "typing_extensions >= 4.13; python_version < '3.12'",
+]
 
 [tool.poetry.group.dev.dependencies]
 black = "^25.1.0"
-flake8 = "^7.1"
+flake8 = "^7.2"
 isort = "^6.0.1"
 pylint = "^3.3"
 pyright = "^1.1"
@@ -26,7 +27,7 @@ pytest = "^8.3"
 pytest-timeout = "^2.3"
 pytest-md = "^0.2"
 ruff = "^0.11.0"
-textual-dev = "^1.6"
+textual-dev = "^1.7"
 
 [tool.black]
 target-version = ["py39", "py310", "py311", "py312", "py313"]
