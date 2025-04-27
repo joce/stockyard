@@ -38,6 +38,7 @@
         "classdef",
         "decoratornames",
         "disp",
+        "expui",
         "functiondef",
         "gcrumb",
         "getcrumb",

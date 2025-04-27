@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Current File",
+            "name": "Python: Program",
             "type": "debugpy",
             "request": "launch",
             // start the stockyard app
@@ -14,6 +14,17 @@
             "console": "externalTerminal",
             "justMyCode": false
         },
+        {
+            "name": "Python: Program (experimental)",
+            "type": "debugpy",
+            "request": "launch",
+            // start the stockyard app
+            "program": "${workspaceFolder}/src/stockyard.py",
+            "args": ["--exp"],
+            //"console": "integratedTerminal",
+            "console": "externalTerminal",
+            "justMyCode": false
+        }
         {
             "name": "Debug Pylint Plugin",
             "type": "debugpy",
