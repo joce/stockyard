@@ -1,8 +1,6 @@
 [project]
 name = "stockyard"
 version = "0.1.0"
-repository = "https://github.com/joce/stockyard"
-homepage = "https://github.com/joce/stockyard"
 description = "A Yahoo! finance-based TUI **toy** stock viewer"
 authors = [{ name = "Jocelyn Legault", email = "jocelynlegault@gmail.com" }]
 license = { text = "MIT" }
@@ -16,6 +14,10 @@ dependencies = [
     "pytz >= 2025.2; python_version < '3.11'",
     "typing_extensions >= 4.13; python_version < '3.12'",
 ]
+
+[project.urls]
+repository = "https://github.com/joce/stockyard"
+homepage = "https://github.com/joce/stockyard"
 
 [tool.poetry.group.dev.dependencies]
 black = "^25.1.0"

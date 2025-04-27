@@ -19,6 +19,7 @@ jobs:
       matrix:
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
         poetry-version: ["2.1.2"]
+        ruff-target-version: ["py39"]
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
@@ -39,10 +40,10 @@ jobs:
 
       - name: Validating format with Ruff
         run: |
-          poetry run ruff format --check --quiet --diff --target-version py39
+          poetry run ruff format --check --quiet --diff --target-version ${{ matrix.ruff-target-version }}
       - name: Linting with Ruff
         run: |
-          poetry run ruff check --target-version py39 --output-format=github .
+          poetry run ruff check --target-version ${{ matrix.ruff-target-version }} --output-format=github .
       - name: Checking imports with isort
         run: |
           poetry run isort -c --profile black --python-version auto .
