@@ -30,10 +30,10 @@ class YClient:
     _YAHOO_FINANCE_QUERY_URL: Final[str] = "https://query1.finance.yahoo.com"
     _CRUMB_URL: Final[str] = _YAHOO_FINANCE_QUERY_URL + "/v1/test/getcrumb"
     _USER_AGENT: Final[str] = (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36"  # noqa: E501
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.3240.64"  # noqa: E501
     )
     _USER_AGENT_CLIENT_HINT_BRANDING_AND_VERSION: Final[str] = (
-        '"Google Chrome";v="113", "Chromium";v="113", "Not-A.Brand";v="24"'
+        '"Microsoft Edge";v="136", "Chromium";v="136", "Not;A=Brand";v="24"'
     )
     _USER_AGENT_CLIENT_HINT_PLATFORM: Final[str] = '"Windows"'
 
