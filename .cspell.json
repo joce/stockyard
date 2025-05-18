@@ -4,6 +4,7 @@
     "ignorePaths": [
         ".gitignore",
         ".cspell.json",
+        ".pylintrc",
         "pyproject.toml",
         "tests/test_data.json",
         ".github/workflows/**",
