@@ -117,7 +117,7 @@ class QuoteTableState:
 
         # Other
         self._yfin: YFinance = yfin
-        self._quotes_lock = Lock()
+        self._quotes_lock: Lock = Lock()
         self._logger = logging.getLogger(__name__)
 
     def __del__(self) -> None:

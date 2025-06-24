@@ -10,6 +10,8 @@ from textual.app import App, ComposeResult
 from textual.logging import TextualHandler
 from textual.widgets import Footer
 
+from .button_screen import ButtonScreen
+
 if TYPE_CHECKING:
     from textual.binding import BindingType
 
@@ -34,6 +36,7 @@ class ExpUI(App[None]):
 
     BINDINGS: ClassVar[list[BindingType]] = [
         ("q", "exit", "Exit"),
+        ("b", "button_screen", "Button Screen"),
     ]
 
     def __init__(self) -> None:
@@ -44,6 +47,10 @@ class ExpUI(App[None]):
         # Widgets
         self._footer: Footer = Footer()
 
+    def on_mount(self) -> None:
+        """Mount the application components."""
+        self.install_screen(ButtonScreen(), name="button_screen")  # type: ignore[no-untyped-call]
+
     @override
     def compose(self) -> ComposeResult:
         yield self._footer
@@ -52,3 +59,7 @@ class ExpUI(App[None]):
         """Handle exit actions."""
 
         self.exit()
+
+    def action_button_screen(self) -> None:
+        """Handle button screen actions."""
+        self.push_screen("button_screen")
