@@ -19,17 +19,19 @@ dependencies = [
 repository = "https://github.com/joce/stockyard"
 homepage = "https://github.com/joce/stockyard"
 
-[tool.poetry.group.dev.dependencies]
-black = "^25.1.0"
-flake8 = "^7.2"
-isort = "^6.0.1"
-pylint = "^3.3"
-pyright = "^1.1"
-pytest = "^8.3"
-pytest-timeout = "^2.4"
-pytest-md = "^0.2"
-ruff = "^0.11"
-textual-dev = "^1.7"
+[dependency-groups]
+dev = [
+    "black >= 25.1.0",
+    "flake8 >= 7.2",
+    "isort >= 6.0.1",
+    "pylint >= 3.3",
+    "pyright >= 1.1",
+    "pytest >= 8.3",
+    "pytest-timeout >= 2.4",
+    "pytest-md >= 0.2",
+    "ruff >= 0.11",
+    "textual-dev >= 1.7",
+]
 
 [tool.black]
 target-version = ["py39", "py310", "py311", "py312", "py313"]
@@ -159,6 +161,9 @@ preview = true
     "PLC2701", # Private name import `xxx` from external module `yyy
 ]
 
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
 [build-system]
-requires = ["poetry-core >= 2.0.0, < 3.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
