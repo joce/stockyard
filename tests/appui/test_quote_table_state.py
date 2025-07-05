@@ -7,12 +7,12 @@
 from __future__ import annotations
 
 import math
-import re
 from contextlib import contextmanager
 from time import sleep
 from typing import TYPE_CHECKING, Any, Final
 
 import pytest
+import regex
 
 from appui._enums import SortDirection
 from appui.quote_table_state import QuoteTableState
@@ -26,16 +26,18 @@ if TYPE_CHECKING:
     from appui._quote_table_data import QuoteRow
 
 # A number with 2 decimal values
-NUMBER_RE: Final[re.Pattern[str]] = re.compile(r"^(?:-?\d+\.\d{2}|N/A)$", re.MULTILINE)
+NUMBER_RE: Final[regex.Pattern[str]] = regex.compile(
+    r"^(?:-?\d+\.\d{2}|N/A)$", regex.MULTILINE
+)
 
 # A percentage with 2 decimal values
-PERCENT_RE: Final[re.Pattern[str]] = re.compile(
-    r"^(?:-?\d+\.\d{2}%|N/A)$", re.MULTILINE
+PERCENT_RE: Final[regex.Pattern[str]] = regex.compile(
+    r"^(?:-?\d+\.\d{2}%|N/A)$", regex.MULTILINE
 )
 
 # A compacted value
-COMPACT_RE: Final[re.Pattern[str]] = re.compile(
-    r"^(?:\d{1,3}(?:\.\d{2}[KMBT])?|N/A)$", re.MULTILINE
+COMPACT_RE: Final[regex.Pattern[str]] = regex.compile(
+    r"^(?:\d{1,3}(?:\.\d{2}[KMBT])?|N/A)$", regex.MULTILINE
 )
 
 

@@ -5,6 +5,7 @@
 - Poetry: packaging and dependency management
 - Textual: text-based user interface (TUI)
 - Requests: HTTP operations
+- Regex: pattern matching
 - Pytest: testing
 
 ## Project Structure and Architecture
