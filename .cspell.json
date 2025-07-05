@@ -12,8 +12,18 @@
     ],
     "useGitignore": true,
     "dictionaryDefinitions": [],
-    "dictionaries": [],
-    "words": ["joce", "legault", "referer", "renderable", "triggerable"],
+    "dictionaries": ["python"],
+    "words": [
+        "docstring",
+        "docstrings",
+        "joce",
+        "jocelyn",
+        "legault",
+        "pyright",
+        "referer",
+        "renderable",
+        "triggerable"
+    ],
     "ignoreWords": [
         "EURUSD",
         "KHTML",
