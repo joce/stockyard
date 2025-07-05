@@ -1,61 +1,112 @@
 # Cursor AI Rules for the Stockyard Project (Python Textual TUI)
 
+## Technology Stack
+
+- Poetry: packaging and dependency management
+- Textual: text-based user interface (TUI)
+- Requests: HTTP operations
+- Pytest: testing
+
+## Project Structure and Architecture
+
+### State Management
+
+- MUST use unidirectional data flow: `user interaction -> action -> state update -> UI reaction`
+- MUST centralize application state in classes ending with `State`
+- MUST treat state as single source of truth for UI
+- MUST reflect state updates in UI by reading from state
+- MUST NOT introduce global variables or scattered state
+
+### Textual TUI Integration
+
+- MUST follow Textual patterns and integrate with dataflow architecture
+- MUST use `App.compose()` or `mount()` methods for widget creation
+- MUST use Textual's action/message system for UI events
+- MUST define `action_...` methods in widgets for key bindings
+- MUST avoid long-running tasks in UI thread
+- MUST use `@work` decorator for I/O or blocking computations
+- MUST use `set_interval` or `set_timer` for regular UI refreshes
+- MUST NOT use manual loops or `time.sleep` for UI responsiveness
+- MUST separate UI logic (presentation) from business logic
+- MUST contain sorting/filtering logic in state classes
+- MUST handle input/output in Textual widgets
+- MUST use locks/synchronization when modifying shared state from background threads
+- SHOULD style UI using Textual CSS (.tcss files) rather than embedded colors
+- MUST define key bindings through `BINDINGS` class variable or `Bindings` API
+- MUST match new UI components with existing style (colors, spacing, tone, patterns)
+
+## Testing Guidelines
+
+- MUST cover all non-UI logic with pytest unit tests
+- MUST have tests for core functionalities in state classes, data processing, and algorithms
+- MUST place tests in `tests/` directory mirroring `src/` structure
+- MUST name test files and functions clearly (e.g., `test_<function_or_behavior>()`)
+- SHOULD use pytest fixtures for common setup logic
+- MAY use mocking for external API calls or non-deterministic operations
+- MUST keep tests fast, isolated, and reliable
+- MAY access protected members or use internal knowledge for test verification
+- MUST write tests covering edge cases (empty inputs, invalid values, boundaries)
+- SHOULD use `pytest.mark.parametrize` for testing same logic on multiple inputs
+- MUST NOT attempt UI event simulation tests (no framework setup exists)
+
 ## Code Style and Formatting
 
 ### Python Version Compatibility
 
-- The code targets Python 3.13 while remaining compatible down to 3.9.
-- Always include `from __future__ import annotations` at the top of files to support forward references and improve performance.
-- Use new Python 3.12+ features only if they have fallbacks for older versions.
-- Avoid syntax or standard library features that don't exist in 3.9.
+- MUST target Python 3.13 while remaining compatible down to 3.9
+- MUST include `from __future__ import annotations` at the top of files
+- MAY use Python 3.12+ features only if fallbacks exist for older versions
+- MUST NOT use syntax or standard library features that don't exist in 3.9
 
 ### General Style (PEP 8 & Google)
 
-- Follow the Google Python Style Guide for naming, imports, and structure.
-- Use `CapWords` for class names.
-- Use `snake_case` for functions, methods, and variables.
-- Use `UPPER_SNAKE_CASE` for constants.
-- Private / internal methods and data members must begin with a single underscore (`_`).
-- Do **not** use double underscores (`__`) unless name mangling is explicitly needed.
-- Prefer using `@property` for exposing read-only accessors rather than public attribute access.
-- Keep functions and methods reasonably short and straightforward.
-- Avoid wildcard `import *` and relative imports; always import explicitly by module name.
-- Use f-strings for formatting strings.
-- Mutable default values in function definitions are to be avoided.
+- MUST follow the Google Python Style Guide for naming, imports, and structure
+- MUST use `CapWords` for class names
+- MUST use `snake_case` for functions, methods, and variables
+- MUST use `UPPER_SNAKE_CASE` for constants
+- MUST prefix private/internal methods and data members with single underscore (`_`)
+- MUST NOT use double underscores (`__`) unless name mangling is explicitly needed
+- SHOULD prefer `@property` for exposing read-only accessors over public attributes
+- SHOULD keep functions and methods reasonably short and straightforward
+- MUST NOT use wildcard imports (`import *`) or relative imports
+- MUST import explicitly by module name
+- MUST use f-strings for string formatting
+- MUST NOT use mutable default values in function definitions
 
 ### Typing
 
-- All functions, methods, and class attributes **must** have type hints.
-- Use Python 3 style type annotations (`list[str]`, `dict[str, Any]`, etc.).
-- You can make use of `typing.Optional`, `typing.Union` (or `|` syntax), and type variables for generics as needed.
-- Avoid using `Any` unless absolutely necessary.
-- No inconsistent return types.
-- Respect `final` for constants: they should not be reassigned.
-- Handle `None` cases explicitly (use `Optional` and check for `None` before dereferencing).
-- If generics are used (e.g., a function returns `T` or accepts a `Callable`), ensure the typing is correct.
-- When calling functions from external libraries, provide type stubs or use `# type: ignore` if necessary only when the library does not provide type hints.
+- MUST include type hints for all functions, methods, and class attributes
+- MUST use Python 3 style type annotations (`list[str]`, `dict[str, Any]`, etc.)
+- MAY use `typing.Optional`, `typing.Union` (or `|` syntax), and type variables for generics
+- MUST NOT use `Any` unless absolutely necessary
+- MUST NOT have inconsistent return types
+- MUST respect `final` for constants (do not reassign)
+- MUST handle `None` cases explicitly (use `Optional` and check before dereferencing)
+- MUST ensure correct typing when using generics (e.g., functions returning `T` or accepting `Callable`)
+- MUST provide type stubs or use `# type: ignore` for external libraries without type hints
 
 ### Consistency and Clarity
 
-- Write clean, readable code.
-- Favor descriptive names (e.g. `data_table` over `dt`).
-- Maintain consistency with existing code patterns.
-- Avoid deeply nested code.
-- Write comments for any non-obvious code block.
+- MUST write clean, readable code
+- SHOULD favor descriptive names (e.g., `data_table` over `dt`)
+- MUST maintain consistency with existing code patterns
+- MUST avoid deeply nested code
+- MUST write comments for non-obvious code blocks
 
 ## Documentation
 
 ### Docstrings for Public APIs
 
-- Every **public** class, function, and method must have a docstring in **Google style** (as the project adheres to Google's Python style).
-- Start with a one-sentence summary of the object’s purpose. Follow with a blank line and any additional details.
-- Use sections **Args:**, **Returns:**, and **Raises:** as appropriate, each indented under the docstring.
-- Docstrings must accurately reflect a function's behavior. If the code changes, the docstring to remain consistent with its current behavior.
+- MUST include docstrings for every public class, function, and method
+- MUST use Google style docstrings
+- MUST start with one-sentence summary followed by blank line and details
+- MUST use sections **Args:**, **Returns:**, and **Raises:** as appropriate
+- MUST keep docstrings consistent with function behavior when code changes
 
 Example:
 
 ```python
-    def _safe_value(v: T | None) -> float:
+def _safe_value(v: T | None) -> float:
     """
     Safely retrieves the value of v.
 
@@ -69,55 +120,23 @@ Example:
         float: The value of v if it's not None, otherwise the smallest representable
             value for type T.
     """
-
     return -inf if v is None else v
 ```
 
 ### Internal and Private Code
 
-- TODO/FIXME comments are allowed, but use them sparingly. If you leave a TODO, it should be accompanied by a clear description of what needs to be done.
-- Private methods or internal helper functions (those starting with `_` or defined inside tests) can omit docstrings if they are straightforward.
-- Tests do not require docstrings (by naming convention, test functions are exempt from docstring requirements).
-- Write docstrings in **imperative mood** (e.g., "Initialize the XYZ" rather than "Initializes"). Be concise but informative. Include any important details or gotchas.
-
-## Project Structure and Architecture
-
-### State Management
-
-- This project uses a unidirectional data flow pattern inspired by Flux: `user interaction -> triggers action -> updates state -> UI reacts`.
-- Application state is centralized in state classes (typically with names ending in `State`).
-- The UI must treat the state as the single source of truth.
-- Whenever the underlying state updates (e.g., new data fetched, or user triggers a sort), the UI should reflect it by reading from state.
-- Do not introduce global variables or scattered state.
-
-### Textual TUI Integration
-
-- The project is built with the Textual library for text-based UI. Follow Textual’s patterns and integrate with the dataflow architecture.
-- Use the Textual `App.compose()` or `mount()` methods to create and add widgets to the interface, rather than constructing UI elements ad-hoc.
-- Use Textual’s action/message system for UI events. Define `action_...` methods in widgets for key bindings or commands.
-- Avoid long-running tasks in the UI thread. Leverage Textual’s background worker (`@work`) for I/O or computations that might block.
-- If a UI component needs to refresh regularly, use Textual’s timer mechanism (`set_interval`). Use `set_interval` or `set_timer` rather than manual loops or `time.sleep` to maintain responsiveness.
-- Keep UI logic (presentation) separate from business logic. The state classes should contain logic for sorting, filtering, etc., while Textual widgets handle input and output (display).
-- When modifying shared state from background threads, use locks or other synchronization.
-- Style the UI using Textual CSS (.tcss files) rather than embedding colors in code, unless dynamically necessary.
-- Define key bindings through the `BINDINGS` class variable on `App` or `Widget` classes, or use the `Bindings` API.
-- Match any new UI components with the application's existing style. This includes visual style (colors, spacing from the `.tcss`), textual tone (capitalization in labels), and interaction patterns.
-
-## Testing Guidelines
-
-- All non-UI logic should be covered by pytest unit tests.
-- Core functionalities in state classes, data processing, and any algorithms must have tests.
-- Place tests in the `tests/` directory mirroring the `src/` structure. For example, tests for `src/appui/foobar.py` live in `tests/appui/foobar.py`. Name test files and test functions clearly (e.g., `test_<function_or_behavior>()` describing what is tested).
-- Use pytest fixtures to share common setup logic across tests.
-- Mocking is allowed, particularly for external API calls or operations that produce non-deterministic results.
-- Tests should remain fast, isolated, and reliable.
-- It’s acceptable for tests to access "protected" members or use internal knowledge of the implementation to verify correctness.
-- Write tests to cover edge cases (empty inputs, invalid values, boundary conditions).
-- Use `pytest.mark.parametrize` when testing the same logic on multiple inputs.
-- There is currently no framework setup in the project for simulating Textual UI events in tests. Therefore, do not attempt to write tests that require key presses or UI rendering checks.
+- MAY use TODO/FIXME comments sparingly
+- MUST accompany TODOs with clear description of what needs to be done
+- MAY omit docstrings for private methods/internal helpers if straightforward
+- MAY omit docstrings for tests (exempt by naming convention)
+- MUST write docstrings in imperative mood ("Initialize" not "Initializes")
 
 ## Additional Considerations
 
-- The project uses Poetry for packaging and dependency management.
-- The app deals with real-time data updates. Be mindful of performance and use efficient algorithms (e.g., avoid O(n^2) inserts or sorts on every tick if not needed; use appropriate data structures).
-- Use the logging module for debug or error messages instead of `print`. Any new feature should include logging where appropriate. Catch exceptions at boundaries (e.g., file I/O, network calls) and log them or handle them gracefully so the app doesn’t crash unexpectedly.
+- MUST be mindful of performance for real-time data updates
+- MUST use efficient algorithms (avoid O(n²) operations on every tick)
+- MUST use appropriate data structures
+- MUST use logging module instead of `print` for debug/error messages
+- MUST include logging in new features where appropriate
+- MUST catch exceptions at boundaries (file I/O, network calls)
+- MUST handle exceptions gracefully to prevent app crashes
