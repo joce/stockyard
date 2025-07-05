@@ -81,7 +81,7 @@ class YClient:
         self._crumb: str = ""
         self._logger = logging.getLogger(__name__)
 
-    def __refresh_cookies(self) -> None:
+    def _refresh_cookies(self) -> None:
         """
         Log into Yahoo! finance.
 
@@ -112,7 +112,7 @@ class YClient:
             cookies: RequestsCookieJar = response.cookies
 
             if _is_eu_consent_redirect(response):
-                cookies = self.__get_cookies_eu()
+                cookies = self._get_cookies_eu()
 
             if not any(cookie.name == "A3" for cookie in cookies):
                 self._logger.error("Required cookie not set")
@@ -145,7 +145,7 @@ class YClient:
 
             self._expiry = expiry
 
-    def __get_cookies_eu(self) -> RequestsCookieJar:
+    def _get_cookies_eu(self) -> RequestsCookieJar:
         """
         Get cookies from the EU consent page.
 
@@ -247,7 +247,7 @@ class YClient:
 
         return RequestsCookieJar()
 
-    def __refresh_crumb(self) -> None:
+    def _refresh_crumb(self) -> None:
         """Refresh the crumb required to fetch quotes."""
 
         self._logger.debug("Refreshing crumb...")
@@ -307,8 +307,8 @@ class YClient:
     def prime(self) -> None:
         """Prime the client for use."""
 
-        self.__refresh_cookies()
-        self.__refresh_crumb()
+        self._refresh_cookies()
+        self._refresh_crumb()
 
     def call(
         self, api_url: str, query_params: dict[str, str] | None = None
@@ -328,10 +328,10 @@ class YClient:
         self._logger.debug("Calling %s with params %s", api_url, query_params)
 
         if self._expiry < datetime.now(timezone.utc).astimezone():
-            self.__refresh_cookies()
+            self._refresh_cookies()
 
         if not self._crumb:
-            self.__refresh_crumb()
+            self._refresh_crumb()
 
         if query_params is None:
             query_params = {}

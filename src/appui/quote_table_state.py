@@ -227,9 +227,9 @@ class QuoteTableState:
         """The current row of the cursor."""
 
         with self._quotes_lock:
-            return self.__get_cursor_row_no_lock()
+            return self._get_cursor_row_no_lock()
 
-    def __get_cursor_row_no_lock(self) -> int:
+    def _get_cursor_row_no_lock(self) -> int:
         """
         Get the current row of the cursor.
 
@@ -262,9 +262,9 @@ class QuoteTableState:
         with self._quotes_lock:
             # Setting the current row does not change the version. It's just used to
             # mirror the cursor position from the UI.
-            self.__set_cursor_row_no_lock(value)
+            self._set_cursor_row_no_lock(value)
 
-    def __set_cursor_row_no_lock(self, value: int) -> None:
+    def _set_cursor_row_no_lock(self, value: int) -> None:
         """
         Set the current row of the cursor.
 
@@ -456,13 +456,13 @@ class QuoteTableState:
             # Can't use cursor_row here because it's also using the lock.
 
             # Compute a new current row if the removed row is the current row
-            if index == self.__get_cursor_row_no_lock():
+            if index == self._get_cursor_row_no_lock():
                 if len(self._quotes) == 1:
-                    self.__set_cursor_row_no_lock(-1)
+                    self._set_cursor_row_no_lock(-1)
                 elif index == len(self._quotes) - 1:
-                    self.__set_cursor_row_no_lock(index - 1)
+                    self._set_cursor_row_no_lock(index - 1)
                 else:
-                    self.__set_cursor_row_no_lock(index + 1)
+                    self._set_cursor_row_no_lock(index + 1)
 
             # remove the symbol from both the list of quotes to fetch and the current
             # list of quotes

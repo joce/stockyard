@@ -54,8 +54,8 @@ class StockyardApp(App[None]):
 
         super().__init__()
 
-        self.__yfinance: YFinance = YFinance()
-        self._state: StockyardAppState = StockyardAppState(self.__yfinance)
+        self._yfinance: YFinance = YFinance()
+        self._state: StockyardAppState = StockyardAppState(self._yfinance)
         self._priming_worker: Worker[None] | None = None
 
         # Widgets
@@ -131,7 +131,7 @@ class StockyardApp(App[None]):
     def _prime_yfinance(self) -> None:
         """Prime the YFinance client."""
 
-        self.__yfinance.prime()
+        self._yfinance.prime()
         if self._priming_worker is not None and not self._priming_worker.is_cancelled:
             self.call_from_thread(self._finish_loading)
 
@@ -154,5 +154,4 @@ class StockyardApp(App[None]):
         # Set the focus to the quote table
         qt.focus()
 
-        self._priming_worker = None
         self._priming_worker = None
