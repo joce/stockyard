@@ -8,6 +8,7 @@ on:
 jobs:
   check_yahoo_api:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
     strategy:
       matrix:
         python-version: ["3.13"]
