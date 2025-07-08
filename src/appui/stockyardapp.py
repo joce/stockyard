@@ -49,7 +49,7 @@ class StockyardApp(App[None]):
         ("q", "exit", "Exit"),
     ]
 
-    def __init__(self) -> None:
+    def __init__(self, config_file_name: str) -> None:
         """Initialize the main application components and state management."""
 
         super().__init__()
@@ -58,8 +58,12 @@ class StockyardApp(App[None]):
         self._state: StockyardAppState = StockyardAppState(self._yfinance)
         self._priming_worker: Worker[None] | None = None
 
+        self._config_file_name: str = config_file_name
+        self._config_loaded: bool = False
+        self.load_config(self._config_file_name)
+
         # Widgets
-        self._footer: Footer = Footer()
+        self._footer: Footer = Footer(self._state.time_format)
 
     @override
     def compose(self) -> ComposeResult:
@@ -91,12 +95,16 @@ class StockyardApp(App[None]):
     def load_config(self, path: str) -> None:
         """Load the configuration for the app."""
 
+        if self._config_loaded:
+            return
+
         logger = logging.getLogger(__name__)
         try:
             f: TextIOWrapper
             with Path(path).open(encoding="utf-8") as f:
                 config: dict[str, Any] = json.load(f)
                 self._state.load_config(config)
+            self._config_loaded = True
         except FileNotFoundError:
             logger.warning("load_config: Config file not found: %s", path)
         except json.JSONDecodeError as e:
@@ -108,18 +116,18 @@ class StockyardApp(App[None]):
                 e.msg,
             )
 
-        # TODO once the config is loaded, we need to update the logging level and the
-        # clock's time format
-
         # TODO: asyncio's logging needs to be set as the same level as the app's
 
-    def save_config(self, path: str) -> None:
+    def save_config(self, path: str | None = None) -> None:
         """Save the configuration for the app."""
+
+        if path is None:
+            path = self._config_file_name
 
         logger = logging.getLogger(__name__)
         try:
             f: TextIOWrapper
-            with Path(path).open("w", encoding="utf-8") as f:
+            with Path(path).open("w+", encoding="utf-8") as f:
                 config: dict[str, Any] = self._state.save_config()
                 json.dump(config, f, indent=4)
         except FileNotFoundError:

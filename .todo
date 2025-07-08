@@ -14,8 +14,8 @@
             ✔ github action for pyright @done(23-11-15 09:43)
             ✔ github action for black, flake8, isort @done(23-11-15 09:43)
             ☐ Add daily test for YClient logging (if possible) @created(23-11-27 22:03)
-            ☐ Add daily test for YFinance quote retrival @created(23-11-27 22:04)
-        ☐ Consider ruff @created(23-11-25 11:57)
+            ✔ Add daily test for YFinance quote retrival @created(23-11-27 22:04) @done(25-07-05 22:29)
+        ✔ Consider ruff @created(23-11-25 11:57) @done(25-07-05 22:29)
             https://github.com/astral-sh/ruff
         ☐ Move .pylintrc to pyproject.toml @created(23-11-25 22:41)
             https://pylint.pycqa.org/en/latest/user_guide/usage/run.html
@@ -23,6 +23,8 @@
 
 
     App:
+        Clock:
+            ✔ Support for AM/PM @done(25-07-07 20:17)
         Quotes:
             ☐ Add
                 Need to add a flag to refresh the data from the YClient source immediately
@@ -44,6 +46,7 @@
             ☐ current_row
             ☐ thread_running (tricky... using mock?)
         QuoteTable (Using Pilot):
+            https://textual.textualize.io/guide/testing/
             ☐ hovering over the headers @created(23-11-27 21:59)
             ☐ clicking on the headers @created(23-11-27 21:59)
             ☐ handling of different modes and their bindings @created(23-11-27 22:02)
@@ -62,8 +65,6 @@
 
 0.2:
     App:
-        Clock:
-            ☐ Support for AM/PM
         Columns:
             ☐ Add
             ☐ Remove

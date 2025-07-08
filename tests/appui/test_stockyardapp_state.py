@@ -67,8 +67,7 @@ def test_load_regular_config(stockyard_app_state: StockyardAppState) -> None:
         == config[StockyardAppState._QUOTE_TABLE][QuoteTableState._QUERY_FREQUENCY]
     )
     assert (
-        stockyard_app_state._time_display.value
-        == config[StockyardAppState._TIME_FORMAT]
+        stockyard_app_state._time_format.value == config[StockyardAppState._TIME_FORMAT]
     )
     assert (
         stockyard_app_state._log_level
@@ -101,7 +100,7 @@ def test_load_empty_config(stockyard_app_state: StockyardAppState) -> None:
         stockyard_app_state.quote_table_state.query_frequency
         == QuoteTableState._DEFAULT_QUERY_FREQUENCY
     )
-    assert stockyard_app_state._time_display == StockyardAppState._DEFAULT_TIME_FORMAT
+    assert stockyard_app_state._time_format == StockyardAppState._DEFAULT_TIME_FORMAT
     assert stockyard_app_state._log_level == StockyardAppState._DEFAULT_LOG_LEVEL
 
 
@@ -114,7 +113,7 @@ def test_load_config_invalid_time_display(
         StockyardAppState._TIME_FORMAT: "1000000h",
     }
     stockyard_app_state.load_config(config)
-    assert stockyard_app_state._time_display == StockyardAppState._DEFAULT_TIME_FORMAT
+    assert stockyard_app_state._time_format == StockyardAppState._DEFAULT_TIME_FORMAT
 
 
 def test_load_config_invalid_log_level(stockyard_app_state: StockyardAppState) -> None:
@@ -151,8 +150,7 @@ def test_save_config(stockyard_app_state: StockyardAppState) -> None:
         == stockyard_app_state.quote_table_state.query_frequency
     )
     assert (
-        config[StockyardAppState._TIME_FORMAT]
-        == stockyard_app_state._time_display.value
+        config[StockyardAppState._TIME_FORMAT] == stockyard_app_state._time_format.value
     )
     assert (
         logging.__dict__[config[StockyardAppState._LOG_LEVEL]]
@@ -165,8 +163,7 @@ def test_round_trip_config(stockyard_app_state: StockyardAppState) -> None:
 
     config: dict[str, Any] = stockyard_app_state.save_config()
     assert (
-        config[StockyardAppState._TIME_FORMAT]
-        == stockyard_app_state._time_display.value
+        config[StockyardAppState._TIME_FORMAT] == stockyard_app_state._time_format.value
     )
     assert (
         logging.__dict__[config[StockyardAppState._LOG_LEVEL]]
@@ -179,8 +176,7 @@ def test_round_trip_config(stockyard_app_state: StockyardAppState) -> None:
 
     stockyard_app_state.load_config(config)
     assert (
-        stockyard_app_state._time_display.value
-        == config[StockyardAppState._TIME_FORMAT]
+        stockyard_app_state._time_format.value == config[StockyardAppState._TIME_FORMAT]
     )
     assert (
         stockyard_app_state._log_level

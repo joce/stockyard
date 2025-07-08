@@ -51,7 +51,7 @@ class StockyardAppState:
         # Persistent members
         self._quote_table_state: QuoteTableState = QuoteTableState(self._yfin)
         self._log_level: int = StockyardAppState._DEFAULT_LOG_LEVEL
-        self._time_display: TimeFormat = StockyardAppState._DEFAULT_TIME_FORMAT
+        self._time_format: TimeFormat = StockyardAppState._DEFAULT_TIME_FORMAT
 
     @property
     def title(self) -> str:
@@ -78,16 +78,16 @@ class StockyardAppState:
         self._version += 1
 
     @property
-    def time_display(self) -> TimeFormat:
-        """The time display format."""
+    def time_format(self) -> TimeFormat:
+        """The time format."""
 
-        return self._time_display
+        return self._time_format
 
-    @time_display.setter
-    def time_display(self, value: TimeFormat) -> None:
-        if value == self._time_display:
+    @time_format.setter
+    def time_format(self, value: TimeFormat) -> None:
+        if value == self._time_format:
             return
-        self._time_display = value
+        self._time_format = value
         self._version += 1
 
     @property
@@ -115,9 +115,9 @@ class StockyardAppState:
         self._quote_table_state.load_config(quote_table_config)
 
         try:
-            self._time_display = get_enum_member(TimeFormat, time_format)
+            self._time_format = get_enum_member(TimeFormat, time_format)
         except ValueError:
-            self._time_display = StockyardAppState._DEFAULT_TIME_FORMAT
+            self._time_format = StockyardAppState._DEFAULT_TIME_FORMAT
 
         if log_level is None or log_level not in logging.__dict__:
             self._log_level = StockyardAppState._DEFAULT_LOG_LEVEL
@@ -134,7 +134,7 @@ class StockyardAppState:
 
         return {
             StockyardAppState._QUOTE_TABLE: self._quote_table_state.save_config(),
-            StockyardAppState._TIME_FORMAT: self._time_display.value,
+            StockyardAppState._TIME_FORMAT: self._time_format.value,
             StockyardAppState._LOG_LEVEL: StockyardAppState._LOGGING_LEVELS[
                 self._log_level
             ],

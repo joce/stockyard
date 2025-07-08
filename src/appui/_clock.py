@@ -1,39 +1,65 @@
 """A very simple and limited widget to display the current time."""
 
-from datetime import datetime, timezone
-from time import time
+from __future__ import annotations
+
+import asyncio
+import contextlib
+from datetime import datetime
+from time import strftime
 
 from textual.widgets import Static
+
+from ._enums import TimeFormat
 
 
 class Clock(Static):
     """A very simple and limited widget to display the current time."""
 
-    def on_mount(self) -> None:
+    def __init__(self, time_format: TimeFormat) -> None:
+        super().__init__()
+        self._time_format: TimeFormat = time_format
+        self._clock_task: asyncio.Task[None] | None = None
+
+    @property
+    def time_format(self) -> TimeFormat:
+        """The time format."""
+
+        return self._time_format
+
+    @time_format.setter
+    def time_format(self, value: TimeFormat) -> None:
+        if value == self._time_format:
+            return
+        self._time_format = value
+
+    async def on_mount(self) -> None:
         """Event handler called when widget is added to the app."""
 
-        # TODO Make the time display configurable through the config file (24h v. AM/PM)
-        self._show_time()
-        self._schedule_next_update()
+        self._clock_task = asyncio.create_task(self._run_clock_loop())
 
-    def _schedule_next_update(self) -> None:
-        """Schedule the next update to occur at the next second boundary."""
+    async def on_unmount(self) -> None:
+        """Cancel the update task if the widget is unmounted."""
+        if self._clock_task:
+            self._clock_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await self._clock_task
 
-        # Calculate time until next second boundary
-        now = time()
-        next_second = int(now) + 1
-        delay = next_second - now
+    async def _run_clock_loop(self) -> None:
+        """Loop that updates the clock in sync with system time."""
+        while True:
+            self._show_time()
 
-        # Schedule the update
-        self.set_timer(delay, self._show_time_and_reschedule)
+            # Current wall time in fractional seconds
+            now = datetime.now().astimezone()
+            micros = now.microsecond / 1_000_000
+            delay = 1.0 - micros
 
-    def _show_time_and_reschedule(self) -> None:
-        """Update the time and schedule the next update."""
-
-        self._show_time()
-        self._schedule_next_update()
+            await asyncio.sleep(delay)
 
     def _show_time(self) -> None:
         """Update the time displayed by the widget."""
 
-        self.update(datetime.now(timezone.utc).astimezone().time().strftime("%H:%M:%S"))
+        if self._time_format == TimeFormat.TWENTY_FOUR_HOUR:
+            self.update(strftime("%H:%M:%S"))
+        else:
+            self.update(strftime("%I:%M:%S %p"))

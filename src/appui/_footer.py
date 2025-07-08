@@ -1,15 +1,16 @@
-"""A simple footer with a clock, that can also have its bindings refreshed."""
+"""A simple footer with a clock."""
 
 from textual.app import ComposeResult
 from textual.widgets import Footer as TextualFooter
 
 from ._clock import Clock
+from ._enums import TimeFormat
 
 
 class Footer(TextualFooter):
     """The footer for the stockyard app."""
 
-    def __init__(self) -> None:
+    def __init__(self, time_format: TimeFormat) -> None:
         """
         Initialize the footer.
 
@@ -17,7 +18,7 @@ class Footer(TextualFooter):
         """
 
         super().__init__()
-        self._clock: Clock = Clock()
+        self._clock: Clock = Clock(time_format)
 
     def compose(self) -> ComposeResult:
         yield from super().compose()

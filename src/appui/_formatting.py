@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Final
 
-_NO_VALUE: Final[str] = "N/A"  # TODO Maybe use "" instead?
+_NO_VALUE: Final[str] = "N/A"
 
 
 def as_percent(value: float | None) -> str:
