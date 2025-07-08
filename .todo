@@ -14,7 +14,7 @@
             ✔ github action for pyright @done(23-11-15 09:43)
             ✔ github action for black, flake8, isort @done(23-11-15 09:43)
             ☐ Add daily test for YClient logging (if possible) @created(23-11-27 22:03)
-            ✔ Add daily test for YFinance quote retrival @created(23-11-27 22:04) @done(25-07-05 22:29)
+            ✔ Add daily test for YFinance quote retrieval @created(23-11-27 22:04) @done(25-07-05 22:29)
         ✔ Consider ruff @created(23-11-25 11:57) @done(25-07-05 22:29)
             https://github.com/astral-sh/ruff
         ☐ Move .pylintrc to pyproject.toml @created(23-11-25 22:41)
@@ -32,7 +32,7 @@
             ☐ Filtering
         General:
             ☐ Command system (Commands are already a thing. :-/)
-                ☐ We need a way to know which binding were added, which are avaiable, etc.
+                ☐ We need a way to know which binding were added, which are available, etc.
 
             ✔ use `@override` @done(23-11-16 21:24)
                 Implies dropping support for < 3.12
@@ -57,11 +57,11 @@
             ☐ Delete quote @created(23-11-27 22:01)
             ☐ Sort column titles @created(23-11-27 22:01)
             ☐ value colors @created(23-11-27 22:01)
-            ☐ values alignement @created(23-11-27 22:01)
+            ☐ values alignment @created(23-11-27 22:01)
 
         YFinance:
             ☐ Test logging works @created(23-11-27 22:02)
-            ☐ Test quote retrival works @created(23-11-27 22:04)
+            ☐ Test quote retrieval works @created(23-11-27 22:04)
 
 0.2:
     App:
@@ -81,7 +81,7 @@
 
 Other:
     DevOps:
-        ☐ review .pylinrc file
+        ☐ review .pylintrc file
         ☐ investigate using code coverage (VS Code, coverage.py (github workflow))
         ☐ pydoc?
             https://docs.python.org/3/library/pydoc.html
