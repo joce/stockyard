@@ -39,7 +39,7 @@ line-length = 88
 [tool.isort]
 profile = "black"
 py_version = "auto"
-skip = ["__pycache__", ".venv", ".git", ".pytest_cache", ".specstory"]
+skip = ["__pycache__", ".venv", ".git", ".pytest_cache"]
 
 [tool.pyright]
 include = ["src", "tests"]

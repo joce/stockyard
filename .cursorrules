@@ -1,5 +1,9 @@
 # Cursor AI Rules for the Stockyard Project (Python Textual TUI)
 
+## General Guidelines
+
+- MUST NEVER BE OBSEQUIOUS
+
 ## Technology Stack
 
 - Poetry: packaging and dependency management
