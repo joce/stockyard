@@ -21,5 +21,8 @@ docs/_build/
 # virtual environment
 /.venv
 
+# specstory
+/.specstory
+
 # ruff
 /.ruff_cache
