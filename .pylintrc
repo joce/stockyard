@@ -8,7 +8,8 @@ ignore=
 ignore-patterns=
 
 load-plugins=pylint.extensions.docparams,
-             pylint.extensions.docstyle
+             pylint.extensions.docstyle,
+             tools.pylint_plugins.decorator_docstring_checker
 
 # Pickle collected data for later comparisons.
 persistent=False
@@ -32,7 +33,8 @@ typevar-rgx=^[A-Z][_a-zA-Z0-9]*$
 
 # Regular expression which should only match function or class names that do
 # not require a docstring.
-no-docstring-rgx=(__.*__|main|test_[a-z0-9_]*|compose|on_mount|on_unmount)$
+no-docstring-rgx=^(__.*__|main|test_[a-z0-9_]*|compose|on_mount|_?on_unmount)$
+no-docstring-decorator-rgx=^(override)$
 
 
 [EXCEPTIONS]

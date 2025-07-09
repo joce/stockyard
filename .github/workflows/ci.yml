@@ -62,6 +62,8 @@ jobs:
       - name: Analysing the code with pylint
         run: |
           poetry run pylint $(git ls-files '*.py')
+        env:
+          PYTHONPATH: ${{ github.workspace }}
       - name: Analyzing typing with pyright
         run: |
           poetry run pyright --pythonversion ${{ matrix.python-version }}
