@@ -10,7 +10,7 @@ requires-python = ">=3.9, < 4.0"
 dependencies = [
     "regex >= 2024.0, < 2025.0",
     "requests >= 2.32, < 3.0",
-    "textual >= 3.1",
+    "textual >= 4.0",
     "tzdata >= 2025.2",
     "pytz >= 2025.2; python_version < '3.11'",
     "typing_extensions >= 4.13; python_version < '3.12'",
@@ -21,6 +21,7 @@ repository = "https://github.com/joce/stockyard"
 homepage = "https://github.com/joce/stockyard"
 
 [tool.poetry.group.dev.dependencies]
+astroid = "^3.3"
 black = "^25.1.0"
 flake8 = "^7.3"
 isort = "^6.0.1"

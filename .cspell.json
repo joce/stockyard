@@ -36,6 +36,7 @@
         "attrname",
         "datatable",
         "classdef",
+        "decoratornames",
         "disp",
         "functiondef",
         "gcrumb",

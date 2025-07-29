@@ -9,7 +9,7 @@ ignore-patterns=
 
 load-plugins=pylint.extensions.docparams,
              pylint.extensions.docstyle,
-             tools.pylint_plugins.decorator_docstring_checker
+             decorator_docstring_suppress_checker
 
 # Pickle collected data for later comparisons.
 persistent=False
@@ -17,8 +17,7 @@ persistent=False
 # Use multiple processes to speed up Pylint.
 jobs=4
 
-# To make sure we can access the src directory
-init-hook='import sys; sys.path.append("src")'
+init-hook="import sys; sys.path.append("src"); sys.path.append("tools/pylint_plugins"); "
 
 
 [BASIC]
@@ -33,8 +32,7 @@ typevar-rgx=^[A-Z][_a-zA-Z0-9]*$
 
 # Regular expression which should only match function or class names that do
 # not require a docstring.
-no-docstring-rgx=^(__.*__|main|test_[a-z0-9_]*|compose|on_mount|_?on_unmount)$
-no-docstring-decorator-rgx=^(override)$
+no-docstring-rgx=^(__.*__|main|test_[a-z0-9_]*)$
 
 
 [EXCEPTIONS]
@@ -136,6 +134,7 @@ disable=docstring-first-line-empty,
         too-many-arguments,
         too-many-branches,
         too-many-instance-attributes,
+        too-many-positional-arguments,
         too-many-public-methods,
         too-many-statements,
 
