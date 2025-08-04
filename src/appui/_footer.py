@@ -1,10 +1,17 @@
 """A simple footer with a clock."""
 
+import sys
+
 from textual.app import ComposeResult
 from textual.widgets import Footer as TextualFooter
 
 from ._clock import Clock
 from ._enums import TimeFormat
+
+if sys.version_info >= (3, 12):
+    from typing import override
+else:
+    from typing_extensions import override
 
 
 class Footer(TextualFooter):
@@ -20,6 +27,7 @@ class Footer(TextualFooter):
         super().__init__()
         self._clock: Clock = Clock(time_format)
 
+    @override
     def compose(self) -> ComposeResult:
         yield from super().compose()
         yield self._clock

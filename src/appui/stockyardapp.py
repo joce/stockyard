@@ -93,7 +93,12 @@ class StockyardApp(App[None]):
         self.exit()
 
     def load_config(self, path: str) -> None:
-        """Load the configuration for the app."""
+        """
+        Load the configuration for the app.
+
+        Args:
+            path: The path to the configuration file.
+        """
 
         if self._config_loaded:
             return
@@ -119,7 +124,12 @@ class StockyardApp(App[None]):
         # TODO: asyncio's logging needs to be set as the same level as the app's
 
     def save_config(self, path: str | None = None) -> None:
-        """Save the configuration for the app."""
+        """
+        Save the configuration for the app.
+
+        Args:
+            path: The path to the configuration file.
+        """
 
         if path is None:
             path = self._config_file_name

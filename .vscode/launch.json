@@ -13,6 +13,20 @@
             //"console": "integratedTerminal",
             "console": "externalTerminal",
             "justMyCode": false
+        },
+        {
+            "name": "Debug Pylint Plugin",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pylint",
+            "args": [
+                //     "--load-plugins=my_plugin_name",    // optional, if not declared in pyproject.toml
+                //     "--disable=all",                    // optional, disable all checks
+                //     "--enable=my-check-name",           // optional, enable just your check
+                "${workspaceFolder}/src/appui/_quote_table.py" // or: replace with files to lint
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false
         }
     ]
 }

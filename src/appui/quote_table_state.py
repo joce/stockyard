@@ -270,6 +270,10 @@ class QuoteTableState:
 
         This method expects the _quotes_lock to have been acquired beforehand.
 
+        Args:
+            value: The index of the quote (from _quotes) whose ticker symbol matches the
+            cursor symbol
+
         Raises:
             QuoteTableState.QuoteLockError: If the _quotes_lock has not been acquired.
             QuoteTableState.InvalidRowIndexError: If value is out of range.

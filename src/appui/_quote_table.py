@@ -21,6 +21,7 @@ from ._enums import Justify, SortDirection
 if TYPE_CHECKING:
     from rich.style import Style
     from textual import events
+    from textual._types import SegmentLines
     from textual.coordinate import Coordinate
 
     from ._quote_table_data import QuoteCell, QuoteColumn, QuoteRow
@@ -128,7 +129,12 @@ class QuoteTable(DataTable[Text]):
         super()._on_unmount()
 
     def _switch_bindings(self, mode: QuoteTable.BM) -> None:
-        """Switch the bindings to the given mode."""
+        """
+        Switch the bindings to the given mode.
+
+        Args:
+            mode (QuoteTable.BM): The mode to switch to.
+        """
 
         if self._current_bindings == mode:
             return
@@ -272,7 +278,7 @@ class QuoteTable(DataTable[Text]):
             event.prevent_default()
 
     @override
-    def _render_cell(  # pylint: disable=too-many-positional-arguments # noqa: ANN202
+    def _render_cell(
         self,
         row_index: int,
         column_index: int,
@@ -280,7 +286,7 @@ class QuoteTable(DataTable[Text]):
         width: int,
         cursor: bool = False,
         hover: bool = False,
-    ):
+    ) -> SegmentLines:
         current_show_hover_cursor: bool = self._show_hover_cursor
         if row_index == -1:
             if self._current_bindings == QuoteTable.BM.IN_ORDERING:
@@ -303,7 +309,12 @@ class QuoteTable(DataTable[Text]):
         self._state.cursor_row = new_coordinate.row
 
     def on_data_table_header_selected(self, evt: DataTable.HeaderSelected) -> None:
-        """Event handler called when the header is clicked."""
+        """
+        Event handler called when the header is clicked.
+
+        Args:
+            evt (DataTable.HeaderSelected): The event object.
+        """
 
         # TODO We probably need to send an event to the app instead.
         selected_column_key: str = (

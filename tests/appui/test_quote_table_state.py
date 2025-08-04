@@ -60,6 +60,9 @@ def duplicate_column(qts: QuoteTableState) -> str:
     """
     Provide an existing column key for testing column validation.
 
+    Args:
+        qts: The QuoteTableState instance to modify
+
     Returns:
         str: the key of the duplicate column.
     """
@@ -76,6 +79,10 @@ def thread_running_context(qts: QuoteTableState) -> Iterator[None]:
 
     Args:
         qts: The QuoteTableState instance to modify
+
+    Yields:
+        Iterator[None]: An iterator that is only used to satisfy the context manager
+        protocol.
     """
     qts.query_thread_running = True
     sleep(0.1)
