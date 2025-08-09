@@ -8,9 +8,9 @@ readme = "README.md"
 requires-python = ">=3.9, < 4.0"
 
 dependencies = [
-    "regex >= 2024.0, < 2025.0",
+    "regex >= 2025.0, < 2026.0",
     "requests >= 2.32, < 3.0",
-    "textual >= 4.0",
+    "textual >= 5.0",
     "tzdata >= 2025.2",
     "pytz >= 2025.2; python_version < '3.11'",
     "typing_extensions >= 4.13; python_version < '3.12'",
