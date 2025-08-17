@@ -22,7 +22,8 @@
         "pyright",
         "referer",
         "renderable",
-        "triggerable"
+        "triggerable",
+        "watchlist"
     ],
     "ignoreWords": [
         "EURUSD",

@@ -17,7 +17,7 @@ from textual.widgets import LoadingIndicator
 from yfinance import YFinance
 
 from ._footer import Footer
-from ._quote_table import QuoteTable
+from ._watchlist import Watchlist
 from .stockyardapp_state import StockyardAppState
 
 if TYPE_CHECKING:
@@ -49,7 +49,7 @@ class StockyardApp(App[None]):
         ("q", "exit", "Exit"),
     ]
 
-    def __init__(self, config_file_name: str) -> None:
+    def __init__(self) -> None:
         """Initialize the main application components and state management."""
 
         super().__init__()
@@ -58,9 +58,7 @@ class StockyardApp(App[None]):
         self._state: StockyardAppState = StockyardAppState(self._yfinance)
         self._priming_worker: Worker[None] | None = None
 
-        self._config_file_name: str = config_file_name
         self._config_loaded: bool = False
-        self.load_config(self._config_file_name)
 
         # Widgets
         self._footer: Footer = Footer(self._state.time_format)
@@ -81,11 +79,9 @@ class StockyardApp(App[None]):
 
         self._priming_worker = self._prime_yfinance()
         self.title = self._state.title
-
-    def on_quote_table_bindings_changed(self) -> None:
-        """Refresh the bindings for the app."""
-
-        self._footer.refresh_bindings()
+        self.install_screen(  # type: ignore[no-untyped-call]
+            Watchlist(self._state), name="watchlist"
+        )
 
     def action_exit(self) -> None:
         """Handle exit actions."""
@@ -123,16 +119,13 @@ class StockyardApp(App[None]):
 
         # TODO: asyncio's logging needs to be set as the same level as the app's
 
-    def save_config(self, path: str | None = None) -> None:
+    def save_config(self, path: str) -> None:
         """
         Save the configuration for the app.
 
         Args:
             path: The path to the configuration file.
         """
-
-        if path is None:
-            path = self._config_file_name
 
         logger = logging.getLogger(__name__)
         try:
@@ -166,10 +159,6 @@ class StockyardApp(App[None]):
             # No indicator was found
             logger.exception("No loading indicator found")
 
-        qt: QuoteTable = QuoteTable(self._state.quote_table_state)
-        self.mount(qt, before="Footer")
-
-        # Set the focus to the quote table
-        qt.focus()
+        self.push_screen("watchlist")
 
         self._priming_worker = None
