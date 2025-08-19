@@ -7,7 +7,6 @@ from enum import Enum
 from typing import TYPE_CHECKING
 
 from textual.binding import BindingsMap
-from textual.message import Message
 from textual.screen import Screen
 
 from ._footer import Footer
@@ -15,6 +14,7 @@ from ._quote_table import QuoteTable
 
 if TYPE_CHECKING:
     from textual.app import ComposeResult
+    from textual.events import Mount
 
     from .stockyardapp_state import StockyardAppState
 
@@ -26,9 +26,6 @@ else:
 
 class Watchlist(Screen[None]):
     """The watchlist screen."""
-
-    class BindingsChanged(Message):
-        """A message sent when the bindings have changed."""
 
     class BM(Enum):
         """The binding mode enum for the quote table."""
@@ -50,12 +47,92 @@ class Watchlist(Screen[None]):
         self._footer: Footer = Footer(self._state.time_format)
         self._quote_table: QuoteTable = QuoteTable(self._state.quote_table_state)
 
+        # Bindings
+        self._bindings_modes: dict[Watchlist.BM, BindingsMap] = {
+            Watchlist.BM.DEFAULT: self._bindings.copy(),
+            Watchlist.BM.IN_ORDERING: BindingsMap(),
+        }
+
+        self._bindings_modes[Watchlist.BM.DEFAULT].bind(
+            "o", "order_quotes", "Change sort order"
+        )
+        self._bindings_modes[Watchlist.BM.DEFAULT].bind(
+            "insert", "add_quote", "Add quote", key_display="Ins"
+        )
+
+        # For Delete, we want the same bindings as default, plus delete
+        self._bindings_modes[Watchlist.BM.WITH_DELETE] = self._bindings_modes[
+            Watchlist.BM.DEFAULT
+        ].copy()
+        self._bindings_modes[Watchlist.BM.WITH_DELETE].bind(
+            "delete", "remove_quote", "Remove quote", key_display="Del"
+        )
+
+        # For Ordering, we want to drop all default binding. No add / delete, or cursor
+        # movement.
+        self._bindings_modes[Watchlist.BM.IN_ORDERING].bind(
+            "escape", "exit_ordering", "Done", key_display="Esc"
+        )
+
+        self._current_bindings = Watchlist.BM.DEFAULT
+
+    @override
+    def _on_mount(self, event: Mount) -> None:
+        """Event handler called when the widget is added to the app."""
+
+        super()._on_mount(event)
+
+        if len(self._state.quote_table_state.quotes_rows) > 0:
+            self._current_bindings = Watchlist.BM.WITH_DELETE
+        else:
+            self._current_bindings = Watchlist.BM.DEFAULT
+
+        self._bindings = self._bindings_modes[self._current_bindings]
+
     @override
     def compose(self) -> ComposeResult:
         yield self._quote_table
         yield self._footer
 
-    def on_quote_table_bindings_changed(self) -> None:
-        """Refresh the bindings for the app."""
+    def _switch_bindings(self, mode: Watchlist.BM) -> None:
+        """
+        Switch the bindings to the given mode.
 
+        Args:
+            mode (Watchlist.BM): The mode to switch to.
+        """
+
+        if self._current_bindings == mode:
+            return
+        self._current_bindings = mode
+        self._bindings = self._bindings_modes[self._current_bindings]
         self._footer.refresh_bindings()
+
+    def action_add_quote(self) -> None:
+        """Add a new quote to the table."""
+
+        self.app.exit()
+
+    def action_remove_quote(self) -> None:
+        """Remove the selected quote from the table."""
+
+        self._quote_table.remove_quote(-1)
+        if len(self._state.quote_table_state.quotes_rows) > 0:
+            self._current_bindings = Watchlist.BM.WITH_DELETE
+        else:
+            self._current_bindings = Watchlist.BM.DEFAULT
+
+    def action_order_quotes(self) -> None:
+        """Order the quotes in the table."""
+
+        self._quote_table.is_ordering = True
+        self._switch_bindings(Watchlist.BM.IN_ORDERING)
+
+    def action_exit_ordering(self) -> None:
+        """Exit the ordering mode."""
+
+        self._quote_table.is_ordering = False
+        if len(self._state.quote_table_state.quotes_rows) > 0:
+            self._switch_bindings(Watchlist.BM.WITH_DELETE)
+        else:
+            self._switch_bindings(Watchlist.BM.DEFAULT)

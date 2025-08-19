@@ -8,7 +8,6 @@ movement indicators, and customizable key bindings for adding and removing entri
 from __future__ import annotations
 
 import sys
-from enum import Enum
 from typing import TYPE_CHECKING, Any, Final
 
 from rich.text import Text
@@ -42,58 +41,20 @@ class QuoteTable(DataTable[Text]):
     class BindingsChanged(Message):
         """A message sent when the bindings have changed."""
 
-    class BM(Enum):
-        """The binding mode enum for the quote table."""
-
-        DEFAULT = "default"
-        WITH_DELETE = "with_delete"
-        IN_ORDERING = "in_ordering"
-
     def __init__(self, state: QuoteTableState) -> None:
         super().__init__()
         self._state: QuoteTableState = state
         self._version: int
         self._column_key_map: dict[str, Any] = {}
+        self._is_ordering: bool = False
 
         # Bindings
-        self._bindings_modes: dict[QuoteTable.BM, BindingsMap] = {
-            QuoteTable.BM.DEFAULT: self._bindings.copy(),
-            QuoteTable.BM.IN_ORDERING: BindingsMap(),
-        }
+        self._ordering_bindings: BindingsMap = BindingsMap()
+        self._default_bindings: BindingsMap = BindingsMap()
 
-        self._bindings_modes[QuoteTable.BM.DEFAULT].bind(
-            "o", "order_quotes", "Change sort order"
-        )
-        self._bindings_modes[QuoteTable.BM.DEFAULT].bind(
-            "insert", "add_quote", "Add quote", key_display="Ins"
-        )
-
-        # For Delete, we want the same bindings as default, plus delete
-        self._bindings_modes[QuoteTable.BM.WITH_DELETE] = self._bindings_modes[
-            QuoteTable.BM.DEFAULT
-        ].copy()
-        self._bindings_modes[QuoteTable.BM.WITH_DELETE].bind(
-            "delete", "remove_quote", "Remove quote", key_display="Del"
-        )
-
-        # For Ordering, we want to drop all default binding. No add / delete, or cursor
-        # movement.
-        self._bindings_modes[QuoteTable.BM.IN_ORDERING].bind(
-            "escape", "exit_ordering", "Done", key_display="Esc"
-        )
-        self._bindings_modes[QuoteTable.BM.IN_ORDERING].bind(
-            "right", "order_move_right", show=False
-        )
-        self._bindings_modes[QuoteTable.BM.IN_ORDERING].bind(
-            "left", "order_move_left", show=False
-        )
-        self._bindings_modes[QuoteTable.BM.IN_ORDERING].bind(
-            "enter", "order_toggle", show=False
-        )
-
-        # TODO This maybe should be part of the state... hum...
-        self._current_bindings = QuoteTable.BM.DEFAULT
-        self._bindings = self._bindings_modes[self._current_bindings]
+        self._ordering_bindings.bind("right", "order_move_right", show=False)
+        self._ordering_bindings.bind("left", "order_move_left", show=False)
+        self._ordering_bindings.bind("enter", "order_toggle", show=False)
 
         # The following (especially the cursor type) need to be set after the binding
         # modes have been created
@@ -128,20 +89,6 @@ class QuoteTable(DataTable[Text]):
         self._state.query_thread_running = False
         super()._on_unmount()
 
-    def _switch_bindings(self, mode: QuoteTable.BM) -> None:
-        """
-        Switch the bindings to the given mode.
-
-        Args:
-            mode (QuoteTable.BM): The mode to switch to.
-        """
-
-        if self._current_bindings == mode:
-            return
-        self._current_bindings = mode
-        self._bindings = self._bindings_modes[self._current_bindings]
-        self.post_message(self.BindingsChanged())
-
     def _update_table(self) -> None:  # noqa: PLR0912 FIXME
         """Update the table with the latest quotes (if any)."""
 
@@ -155,13 +102,6 @@ class QuoteTable(DataTable[Text]):
             self.columns[self._column_key_map[quote_column.key]].label = styled_column
 
         quotes: list[QuoteRow] = self._state.quotes_rows
-
-        if len(quotes) > 0:
-            if self._current_bindings == QuoteTable.BM.DEFAULT:
-                self._switch_bindings(QuoteTable.BM.WITH_DELETE)
-        else:  # noqa: PLR5501
-            if self._current_bindings == QuoteTable.BM.WITH_DELETE:
-                self._switch_bindings(QuoteTable.BM.DEFAULT)
 
         i: int = 0
         quote: QuoteRow
@@ -255,7 +195,7 @@ class QuoteTable(DataTable[Text]):
 
     @override
     def watch_hover_coordinate(self, old: Coordinate, value: Coordinate) -> None:
-        if self._current_bindings == QuoteTable.BM.IN_ORDERING:
+        if self.is_ordering:
             return
 
         if value.row == -1:
@@ -268,13 +208,13 @@ class QuoteTable(DataTable[Text]):
     @override
     async def _on_click(self, event: events.Click) -> None:
         # Prevent mouse interaction when in ordering (KB-only) mode
-        if self._current_bindings == QuoteTable.BM.IN_ORDERING:
+        if self.is_ordering:
             event.prevent_default()
 
     @override
     def _on_mouse_move(self, event: events.MouseMove) -> None:
         # Prevent mouse interaction when in ordering (KB-only) mode
-        if self._current_bindings == QuoteTable.BM.IN_ORDERING:
+        if self.is_ordering:
             event.prevent_default()
 
     @override
@@ -289,7 +229,7 @@ class QuoteTable(DataTable[Text]):
     ) -> SegmentLines:
         current_show_hover_cursor: bool = self._show_hover_cursor
         if row_index == -1:
-            if self._current_bindings == QuoteTable.BM.IN_ORDERING:
+            if self.is_ordering:
                 self._show_hover_cursor = True
             hover = self._state.hovered_column == column_index  # Mouse mode
 
@@ -298,7 +238,7 @@ class QuoteTable(DataTable[Text]):
                 row_index, column_index, base_style, width, cursor, hover
             )
         finally:
-            if row_index == -1 and self._current_bindings == QuoteTable.BM.IN_ORDERING:
+            if row_index == -1 and self.is_ordering:
                 self._show_hover_cursor = current_show_hover_cursor
 
     @override
@@ -333,37 +273,37 @@ class QuoteTable(DataTable[Text]):
                 else SortDirection.DESCENDING
             )
 
-    def action_add_quote(self) -> None:
-        """Add a new quote to the table."""
+    @property
+    def is_ordering(self) -> bool:
+        """Whether the table is in ordering mode."""
 
-        self.app.exit()
+        return self._is_ordering
 
-    def action_remove_quote(self) -> None:
-        """Remove the selected quote from the table."""
+    @is_ordering.setter
+    def is_ordering(self, value: bool) -> None:
+        if value == self._is_ordering:
+            return
 
-        self._state.remove_row(self.cursor_row)
-
-    def action_order_quotes(self) -> None:
-        """Order the quotes in the table."""
-
-        self._switch_bindings(QuoteTable.BM.IN_ORDERING)
-        self._set_hover_cursor(active=False)
-        if self._state.hovered_column == -1:
-            self._state.hovered_column = self._state.sort_column_idx
-        self._version -= 1  # Force refresh
-
-    def action_exit_ordering(self) -> None:
-        """Exit the ordering mode."""
-
-        if len(self._state.quotes_rows) > 0:
-            self._switch_bindings(QuoteTable.BM.WITH_DELETE)
+        self._set_hover_cursor(active=not value)
+        if value:
+            if self._state.hovered_column == -1:
+                self._state.hovered_column = self._state.sort_column_idx
+            self._bindings = self._ordering_bindings
         else:
-            self._switch_bindings(QuoteTable.BM.DEFAULT)
+            self._bindings = self._default_bindings
+        self._version -= 1  # Force refresh
+        self._is_ordering = value
 
-        self._set_hover_cursor(active=True)
+    def remove_quote(self, row_key: int) -> None:
+        """
+        Remove a quote from the table.
 
-        # TODO Might want to set to whatever the mouse hover is now
-        self._state.hovered_column = -1
+        Args:
+            row_key (int): The key of the row to remove. If negative, the cursor row is
+                removed.
+        """
+
+        self._state.remove_row(row_key if row_key >= 0 else self.cursor_row)
 
     def action_order_move_right(self) -> None:
         """Move the cursor right in order mode."""
