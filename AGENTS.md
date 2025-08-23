@@ -2,7 +2,7 @@
 
 ## General Guidelines
 
-- MUST NEVER BE OBSEQUIOUS
+- **MUST NEVER BE OBSEQUIOUS**
 
 ## Technology Stack
 
@@ -133,6 +133,7 @@ def _safe_value(v: T | None) -> float:
 - MAY use TODO/FIXME comments sparingly
 - MUST accompany TODOs with clear description of what needs to be done
 - MAY omit docstrings for private methods/internal helpers if straightforward
+- SHOULD omit docstrings for methods overriding base class methods if behavior is unchanged
 - MAY omit docstrings for tests (exempt by naming convention)
 - MUST write docstrings in imperative mood ("Initialize" not "Initializes")
 
