@@ -6,7 +6,7 @@ import json
 import logging
 import sys
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import TYPE_CHECKING, Any
 
 from textual import work
 from textual.app import App, ComposeResult
@@ -23,7 +23,6 @@ from .stockyardapp_state import StockyardAppState
 if TYPE_CHECKING:
     from io import TextIOWrapper
 
-    from textual.binding import BindingType
     from textual.worker import Worker
 
 if sys.version_info >= (3, 12):
@@ -44,10 +43,6 @@ class StockyardApp(App[None]):
     CSS_PATH = "./stockyardapp.tcss"
 
     ENABLE_COMMAND_PALETTE = False  # TODO: Consider enabling this
-
-    BINDINGS: ClassVar[list[BindingType]] = [
-        ("q", "exit", "Exit"),
-    ]
 
     def __init__(self) -> None:
         """Initialize the main application components and state management."""
@@ -82,11 +77,6 @@ class StockyardApp(App[None]):
         self.install_screen(  # type: ignore[no-untyped-call]
             Watchlist(self._state), name="watchlist"
         )
-
-    def action_exit(self) -> None:
-        """Handle exit actions."""
-
-        self.exit()
 
     def load_config(self, path: str) -> None:
         """

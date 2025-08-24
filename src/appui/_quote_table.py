@@ -14,6 +14,7 @@ from rich.text import Text
 from textual.binding import BindingsMap
 from textual.message import Message
 from textual.widgets import DataTable
+from textual.widgets._data_table import RowKey  # noqa: PLC2701
 
 from ._enums import Justify, SortDirection
 
@@ -89,7 +90,7 @@ class QuoteTable(DataTable[Text]):
         self._state.query_thread_running = False
         super()._on_unmount()
 
-    def _update_table(self) -> None:  # noqa: PLR0912 FIXME
+    def _update_table(self) -> None:
         """Update the table with the latest quotes (if any)."""
 
         if self._version == self._state.version:
@@ -101,16 +102,17 @@ class QuoteTable(DataTable[Text]):
             styled_column: Text = self._get_styled_column_title(quote_column)
             self.columns[self._column_key_map[quote_column.key]].label = styled_column
 
-        quotes: list[QuoteRow] = self._state.quotes_rows
+        quote_rows: list[QuoteRow] = self._state.quotes_rows
 
         i: int = 0
         quote: QuoteRow
-        for i, quote in enumerate(quotes):
+        for quote in quote_rows:
             # We only use the index as the row key, so we can update and reorder the
             # rows as needed
-            quote_key: str = str(i)
+            quote_key: RowKey = RowKey(str(i))
+            i += 1
             # Update existing rows
-            if quote_key in self.rows:  # pyright: ignore [reportUnnecessaryContains]
+            if quote_key in self.rows:
                 for j, cell in enumerate(quote.values):
                     self.update_cell(
                         quote_key,
@@ -122,7 +124,7 @@ class QuoteTable(DataTable[Text]):
                 stylized_row: list[Text] = [
                     QuoteTable._get_styled_cell(cell) for cell in quote.values
                 ]
-                self.add_row(*stylized_row, key=quote_key)
+                self.add_row(*stylized_row, key=quote_key.value)
 
         # Remove extra rows, if any
         for r in range(i, len(self.rows)):

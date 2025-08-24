@@ -42,6 +42,7 @@ class Watchlist(Screen[None]):
         # TODO Maybe have a different state for the watchlist?
         self._state: StockyardAppState = state
         self._bindings: BindingsMap = BindingsMap()
+        self._current_bindings: Watchlist.BM = Watchlist.BM.DEFAULT
 
         # Widgets
         self._footer: Footer = Footer(self._state.time_format)
@@ -49,10 +50,11 @@ class Watchlist(Screen[None]):
 
         # Bindings
         self._bindings_modes: dict[Watchlist.BM, BindingsMap] = {
-            Watchlist.BM.DEFAULT: self._bindings.copy(),
+            Watchlist.BM.DEFAULT: BindingsMap(),
             Watchlist.BM.IN_ORDERING: BindingsMap(),
         }
 
+        self._bindings_modes[Watchlist.BM.DEFAULT].bind("q", "exit", "Exit")
         self._bindings_modes[Watchlist.BM.DEFAULT].bind(
             "o", "order_quotes", "Change sort order"
         )
@@ -74,7 +76,7 @@ class Watchlist(Screen[None]):
             "escape", "exit_ordering", "Done", key_display="Esc"
         )
 
-        self._current_bindings = Watchlist.BM.DEFAULT
+        self._switch_bindings(Watchlist.BM.DEFAULT, force=True)
 
     @override
     def _on_mount(self, event: Mount) -> None:
@@ -82,10 +84,7 @@ class Watchlist(Screen[None]):
 
         super()._on_mount(event)
 
-        if len(self._state.quote_table_state.quotes_rows) > 0:
-            self._current_bindings = Watchlist.BM.WITH_DELETE
-        else:
-            self._current_bindings = Watchlist.BM.DEFAULT
+        self._switch_bindings(Watchlist.BM.DEFAULT)
 
         self._bindings = self._bindings_modes[self._current_bindings]
 
@@ -94,15 +93,23 @@ class Watchlist(Screen[None]):
         yield self._quote_table
         yield self._footer
 
-    def _switch_bindings(self, mode: Watchlist.BM) -> None:
+    def _switch_bindings(self, mode: Watchlist.BM, force: bool = False) -> None:
         """
         Switch the bindings to the given mode.
 
         Args:
             mode (Watchlist.BM): The mode to switch to.
+            force (bool): Whether to switch bindings even if the current mode is the
+                same as the new mode.
         """
 
-        if self._current_bindings == mode:
+        if (
+            mode == Watchlist.BM.DEFAULT
+            and len(self._state.quote_table_state.quotes_symbols) > 0
+        ):
+            mode = Watchlist.BM.WITH_DELETE
+
+        if self._current_bindings == mode and not force:
             return
         self._current_bindings = mode
         self._bindings = self._bindings_modes[self._current_bindings]
@@ -117,10 +124,7 @@ class Watchlist(Screen[None]):
         """Remove the selected quote from the table."""
 
         self._quote_table.remove_quote(-1)
-        if len(self._state.quote_table_state.quotes_rows) > 0:
-            self._current_bindings = Watchlist.BM.WITH_DELETE
-        else:
-            self._current_bindings = Watchlist.BM.DEFAULT
+        self._switch_bindings(Watchlist.BM.DEFAULT)
 
     def action_order_quotes(self) -> None:
         """Order the quotes in the table."""
@@ -132,7 +136,9 @@ class Watchlist(Screen[None]):
         """Exit the ordering mode."""
 
         self._quote_table.is_ordering = False
-        if len(self._state.quote_table_state.quotes_rows) > 0:
-            self._switch_bindings(Watchlist.BM.WITH_DELETE)
-        else:
-            self._switch_bindings(Watchlist.BM.DEFAULT)
+        self._switch_bindings(Watchlist.BM.DEFAULT)
+
+    def action_exit(self) -> None:
+        """Handle exit actions."""
+
+        self.app.exit()

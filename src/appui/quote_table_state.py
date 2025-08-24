@@ -229,70 +229,12 @@ class QuoteTableState:
         with self._quotes_lock:
             return self._get_cursor_row_no_lock()
 
-    def _get_cursor_row_no_lock(self) -> int:
-        """
-        Get the current row of the cursor.
-
-        This method expects the _quotes_lock to have been acquired beforehand.
-
-        Raises:
-            QuoteTableState.QuoteLockError: If the _quotes_lock has not been acquired.
-
-        Returns:
-            The index of the quote (from _quotes) whose ticker symbol matches the
-            cursor symbol
-        """
-
-        if not self._quotes_lock.locked():
-            raise QuoteTableState.QuoteLockError(__name__)
-
-        # Return the index of the quote (from _quotes) whose ticker symbol matches the
-        # cursor symbol
-        return next(
-            (
-                i
-                for i, quote in enumerate(self._quotes)
-                if quote.symbol == self._cursor_symbol
-            ),
-            -1,
-        )
-
     @cursor_row.setter
     def cursor_row(self, value: int) -> None:
         with self._quotes_lock:
             # Setting the current row does not change the version. It's just used to
             # mirror the cursor position from the UI.
             self._set_cursor_row_no_lock(value)
-
-    def _set_cursor_row_no_lock(self, value: int) -> None:
-        """
-        Set the current row of the cursor.
-
-        This method expects the _quotes_lock to have been acquired beforehand.
-
-        Args:
-            value: The index of the quote (from _quotes) whose ticker symbol matches the
-            cursor symbol
-
-        Raises:
-            QuoteTableState.QuoteLockError: If the _quotes_lock has not been acquired.
-            QuoteTableState.InvalidRowIndexError: If value is out of range.
-        """
-
-        if not self._quotes_lock.locked():
-            raise QuoteTableState.QuoteLockError(__name__)
-
-        if value >= len(self._quotes_symbols):
-            raise QuoteTableState.InvalidRowIndexError(value)
-
-        if value < 0:
-            self._cursor_symbol = ""
-            return
-
-        if self._quotes[value].symbol == self._cursor_symbol:
-            return
-
-        self._cursor_symbol = self._quotes[value].symbol
 
     @property
     def quotes_columns(self) -> list[QuoteColumn]:
@@ -337,6 +279,12 @@ class QuoteTableState:
         """The keys of the columns of the quote table."""
 
         return [c.key for c in self._columns]
+
+    @property
+    def quotes_symbols(self) -> tuple[str, ...]:
+        """The symbols of the quotes in the quote table."""
+
+        return tuple(self._quotes_symbols)
 
     def append_column(self, column_key: str) -> None:
         """
@@ -520,6 +468,68 @@ class QuoteTableState:
             key=self._sort_key_func,
             reverse=(self._sort_direction == SortDirection.DESCENDING),
         )
+
+    def _get_cursor_row_no_lock(self) -> int:
+        """
+        Get the current row of the cursor.
+
+        This method expects the _quotes_lock to have been acquired beforehand.
+
+        Raises:
+            QuoteTableState.QuoteLockError: If the _quotes_lock has not been acquired.
+
+        Returns:
+            The index of the quote (from _quotes) whose ticker symbol matches the
+            cursor symbol
+        """
+
+        if not self._quotes_lock.locked():
+            raise QuoteTableState.QuoteLockError(__name__)
+
+        # Return the index of the quote (from _quotes) whose ticker symbol matches the
+        # cursor symbol
+        return next(
+            (
+                i
+                for i, quote in enumerate(self._quotes)
+                if quote.symbol == self._cursor_symbol
+            ),
+            -1,
+        )
+
+    def _set_cursor_row_no_lock(self, value: int) -> None:
+        """
+        Set the current row of the cursor.
+
+        This method expects the _quotes_lock to have been acquired beforehand.
+
+        Args:
+            value: The index of the quote (from _quotes) whose ticker symbol matches the
+            cursor symbol
+
+        Raises:
+            QuoteTableState.QuoteLockError: If the _quotes_lock has not been acquired.
+            QuoteTableState.InvalidRowIndexError: If value is out of range.
+        """
+
+        if not self._quotes_lock.locked():
+            raise QuoteTableState.QuoteLockError(__name__)
+
+        if value == 0 and len(self._quotes_symbols) == 0:
+            self._cursor_symbol = ""
+            return
+
+        if value >= len(self._quotes_symbols):
+            raise QuoteTableState.InvalidRowIndexError(value)
+
+        if value < 0:
+            self._cursor_symbol = ""
+            return
+
+        if self._quotes[value].symbol == self._cursor_symbol:
+            return
+
+        self._cursor_symbol = self._quotes[value].symbol
 
     ##############################################################################
     # Configuration load and save
