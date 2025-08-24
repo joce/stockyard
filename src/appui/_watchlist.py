@@ -42,7 +42,7 @@ class Watchlist(Screen[None]):
         # TODO Maybe have a different state for the watchlist?
         self._state: StockyardAppState = state
         self._bindings: BindingsMap = BindingsMap()
-        self._current_bindings: Watchlist.BM = Watchlist.BM.DEFAULT
+        self._current_bindings: Watchlist.BM = Watchlist.BM.IN_ORDERING
 
         # Widgets
         self._footer: Footer = Footer(self._state.time_format)
@@ -76,7 +76,7 @@ class Watchlist(Screen[None]):
             "escape", "exit_ordering", "Done", key_display="Esc"
         )
 
-        self._switch_bindings(Watchlist.BM.DEFAULT, force=True)
+        self._switch_bindings(Watchlist.BM.DEFAULT)
 
     @override
     def _on_mount(self, event: Mount) -> None:
@@ -93,7 +93,7 @@ class Watchlist(Screen[None]):
         yield self._quote_table
         yield self._footer
 
-    def _switch_bindings(self, mode: Watchlist.BM, force: bool = False) -> None:
+    def _switch_bindings(self, mode: Watchlist.BM) -> None:
         """
         Switch the bindings to the given mode.
 
@@ -109,7 +109,7 @@ class Watchlist(Screen[None]):
         ):
             mode = Watchlist.BM.WITH_DELETE
 
-        if self._current_bindings == mode and not force:
+        if self._current_bindings == mode:
             return
         self._current_bindings = mode
         self._bindings = self._bindings_modes[self._current_bindings]
