@@ -59,7 +59,7 @@ class Watchlist(Screen[None]):
             "o", "order_quotes", "Change sort order"
         )
         self._bindings_modes[Watchlist.BM.DEFAULT].bind(
-            "insert", "add_quote", "Add quote", key_display="Ins"
+            "insert", "add_quote", "Add quote", key_display="ins"
         )
 
         # For Delete, we want the same bindings as default, plus delete
@@ -67,7 +67,7 @@ class Watchlist(Screen[None]):
             Watchlist.BM.DEFAULT
         ].copy()
         self._bindings_modes[Watchlist.BM.WITH_DELETE].bind(
-            "delete", "remove_quote", "Remove quote", key_display="Del"
+            "delete", "remove_quote", "Remove quote", key_display="del"
         )
 
         # For Ordering, we want to drop all default binding. No add / delete, or cursor
@@ -80,8 +80,6 @@ class Watchlist(Screen[None]):
 
     @override
     def _on_mount(self, event: Mount) -> None:
-        """Event handler called when the widget is added to the app."""
-
         super()._on_mount(event)
 
         self._switch_bindings(Watchlist.BM.DEFAULT)
@@ -99,8 +97,6 @@ class Watchlist(Screen[None]):
 
         Args:
             mode (Watchlist.BM): The mode to switch to.
-            force (bool): Whether to switch bindings even if the current mode is the
-                same as the new mode.
         """
 
         if (
