@@ -63,10 +63,6 @@ class QuoteTable(DataTable[Text]):
         self.zebra_stripes = True
         self.cursor_foreground_priority = "renderable"
 
-    def __del__(self) -> None:
-        # Make sure the query thread is stopped
-        self._state.query_thread_running = False
-
     @override
     def on_mount(self) -> None:
         super().on_mount()

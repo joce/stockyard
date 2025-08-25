@@ -120,11 +120,6 @@ class QuoteTableState:
         self._quotes_lock: Lock = Lock()
         self._logger = logging.getLogger(__name__)
 
-    def __del__(self) -> None:
-        # Make sure the query thread is stopped
-        if self.query_thread_running:
-            self.query_thread_running = False
-
     @property
     def version(self) -> int:
         """The version of the quote data."""
