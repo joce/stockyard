@@ -17,7 +17,7 @@ from textual.widgets import LoadingIndicator
 from yfinance import YFinance
 
 from ._footer import Footer
-from ._watchlist import Watchlist
+from ._watchlist_screen import WatchlistScreen
 from .stockyardapp_state import StockyardAppState
 
 if TYPE_CHECKING:
@@ -75,7 +75,7 @@ class StockyardApp(App[None]):
         self._priming_worker = self._prime_yfinance()
         self.title = self._state.title
         self.install_screen(  # type: ignore[no-untyped-call]
-            Watchlist(self._state), name="watchlist"
+            WatchlistScreen(self._state), name="watchlist"
         )
 
     def load_config(self, path: str) -> None:
