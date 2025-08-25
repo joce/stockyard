@@ -6,6 +6,7 @@ import logging
 from typing import Any, Final
 
 from ._yclient import YClient
+from .yautocomplete import YAutocomplete
 from .yquote import YQuote
 
 
@@ -13,6 +14,7 @@ class YFinance:
     """A Python interface to the Yahoo! Finance API."""
 
     _QUOTE_API: Final[str] = "/v7/finance/quote"
+    _AUTOCOMPLETE_API: Final[str] = "/v6/finance/autocomplete"
 
     def __init__(self) -> None:
         """Initialize the Yahoo! Finance API interface."""
@@ -62,3 +64,33 @@ class YFinance:
         return [
             YQuote(q) for q in json_data["quoteResponse"]["result"] if q is not None
         ]
+
+    def retrieve_autocompletes(self, query: str) -> tuple[str, list[YAutocomplete]]:
+        """
+        Retrieve autocomplete entries for the given query.
+
+        Args:
+            query (str): The query to get autocomplete entries for.
+
+        Returns:
+            list[YAutocomplete]: The autocomplete entries for the given query.
+        """
+
+        logger = logging.getLogger(__name__)
+
+        json_data: dict[str, Any] = self._yclient.call(
+            self._AUTOCOMPLETE_API, {"query": query}
+        )
+
+        if "ResultSet" not in json_data:
+            logger.error("No autocomplete response from Yahoo!")
+            return (query, [])
+
+        return (
+            query,
+            [
+                YAutocomplete(q)
+                for q in json_data["ResultSet"]["Result"]
+                if q is not None
+            ],
+        )
