@@ -115,7 +115,7 @@ class WatchlistScreen(Screen[None]):
     def action_add_quote(self) -> None:
         """Add a new quote to the table."""
 
-        pass
+        self.app.push_screen(SelectorScreen(self._state))
 
     def action_remove_quote(self) -> None:
         """Remove the selected quote from the table."""
