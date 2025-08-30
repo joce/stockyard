@@ -12,6 +12,11 @@
 - Regex: pattern matching
 - Pytest: testing
 
+## Compliance validation
+
+- MUST run `poetry run ruff check --target-version py39` after changes
+- MUST run `poetry run ruff format --check --target-version py39` after changes
+
 ## Project Structure and Architecture
 
 ### State Management
@@ -133,7 +138,7 @@ def _safe_value(v: T | None) -> float:
 - MAY use TODO/FIXME comments sparingly
 - MUST accompany TODOs with clear description of what needs to be done
 - MAY omit docstrings for private methods/internal helpers if straightforward
-- SHOULD omit docstrings for methods overriding base class methods if behavior is unchanged
+- MUST omit docstrings for methods overriding base class methods
 - MAY omit docstrings for tests (exempt by naming convention)
 - MUST write docstrings in imperative mood ("Initialize" not "Initializes")
 

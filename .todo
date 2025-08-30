@@ -17,8 +17,9 @@
             ✔ Add daily test for YFinance quote retrieval @created(23-11-27 22:04) @done(25-07-05 22:29)
         ✔ Consider ruff @created(23-11-25 11:57) @done(25-07-05 22:29)
             https://github.com/astral-sh/ruff
-        ☐ Move .pylintrc to pyproject.toml @created(23-11-25 22:41)
+        ✘ Move .pylintrc to pyproject.toml @created(23-11-25 22:41) @cancelled(25-08-29 17:51)
             https://pylint.pycqa.org/en/latest/user_guide/usage/run.html
+            Config is fine where it is now
         ✔ Support back down to Python 3.8 @created(23-11-26 21:55) @done(24-01-03 22:17)
 
 
@@ -36,6 +37,12 @@
 
             ✔ use `@override` @done(23-11-16 21:24)
                 Implies dropping support for < 3.12
+
+        State Management:
+            ☐ Review whether YClient belongs in the state (probably not) @created(25-08-29 17:45)
+            ☐ Split model from current state @created(25-08-29 17:46)
+            ☐ Move QuoteTableState out of AppState. To be created by the Screen (probably) @created(25-08-29 17:49)
+            ☐ Consider moving away from a polling system for QuoteTableState @created(25-08-29 19:56)
 
     Tests:
         QuoteTableState:
@@ -85,3 +92,4 @@ Other:
         ☐ investigate using code coverage (VS Code, coverage.py (github workflow))
         ☐ pydoc?
             https://docs.python.org/3/library/pydoc.html
+        ☐ Consider uv (again) once it's 1.0 @created(25-08-29 17:48)

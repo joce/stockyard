@@ -59,7 +59,7 @@ jobs:
       - name: Checking style with flake8
         run: |
           poetry run flake8 .
-      - name: Analysing the code with pylint
+      - name: Analyzing the code with pylint
         run: |
           poetry run pylint $(git ls-files '*.py')
         env:
