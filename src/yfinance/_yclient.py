@@ -13,10 +13,8 @@ import json
 import logging
 from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING, Any, Final
-from urllib.parse import parse_qs, urlencode, urlparse
 
-import requests
-from requests.cookies import RequestsCookieJar
+import httpx
 
 if TYPE_CHECKING:
     from http.cookiejar import Cookie
@@ -41,39 +39,20 @@ class YClient:
         "authority": "finance.yahoo.com",
         "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",  # noqa: E501
         "accept-language": "en-US,en;q=0.9",
-        "sec-ch-ua": _USER_AGENT_CLIENT_HINT_BRANDING_AND_VERSION,
-        "sec-ch-ua-mobile": "?0",
-        "sec-ch-ua-platform": _USER_AGENT_CLIENT_HINT_PLATFORM,
-        "sec-fetch-dest": "document",
-        "sec-fetch-mode": "navigate",
-        "sec-fetch-site": "none",
-        "sec-fetch-user": "?1",
         "upgrade-insecure-requests": "1",
         "user-agent": _USER_AGENT,
     }
 
     def __init__(self) -> None:
-        self._session: requests.Session = requests.Session()
-        self._session.headers.update(
-            {
+        self._client: httpx.Client = httpx.Client(
+            headers={
                 "authority": "query1.finance.yahoo.com",
                 "accept": "*/*",
                 "accept-language": "en-US,en;q=0.9,ja;q=0.8",
                 "origin": self._YAHOO_FINANCE_URL,
-                "sec-ch-ua": self._USER_AGENT_CLIENT_HINT_BRANDING_AND_VERSION,
-                "sec-ch-ua-mobile": "?0",
-                "sec-ch-ua-platform": self._USER_AGENT_CLIENT_HINT_PLATFORM,
-                "sec-fetch-dest": "empty",
-                "sec-fetch-mode": "cors",
-                "sec-fetch-site": "same-site",
                 "user-agent": self._USER_AGENT,
             }
         )
-        self._session.params = {
-            "lang": "en-US",
-            "region": "US",
-            "corsDomain": "finance.yahoo.com",
-        }
 
         self._expiry: datetime = datetime(
             1970, 1, 1, tzinfo=datetime.now().astimezone().tzinfo
@@ -89,7 +68,7 @@ class YClient:
         calls to the Yahoo! finance API.
         """
 
-        def _is_eu_consent_redirect(response: requests.Response) -> bool:
+        def _is_eu_consent_redirect(response: httpx.Response) -> bool:
             return (
                 "guce.yahoo.com" in response.headers.get("Location", "")
                 and response.is_redirect
@@ -97,55 +76,55 @@ class YClient:
 
         self._logger.debug("Logging in...")
 
-        response: requests.Response
-        with self._session.get(
+        response: httpx.Response = self._client.get(
             self._YAHOO_FINANCE_URL,
             headers=self._COOKIE_HEADERS,
-            allow_redirects=False,
-        ) as response:
-            try:
-                response.raise_for_status()
-            except requests.exceptions.HTTPError:
-                self._logger.exception("Can't log in")
+            follow_redirects=False,
+        )
+        try:
+            response.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            if e.response.is_error:
+                self._logger.exception("Can't log in: %s", e.response)
                 return
 
-            cookies: RequestsCookieJar = response.cookies
+        cookies: httpx.Cookies = response.cookies
 
-            if _is_eu_consent_redirect(response):
-                cookies = self._get_cookies_eu()
+        if _is_eu_consent_redirect(response):
+            cookies = self._get_cookies_eu()
 
-            if not any(cookie.name == "A3" for cookie in cookies):
-                self._logger.error("Required cookie not set")
-                return
+        if not any(cookie == "A3" for cookie in cookies):
+            self._logger.error("Required cookie not set")
+            return
 
-            # Figure out how long the login is valid for.
-            # Default expiry is ten years in the future
-            expiry: datetime = datetime.now(timezone.utc).astimezone() + timedelta(
-                days=3650
+        # Figure out how long the login is valid for.
+        # Default expiry is ten years in the future
+        expiry: datetime = datetime.now(timezone.utc).astimezone() + timedelta(
+            days=3650
+        )
+
+        cookie: Cookie
+        for cookie in cookies.jar:
+            if cookie.domain != ".yahoo.com" or cookie.expires is None:
+                continue
+
+            cookie_expiry: datetime = datetime.fromtimestamp(
+                cookie.expires, tz=datetime.now().astimezone().tzinfo
             )
 
-            cookie: Cookie
-            for cookie in cookies:
-                if cookie.domain != ".yahoo.com" or cookie.expires is None:
-                    continue
+            if cookie_expiry >= expiry:
+                continue
 
-                cookie_expiry: datetime = datetime.fromtimestamp(
-                    cookie.expires, tz=datetime.now().astimezone().tzinfo
-                )
+            self._logger.debug(
+                "Cookie %s accepted. Setting expiry to %s",
+                cookie.name,
+                cookie_expiry.strftime("%Y-%m-%d %H:%M:%S"),
+            )
+            expiry = cookie_expiry
 
-                if cookie_expiry >= expiry:
-                    continue
+        self._expiry = expiry
 
-                self._logger.debug(
-                    "Cookie %s accepted. Setting expiry to %s",
-                    cookie.name,
-                    cookie_expiry.strftime("%Y-%m-%d %H:%M:%S"),
-                )
-                expiry = cookie_expiry
-
-            self._expiry = expiry
-
-    def _get_cookies_eu(self) -> RequestsCookieJar:
+    def _get_cookies_eu(self) -> httpx.Cookies:
         """
         Get cookies from the EU consent page.
 
@@ -153,56 +132,53 @@ class YClient:
             The cookies from the EU consent page.
         """
 
-        response: requests.Response
-        with self._session.get(
-            self._YAHOO_FINANCE_URL,
-            headers=self._COOKIE_HEADERS,
-            allow_redirects=True,
-        ) as response:
-            try:
-                response.raise_for_status()
-            except requests.exceptions.HTTPError:
-                self._logger.exception("Can't log in")
-                return RequestsCookieJar()
+        response: httpx.Response = self._client.get(
+            self._YAHOO_FINANCE_URL, headers=self._COOKIE_HEADERS, follow_redirects=True
+        )
+        try:
+            response.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            self._logger.exception("Can't log in: %s", e.response)
+            return httpx.Cookies()
 
-            # Extract the session ID from the redirected request URL
-            try:
-                session_id: str = parse_qs(urlparse(response.url).query)["sessionId"][0]
-            except (NameError, KeyError):
-                self._logger.exception(
-                    "Unable to extract session id from redirected request URL: '%s'",
-                    response.url,
-                )
-                return RequestsCookieJar()
+        # Extract the session ID from the redirected request URL
+        try:
+            session_id: str = response.url.params["sessionId"]
+        except (NameError, KeyError):
+            self._logger.exception(
+                "Unable to extract session id from redirected request URL: '%s'",
+                response.url,
+            )
+            return httpx.Cookies()
 
-            # Find the right URL in the redirect history, and extract the CSRF token
-            # from it
-            guce_url: str = ""
-            hist: requests.Response
-            for hist in response.history:
-                if hist.url.startswith("https://guce.yahoo.com"):
-                    guce_url = hist.url
-                    break
+        # Find the right URL in the redirect history, and extract the CSRF token
+        # from it
+        guce_url: httpx.URL = httpx.URL("")
+        hist: httpx.Response
+        for hist in response.history:
+            if hist.url.host == "guce.yahoo.com":
+                guce_url = hist.url
+                break
 
-            try:
-                csrf_token: str = parse_qs(urlparse(guce_url).query)["gcrumb"][0]
-            except (NameError, KeyError):
-                self._logger.exception(
-                    "Unable to extract CSRF token redirected request URL: '%s'",
-                    response.url,
-                )
-                return RequestsCookieJar()
+        try:
+            csrf_token: str = guce_url.params["gcrumb"]
+        except (NameError, KeyError):
+            self._logger.exception(
+                "Unable to extract CSRF token redirected request URL: '%s'",
+                response.url,
+            )
+            return httpx.Cookies()
 
-            # Look in the history to find the right cookie
-            gucs_cookie: RequestsCookieJar = RequestsCookieJar()
-            for hist in response.history:
-                if hist.cookies.get("GUCS") is not None:
-                    gucs_cookie: RequestsCookieJar = hist.cookies
-                    break
+        # Look in the history to find the right cookie
+        gucs_cookie: httpx.Cookies = httpx.Cookies()
+        for hist in response.history:
+            if hist.cookies.get("GUCS") is not None:
+                gucs_cookie = hist.cookies
+                break
 
-            if len(gucs_cookie) == 0:
-                self._logger.error("No cookies set by finance.yahoo.com")
-                return RequestsCookieJar()
+        if len(gucs_cookie) == 0:
+            self._logger.error("No cookies set by finance.yahoo.com")
+            return httpx.Cookies()
 
         referrer_url: str = (
             "https://consent.yahoo.com/v2/collectConsent?sessionId=" + session_id
@@ -216,13 +192,6 @@ class YClient:
             "accept-language": "en-US,en;q=0.5",
             "accept-encoding": "gzip, deflate, br",
             "dnt": "1",
-            "sec-ch-ua": self._USER_AGENT_CLIENT_HINT_BRANDING_AND_VERSION,
-            "sec-ch-ua-mobile": "?0",
-            "sec-ch-ua-platform": self._USER_AGENT_CLIENT_HINT_PLATFORM,
-            "sec-fetch-dest": "document",
-            "sec-fetch-mode": "navigate",
-            "sec-fetch-site": "same-origin",
-            "sec-fetch-user": "?1",
             "referer": referrer_url,
             "user-agent": self._USER_AGENT,
         }
@@ -234,33 +203,32 @@ class YClient:
             "agree": "agree",
         }
 
-        with self._session.post(
+        response = self._client.post(
             referrer_url,
             headers=consent_headers,
             cookies=gucs_cookie,
             data=data,
-            allow_redirects=True,
-        ) as response:
-            for hist in response.history:
-                if hist.cookies.get("A3") is not None:
-                    return hist.cookies
+            follow_redirects=True,
+        )
+        for hist in response.history:
+            if hist.cookies.get("A3") is not None:
+                return hist.cookies
 
-        return RequestsCookieJar()
+        return httpx.Cookies()
 
     def _refresh_crumb(self) -> None:
         """Refresh the crumb required to fetch quotes."""
 
         self._logger.debug("Refreshing crumb...")
 
-        response: requests.Response
-        with self._session.get(
+        response: httpx.Response = self._client.get(
             self._CRUMB_URL, timeout=self._DEFAULT_HTTP_TIMEOUT
-        ) as response:
-            try:
-                response.raise_for_status()
-                self._crumb = response.text
-            except requests.exceptions.HTTPError:
-                self._logger.exception("Can't fetch crumb")
+        )
+        try:
+            response.raise_for_status()
+            self._crumb = response.text
+        except httpx.HTTPStatusError as e:
+            self._logger.exception("Can't fetch crumb: %s", e.response)
 
         if self._crumb:
             self._logger.debug(
@@ -271,7 +239,9 @@ class YClient:
         else:
             self._logger.debug("Crumb refresh failed")
 
-    def _execute_request(self, api_call: str) -> dict[str, Any]:
+    def _execute_request(
+        self, api_call: str, query_params: dict[str, str]
+    ) -> dict[str, Any]:
         """
         Execute the given request and return the data from the response.
 
@@ -279,30 +249,34 @@ class YClient:
             api_call (str): The path to the Yahoo! finance API call (with arguments) to
             create a request for.
 
+            query_params (dict[str, str]): The query parameters to pass along with the
+            api call.
+
         Returns:
             dict[str, Any]: The JSON response.
         """
 
         self._logger.debug("Executing request: %s", api_call)
 
-        response: requests.Response
-        with self._session.get(
+        self._client.params = query_params
+
+        response: httpx.Response = self._client.get(
             self._YAHOO_FINANCE_QUERY_URL + api_call, timeout=self._DEFAULT_HTTP_TIMEOUT
-        ) as response:
-            try:
-                response.raise_for_status()
-            except requests.exceptions.HTTPError:
-                self._logger.exception("Request to api failed")
-                return {}
+        )
+        try:
+            response.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            self._logger.exception("Request to api failed: %s", e.response)
+            return {}
 
-            res_body: str = response.text
-            self._logger.debug("Response: %s", res_body)
+        res_body: str = response.text
+        self._logger.debug("Response: %s", res_body)
 
-            if not res_body:
-                self._logger.error("Can't parse response")
-                return {}
+        if not res_body:
+            self._logger.error("Can't parse response")
+            return {}
 
-            return json.loads(res_body)
+        return json.loads(res_body)
 
     def prime(self) -> None:
         """Prime the client for use."""
@@ -339,8 +313,4 @@ class YClient:
         if self._crumb:
             query_params["crumb"] = self._crumb
 
-        if len(query_params) > 0:
-            query_string = urlencode(query_params)
-            api_url += "?" + query_string
-
-        return self._execute_request(api_url)
+        return self._execute_request(api_url, query_params)

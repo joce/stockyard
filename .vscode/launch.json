@@ -24,7 +24,7 @@
             //"console": "integratedTerminal",
             "console": "externalTerminal",
             "justMyCode": false
-        }
+        },
         {
             "name": "Debug Pylint Plugin",
             "type": "debugpy",
