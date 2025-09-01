@@ -61,7 +61,8 @@
         "yclient",
         "yfin",
         "yfinance",
-        "yquote"
+        "yquote",
+        "ysync"
     ],
     "import": [],
     "flagWords": ["hte"],
