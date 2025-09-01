@@ -51,7 +51,8 @@ class YClient:
                 "accept-language": "en-US,en;q=0.9,ja;q=0.8",
                 "origin": self._YAHOO_FINANCE_URL,
                 "user-agent": self._USER_AGENT,
-            }
+            },
+            timeout=self._DEFAULT_HTTP_TIMEOUT,
         )
 
         self._expiry: datetime = datetime(
@@ -224,9 +225,7 @@ class YClient:
 
         self._logger.debug("Refreshing crumb...")
 
-        response: httpx.Response = self._client.get(
-            self._CRUMB_URL, timeout=self._DEFAULT_HTTP_TIMEOUT
-        )
+        response: httpx.Response = self._client.get(self._CRUMB_URL)
         try:
             response.raise_for_status()
             self._crumb = response.text
@@ -263,7 +262,6 @@ class YClient:
 
         response: httpx.Response = self._client.get(
             self._YAHOO_FINANCE_QUERY_URL + api_call,
-            timeout=self._DEFAULT_HTTP_TIMEOUT,
             params=query_params,
         )
         try:
