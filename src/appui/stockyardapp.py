@@ -23,6 +23,7 @@ from .stockyardapp_state import StockyardAppState
 if TYPE_CHECKING:
     from io import TextIOWrapper
 
+    from rich.console import RenderableType
     from textual.worker import Worker
 
 if sys.version_info >= (3, 12):
@@ -62,6 +63,16 @@ class StockyardApp(App[None]):
     def compose(self) -> ComposeResult:
         yield LoadingIndicator()
         yield self._footer
+
+    @override
+    def exit(
+        self,
+        result: None = None,
+        return_code: int = 0,
+        message: RenderableType | None = None,
+    ) -> None:
+        self._yfinance.close()
+        return super().exit(result, return_code, message)
 
     def on_unmount(self) -> None:
         """Handle unmount events."""

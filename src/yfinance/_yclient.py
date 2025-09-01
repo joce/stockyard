@@ -314,3 +314,7 @@ class YClient:
             query_params["crumb"] = self._crumb
 
         return self._execute_request(api_url, query_params)
+
+    def close(self) -> None:
+        """Close the client."""
+        self._client.close()

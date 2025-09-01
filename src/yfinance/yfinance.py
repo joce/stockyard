@@ -26,6 +26,10 @@ class YFinance:
 
         self._yclient.prime()
 
+    def close(self) -> None:
+        """Close the YFinance client."""
+        self._yclient.close()
+
     def retrieve_quotes(self, symbols: list[str]) -> list[YQuote]:
         """
         Retrieve quotes for the given symbols.
