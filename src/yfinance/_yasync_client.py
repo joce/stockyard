@@ -80,7 +80,7 @@ class YAsyncClient:
         except httpx.HTTPStatusError as e:
             if e.response.is_error:
                 self._logger.exception("Can't log in: %s", e.response)
-            return
+                return
         except httpx.TransportError:
             self._logger.exception("Transport error logging in")
             return
