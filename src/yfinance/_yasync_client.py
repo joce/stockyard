@@ -84,6 +84,9 @@ class YAsyncClient:
         except httpx.TransportError:
             self._logger.exception("Transport error logging in")
             return
+        except asyncio.CancelledError:
+            self._logger.exception("Cancelled log in")
+            return
 
         cookies: httpx.Cookies = response.cookies if response else httpx.Cookies()
 
@@ -138,8 +141,17 @@ class YAsyncClient:
             response.raise_for_status()
             # Extract the session ID from the redirected request URL
             session_id = response.url.params.get("sessionId", "")
-        except (httpx.HTTPStatusError, httpx.TransportError):
-            self._logger.exception("EU cookies initial request failed")
+        except httpx.HTTPStatusError as e:
+            if e.response.is_error:
+                self._logger.exception(
+                    "EU cookies initial request failed: %s", e.response
+                )
+            return result
+        except httpx.TransportError:
+            self._logger.exception("Transport error in initial request for EU cookies")
+            return result
+        except asyncio.CancelledError:
+            self._logger.exception("Cancelled request for EU cookies")
             return result
         except (NameError, KeyError):
             self._logger.exception(
@@ -202,9 +214,16 @@ class YAsyncClient:
                 data=data,
                 follow_redirects=True,
             )
+        except httpx.HTTPStatusError as e:
+            self._logger.exception("Can't post consent: %s", e.response)
+            return result
         except httpx.TransportError:
             self._logger.exception("Transport error posting consent")
             return result
+        except asyncio.CancelledError:
+            self._logger.exception("Cancelled posting consent")
+            return result
+
         for hist in response.history if response else []:
             if hist.cookies.get("A3") is not None:
                 result = hist.cookies
@@ -215,6 +234,7 @@ class YAsyncClient:
         """Refresh the crumb required to fetch quotes."""
 
         self._logger.debug("Refreshing crumb...")
+        self._crumb = ""
         try:
             response: httpx.Response = await self._client.get(self._CRUMB_URL)
             response.raise_for_status()
@@ -223,6 +243,8 @@ class YAsyncClient:
             self._logger.exception("Can't fetch crumb: %s", e.response)
         except httpx.TransportError:
             self._logger.exception("Transport error fetching crumb")
+        except asyncio.CancelledError:
+            self._logger.exception("Cancelled fetching crumb")
 
         if self._crumb:
             self._logger.debug(
@@ -247,11 +269,11 @@ class YAsyncClient:
             if not self._crumb:
                 await self._refresh_crumb()
 
-    async def _execute_request(
+    async def _execute_api_call(
         self, api_call: str, query_params: dict[str, str]
     ) -> dict[str, Any]:
         """
-        Execute the given request and return parsed JSON.
+        Execute the given api call with the given params and return parsed JSON.
 
         Args:
             api_call (str): API endpoint (e.g. '/v10/finance/quoteSummary/MSFT').
@@ -269,10 +291,13 @@ class YAsyncClient:
             )
             response.raise_for_status()
         except httpx.HTTPStatusError as e:
-            self._logger.exception("Request to api failed: %s", e.response)
+            self._logger.exception("Call to api failed: %s", e.response)
             return {}
         except httpx.TransportError:
-            self._logger.exception("Transport error executing request")
+            self._logger.exception("Transport error executing api call")
+            return {}
+        except asyncio.CancelledError:
+            self._logger.exception("Cancelled api call")
             return {}
 
         res_body: str = response.text
@@ -314,7 +339,7 @@ class YAsyncClient:
             query_params = {}
         if self._crumb:
             query_params["crumb"] = self._crumb
-        return await self._execute_request(api_url, query_params)
+        return await self._execute_api_call(api_url, query_params)
 
     async def aclose(self) -> None:
         """Close the underlying AsyncClient."""
