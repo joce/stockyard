@@ -258,10 +258,10 @@ class YClient:
 
         self._logger.debug("Executing request: %s", api_call)
 
-        self._client.params = query_params
-
         response: httpx.Response = self._client.get(
-            self._YAHOO_FINANCE_QUERY_URL + api_call, timeout=self._DEFAULT_HTTP_TIMEOUT
+            self._YAHOO_FINANCE_QUERY_URL + api_call,
+            timeout=self._DEFAULT_HTTP_TIMEOUT,
+            params=query_params,
         )
         try:
             response.raise_for_status()
