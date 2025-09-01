@@ -70,7 +70,7 @@ class SelectorScreen(ModalScreen[None]):
             self._option_list.clear_options()
             return
 
-        # Generate substrings: "Cursor" -> ["C", "Cu", "Cur", "Curs", "Curso", "Cursor"]
+        # Generate substrings: "Cursor" -> ["C", "Cu", "Cur", ..., "Cursor"]
         substrings = [text[: i + 1] for i in range(len(text))]
 
         # Remember current selection before clearing
