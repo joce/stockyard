@@ -124,6 +124,9 @@ class YClient:
 
         self._expiry = expiry
 
+        # Invalidate the crumb, so it gets refreshed on next use
+        self._crumb = ""
+
     def _get_cookies_eu(self) -> httpx.Cookies:
         """
         Get cookies from the EU consent page.
