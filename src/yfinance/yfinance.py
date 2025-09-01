@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Final
 
-from ._yclient import YClient
+from ._ysync_client import YSyncClient
 from .yautocomplete import YAutocomplete
 from .yquote import YQuote
 
@@ -19,7 +19,7 @@ class YFinance:
     def __init__(self) -> None:
         """Initialize the Yahoo! Finance API interface."""
 
-        self._yclient = YClient()
+        self._yclient = YSyncClient()
 
     def prime(self) -> None:
         """Prime the YFinance client."""
