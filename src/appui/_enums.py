@@ -33,8 +33,7 @@ U = TypeVar("U", str, int, float)
 
 
 def get_enum_member(enum_type: type[T], value: U | None) -> T:
-    """
-    Get the enum member for a given string value.
+    """Get the enum member for a given string value.
 
     Args:
         enum_type (Type[T]): The enum type.
