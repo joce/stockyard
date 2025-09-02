@@ -69,7 +69,7 @@ class YAsyncClient:
 
         self._logger.debug("Logging in...")
 
-        response: httpx.Response
+        response: httpx.Response | None = None
         try:
             response = await self._client.get(
                 self._YAHOO_FINANCE_URL,

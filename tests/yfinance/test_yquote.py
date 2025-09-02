@@ -8,12 +8,13 @@ if TYPE_CHECKING:
     from yfinance import YQuote
 
 
-def test_yquote_dates() -> None:
+async def test_yquote_dates() -> None:
     """Ensure the date formats are consistent for different versions of Python."""
 
     aapl_quote: YQuote
     gold_fut: YQuote
-    aapl_quote, gold_fut = FakeYFinance().retrieve_quotes(["AAPL", "GC=F"])
+    yfinance = FakeYFinance()
+    aapl_quote, gold_fut = await yfinance.retrieve_quotes(["AAPL", "GC=F"])
     assert gold_fut.expire_date is not None
     assert gold_fut.expire_date.strftime("%Y-%m-%d %H:%M:%S") == "2023-12-27 00:00:00"
     assert aapl_quote.earnings_datetime is not None
