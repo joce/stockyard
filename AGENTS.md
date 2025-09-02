@@ -13,37 +13,17 @@
 - Pydantic: data validation and settings management
 - Pytest: testing
 
-## Compliance validation
-
-- MUST run `poetry run ruff check --target-version py39` after changes
-- MUST run `poetry run ruff format --check --target-version py39` after changes
-
 ## Project Structure and Architecture
-
-### State Management
-
-- MUST use unidirectional data flow: `user interaction -> action -> state update -> UI reaction`
-- MUST centralize application state in classes ending with `State`
-- MUST treat state as single source of truth for UI
-- MUST reflect state updates in UI by reading from state
-- MUST NOT introduce global variables or scattered state
 
 ### Textual TUI Integration
 
 - MUST follow Textual patterns and integrate with dataflow architecture
-- MUST use `App.compose()` or `mount()` methods for widget creation
 - MUST use Textual's action/message system for UI events
-- MUST define `action_...` methods in widgets for key bindings
 - MUST avoid long-running tasks in UI thread
 - MUST use `@work` decorator for I/O or blocking computations
-- MUST use `set_interval` or `set_timer` for regular UI refreshes
-- MUST NOT use manual loops or `time.sleep` for UI responsiveness
 - MUST separate UI logic (presentation) from business logic
-- MUST contain sorting/filtering logic in state classes
-- MUST handle input/output in Textual widgets
 - MUST use locks/synchronization when modifying shared state from background threads
 - SHOULD style UI using Textual CSS (.tcss files) rather than embedded colors
-- MUST define key bindings through `BINDINGS` class variable or `Bindings` API
 - MUST match new UI components with existing style (colors, spacing, tone, patterns)
 
 ## Testing Guidelines

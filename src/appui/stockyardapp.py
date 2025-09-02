@@ -17,8 +17,9 @@ from textual.widgets import LoadingIndicator
 from yfinance import YFinance
 
 from ._footer import Footer
+from ._messages import ExitApp
 from ._watchlist_screen import WatchlistScreen
-from .stockyardapp_state import StockyardAppState
+from .stockyardapp_config import StockyardAppConfig
 
 if TYPE_CHECKING:
     from io import TextIOWrapper
@@ -50,29 +51,21 @@ class StockyardApp(App[None]):
 
         super().__init__()
 
-        self._yfinance: YFinance = YFinance()
-        self._state: StockyardAppState = StockyardAppState(self._yfinance)
+        self._yfinance = YFinance()
+        self._config = StockyardAppConfig()
         self._priming_worker: Worker[None] | None = None
 
-        self._config_loaded: bool = False
+        self._config_loaded = False
+
+        self._may_exit = False
 
         # Widgets
-        self._footer: Footer = Footer(self._state.time_format)
+        self._footer = Footer(self._config.time_format)
 
     @override
     def compose(self) -> ComposeResult:
         yield LoadingIndicator()
         yield self._footer
-
-    @override
-    def exit(
-        self,
-        result: None = None,
-        return_code: int = 0,
-        message: RenderableType | None = None,
-    ) -> None:
-        self._yfinance.close()
-        super().exit(result, return_code, message)
 
     def on_unmount(self) -> None:
         """Handle unmount events."""
@@ -84,14 +77,55 @@ class StockyardApp(App[None]):
         """Handle mount events."""
 
         self._priming_worker = self._prime_yfinance()
-        self.title = self._state.title
+        self.title = self._config.title
         self.install_screen(  # type: ignore[no-untyped-call]
-            WatchlistScreen(self._state), name="watchlist"
+            WatchlistScreen(self._config), name="watchlist"
         )
 
-    def load_config(self, path: str) -> None:
+    async def on_exit_app(self, _: ExitApp) -> None:
+        """Handle exit app messages.
+
+        Do not call this directly.
         """
-        Load the configuration for the app.
+        if self._priming_worker and self._priming_worker.is_running:
+            self._priming_worker.cancel()
+        try:
+            await self._yfinance.close()
+        except Exception:  # pylint: disable=broad-except
+            logging.getLogger(__name__).exception("Error closing YFinance")
+
+        self._may_exit = True
+        self.exit()
+
+    @override
+    def exit(
+        self,
+        result: None = None,
+        return_code: int = 0,
+        message: RenderableType | None = None,
+    ) -> None:
+        """Guarded exit: only proceeds if async cleanup enabled it.
+
+        Do not call this directly. Post a ExitApp message to initiate quitting.
+
+        Args:
+            result: The result to return (None).
+            return_code: The return code (0).
+            message: An optional message to display on exit.
+
+        Raises:
+            RuntimeError: If called directly without async cleanup.
+        """
+
+        if not self._may_exit:
+            msg = "Blocked direct exit(); use ExitApp message instead."
+            raise RuntimeError(msg)
+
+        self._may_exit = False
+        super().exit(result, return_code, message)
+
+    def load_config(self, path: str) -> None:
+        """Load the configuration for the app.
 
         Args:
             path: The path to the configuration file.
@@ -105,7 +139,7 @@ class StockyardApp(App[None]):
             f: TextIOWrapper
             with Path(path).open(encoding="utf-8") as f:
                 config: dict[str, Any] = json.load(f)
-                self._state.load_config(config)
+                self._config.load_config(config)
             self._config_loaded = True
         except FileNotFoundError:
             logger.warning("load_config: Config file not found: %s", path)
@@ -121,8 +155,7 @@ class StockyardApp(App[None]):
         # TODO: asyncio's logging needs to be set as the same level as the app's
 
     def save_config(self, path: str) -> None:
-        """
-        Save the configuration for the app.
+        """Save the configuration for the app.
 
         Args:
             path: The path to the configuration file.
@@ -132,20 +165,20 @@ class StockyardApp(App[None]):
         try:
             f: TextIOWrapper
             with Path(path).open("w+", encoding="utf-8") as f:
-                config: dict[str, Any] = self._state.save_config()
+                config: dict[str, Any] = self._config.save_config()
                 json.dump(config, f, indent=4)
         except FileNotFoundError:
             logger.exception("save_config: Config file not found: %s", path)
         except PermissionError:
             logger.exception("save_config: Permission denied: %s", path)
 
-    @work(exclusive=True, thread=True)
-    def _prime_yfinance(self) -> None:
+    @work(exclusive=True)
+    async def _prime_yfinance(self) -> None:
         """Prime the YFinance client."""
 
-        self._yfinance.prime()
+        await self._yfinance.prime()
         if self._priming_worker is not None and not self._priming_worker.is_cancelled:
-            self.call_from_thread(self._finish_loading)
+            self._finish_loading()
 
     def _finish_loading(self) -> None:
         """Finish loading."""
