@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from yfinance import YQuote
 
 
-def test_yquote_values() -> None:
+async def test_yquote_values() -> None:
     """Ensure the values are read properly for all versions of Python."""
 
     aapl_quote: YQuote

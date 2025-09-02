@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Final
 
-from ._ysync_client import YSyncClient
+from ._yasync_client import YAsyncClient
 from .yautocomplete import YAutocomplete
 from .yquote import YQuote
 
@@ -19,18 +19,18 @@ class YFinance:
     def __init__(self) -> None:
         """Initialize the Yahoo! Finance API interface."""
 
-        self._yclient = YSyncClient()
+        self._yclient = YAsyncClient()
 
-    def prime(self) -> None:
+    async def prime(self) -> None:
         """Prime the YFinance client."""
 
-        self._yclient.prime()
+        await self._yclient.prime()
 
-    def close(self) -> None:
+    async def close(self) -> None:
         """Close the YFinance client."""
-        self._yclient.close()
+        await self._yclient.aclose()
 
-    def retrieve_quotes(self, symbols: list[str]) -> list[YQuote]:
+    async def retrieve_quotes(self, symbols: list[str]) -> list[YQuote]:
         """
         Retrieve quotes for the given symbols.
 
@@ -47,7 +47,7 @@ class YFinance:
             return []
 
         # call YClient.call with symbols stripped of whitespace
-        json_data: dict[str, Any] = self._yclient.call(
+        json_data: dict[str, Any] = await self._yclient.call(
             self._QUOTE_API, {"symbols": ",".join([s.strip() for s in symbols])}
         )
 
@@ -71,7 +71,9 @@ class YFinance:
             if q is not None
         ]
 
-    def retrieve_autocompletes(self, query: str) -> tuple[str, list[YAutocomplete]]:
+    async def retrieve_autocompletes(
+        self, query: str
+    ) -> tuple[str, list[YAutocomplete]]:
         """
         Retrieve autocomplete entries for the given query.
 
@@ -84,7 +86,7 @@ class YFinance:
 
         logger = logging.getLogger(__name__)
 
-        json_data: dict[str, Any] = self._yclient.call(
+        json_data: dict[str, Any] = await self._yclient.call(
             self._AUTOCOMPLETE_API, {"query": query}
         )
 
