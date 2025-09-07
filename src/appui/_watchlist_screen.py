@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from textual.app import ComposeResult
     from textual.events import Mount
 
-    from .stockyardapp_config import StockyardAppConfig
+    from .stockyard_config import StockyardConfig
 
 if sys.version_info >= (3, 12):
     from typing import override
@@ -40,13 +40,13 @@ class WatchlistScreen(Screen[None]):
         WITH_DELETE = "with_delete"
         IN_ORDERING = "in_ordering"
 
-    def __init__(self, config: StockyardAppConfig) -> None:
+    def __init__(self, config: StockyardConfig) -> None:
         """Initialize the watchlist screen."""
 
         super().__init__()
 
         #         # TODO Maybe have a different state for the watchlist?
-        self._config: StockyardAppConfig = config
+        self._config: StockyardConfig = config
         self._bindings: BindingsMap = BindingsMap()
         self._current_bindings: WatchlistScreen.BM = WatchlistScreen.BM.IN_ORDERING
 

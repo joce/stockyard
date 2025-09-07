@@ -1,4 +1,4 @@
-"""The state of the whole stockyard application."""
+"""The configuration of the whole stockyard application."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from ._enums import TimeFormat, get_enum_member
 # from .quote_table_state import QuoteTableState
 
 
-class StockyardAppConfig:
+class StockyardConfig:
     """The Stockyard app configuration."""
 
     # Human readable logging levels
@@ -37,8 +37,8 @@ class StockyardAppConfig:
 
         # Persistent members
         #        self._quote_table_state: QuoteTableState = QuoteTableState(self._yfin)
-        self._log_level: int = StockyardAppConfig._DEFAULT_LOG_LEVEL
-        self._time_format: TimeFormat = StockyardAppConfig._DEFAULT_TIME_FORMAT
+        self._log_level: int = StockyardConfig._DEFAULT_LOG_LEVEL
+        self._time_format: TimeFormat = StockyardConfig._DEFAULT_TIME_FORMAT
         self._title: str = "Stockyard"
 
     @property
@@ -85,10 +85,10 @@ class StockyardAppConfig:
         """
 
         #        quote_table_config: dict[str, Any] = config.get(self._QUOTE_TABLE, {})
-        time_format: str | None = config.get(StockyardAppConfig._TIME_FORMAT, None)
+        time_format: str | None = config.get(StockyardConfig._TIME_FORMAT, None)
         log_level: str | None = (
-            config[StockyardAppConfig._LOG_LEVEL].upper()
-            if StockyardAppConfig._LOG_LEVEL in config
+            config[StockyardConfig._LOG_LEVEL].upper()
+            if StockyardConfig._LOG_LEVEL in config
             else None
         )
 
@@ -97,10 +97,10 @@ class StockyardAppConfig:
         try:
             self._time_format = get_enum_member(TimeFormat, time_format)
         except ValueError:
-            self._time_format = StockyardAppConfig._DEFAULT_TIME_FORMAT
+            self._time_format = StockyardConfig._DEFAULT_TIME_FORMAT
 
         if log_level is None or log_level not in logging.__dict__:
-            self._log_level = StockyardAppConfig._DEFAULT_LOG_LEVEL
+            self._log_level = StockyardConfig._DEFAULT_LOG_LEVEL
         else:
             self._log_level = logging.__dict__[log_level]
 
@@ -113,8 +113,8 @@ class StockyardAppConfig:
 
         return {
             # StockyardAppConfig._QUOTE_TABLE: self._quote_table_state.save_config(),
-            StockyardAppConfig._TIME_FORMAT: self._time_format.value,
-            StockyardAppConfig._LOG_LEVEL: StockyardAppConfig._LOGGING_LEVELS[
+            StockyardConfig._TIME_FORMAT: self._time_format.value,
+            StockyardConfig._LOG_LEVEL: StockyardConfig._LOGGING_LEVELS[
                 self._log_level
             ],
         }

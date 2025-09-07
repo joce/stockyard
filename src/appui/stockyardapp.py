@@ -19,7 +19,7 @@ from yfinance import YFinance
 from ._footer import Footer
 from ._messages import ExitApp
 from ._watchlist_screen import WatchlistScreen
-from .stockyardapp_config import StockyardAppConfig
+from .stockyard_config import StockyardConfig
 
 if TYPE_CHECKING:
     from io import TextIOWrapper
@@ -52,7 +52,7 @@ class StockyardApp(App[None]):
         super().__init__()
 
         self._yfinance = YFinance()
-        self._config = StockyardAppConfig()
+        self._config = StockyardConfig()
         self._priming_worker: Worker[None] | None = None
 
         self._config_loaded = False
