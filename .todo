@@ -31,27 +31,15 @@
                 Need to add a flag to refresh the data from the YClient source immediately
             ✔ Remove @done(23-11-25 22:10)
             ☐ Filtering
-        General:
-            ☐ Command system (Commands are already a thing. :-/)
-                ☐ We need a way to know which binding were added, which are available, etc.
 
             ✔ use `@override` @done(23-11-16 21:24)
                 Implies dropping support for < 3.12
 
-        State Management:
-            ☐ Review whether YClient belongs in the state (probably not) @created(25-08-29 17:45)
-            ☐ Split model from current state @created(25-08-29 17:46)
-            ☐ Move QuoteTableState out of AppState. To be created by the Screen (probably) @created(25-08-29 17:49)
-            ☐ Consider moving away from a polling system for QuoteTableState @created(25-08-29 19:56)
+        Rewrite the app using MVU pattern:
+
+        Start using Pydantic:
 
     Tests:
-        QuoteTableState:
-            ✔ Test using the threads @done(23-11-13 22:03)
-            ☐ parametrize sorting tests
-            ☐ add_quote
-            ✔ remove_quote @done(23-11-27 21:59)
-            ☐ current_row
-            ☐ thread_running (tricky... using mock?)
         QuoteTable (Using Pilot):
             https://textual.textualize.io/guide/testing/
             ☐ hovering over the headers @created(23-11-27 21:59)
@@ -81,10 +69,6 @@
         Logging:
             ☐ Respect logging level set in config
             ☐ Add a way to change it "live"
-
-    Tests:
-        QuoteTableState:
-            ☐ move_column (?)
 
 Other:
     DevOps:

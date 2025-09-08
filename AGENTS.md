@@ -8,10 +8,11 @@
 
 - Poetry: packaging and dependency management
 - Textual: text-based user interface (TUI)
-- Requests: HTTP operations
+- Httpx: HTTP operations
 - Regex: pattern matching
 - Pydantic: data validation and settings management
 - Pytest: testing
+- Pydantic: data validation and settings management
 
 ## Project Structure and Architecture
 
