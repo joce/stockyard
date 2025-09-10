@@ -66,7 +66,9 @@ class YFinance:
             return []
 
         return [
-            YQuote(q) for q in json_data["quoteResponse"]["result"] if q is not None
+            YQuote.model_validate(q)
+            for q in json_data["quoteResponse"]["result"]
+            if q is not None
         ]
 
     def retrieve_autocompletes(self, query: str) -> tuple[str, list[YAutocomplete]]:

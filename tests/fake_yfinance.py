@@ -42,7 +42,7 @@ class FakeYFinance(YFinance):
             with Path.open(test_data_file, encoding="utf-8") as f:
                 json_data: dict[str, Any] = json.load(f)
                 self._quotes = [
-                    YQuote(q)
+                    YQuote.model_validate(q)
                     for q in json_data["quoteResponse"]["result"]
                     if q is not None
                 ]
