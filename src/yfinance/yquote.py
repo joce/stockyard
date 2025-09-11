@@ -6,6 +6,7 @@ import sys
 from datetime import date, datetime
 
 from pydantic import BaseModel, Field, field_validator
+from pydantic.alias_generators import to_camel
 
 # These types are required in full for serialization purposes
 from .enums import (  # noqa: TC001
@@ -31,7 +32,7 @@ class YQuote(BaseModel):
     model_config = {
         "frozen": True,  # Makes all fields read-only
         "str_strip_whitespace": True,  # Automatically strip whitespace from strings
-        "use_enum_values": True,  # Serialize enums to their values
+        "alias_generator": to_camel,
     }
 
     ask: float | None = None
@@ -41,23 +42,21 @@ class YQuote(BaseModel):
     Applies to CURRENCY, EQUITY, ETF, FUTURE, INDEX and OPTION quotes.
     """
 
-    ask_size: int | None = Field(None, alias="askSize")
+    ask_size: int | None = None
     """
     Number of units available at current ask price.
 
     Applies to CURRENCY, EQUITY, ETF and INDEX quotes.
     """
 
-    average_analyst_rating: str | None = Field(None, alias="averageAnalystRating")
+    average_analyst_rating: str | None = None
     """
     Consensus rating from financial analysts for the stock.
 
     Applies to EQUITY quotes.
     """
 
-    average_daily_volume_10_day: int | None = Field(
-        None, alias="averageDailyVolume10Day"
-    )
+    average_daily_volume_10_day: int | None = None
     """
     Average number of shares traded each day over the last 10 days.
 
@@ -65,9 +64,7 @@ class YQuote(BaseModel):
     quotes.
     """
 
-    average_daily_volume_3_month: int | None = Field(
-        None, alias="averageDailyVolume3Month"
-    )
+    average_daily_volume_3_month: int | None = None
     """
     Average number of shares traded each day over the last 3 months.
 
@@ -82,49 +79,49 @@ class YQuote(BaseModel):
     Applies to CURRENCY, EQUITY, ETF, FUTURE, INDEX and OPTION quotes.
     """
 
-    bid_size: int | None = Field(None, alias="bidSize")
+    bid_size: int | None = None
     """
     Total number of shares that buyers want to buy at the bid price.
 
     Applies to CURRENCY, EQUITY, ETF and INDEX quotes.
     """
 
-    book_value: float | None = Field(None, alias="bookValue")
+    book_value: float | None = None
     """
     Net accounting value of a company's assets.
 
     Applies to EQUITY, ETF and MUTUALFUND quotes.
     """
 
-    circulating_supply: int | None = Field(None, alias="circulatingSupply")
+    circulating_supply: int | None = None
     """
     Number of cryptocurrency units currently in public circulation.
 
     Applies to CRYPTOCURRENCY quotes.
     """
 
-    coin_image_url: str | None = Field(None, alias="coinImageUrl")
+    coin_image_url: str | None = None
     """
     URL of the image representing the cryptocurrency.
 
     Applies to CRYPTOCURRENCY quotes.
     """
 
-    coin_market_cap_link: str | None = Field(None, alias="coinMarketCapLink")
+    coin_market_cap_link: str | None = None
     """
     URL of the MarketCap site for the cryptocurrency.
 
     Applies to CRYPTOCURRENCY quotes.
     """
 
-    contract_symbol: bool | None = Field(None, alias="contractSymbol")
+    contract_symbol: bool | None = None
     """
     Ticker symbol for a futures contract.
 
     Applies to FUTURE quotes.
     """
 
-    crypto_tradeable: bool | None = Field(None, alias="cryptoTradeable")
+    crypto_tradeable: bool | None = None
     """
     Whether the cryptocurrency can be traded.
 
@@ -138,51 +135,49 @@ class YQuote(BaseModel):
     Applies to ALL quotes.
     """
 
-    display_name: str | None = Field(None, alias="displayName")
+    display_name: str | None = None
     """
     User-friendly name of the stock or security.
 
     Applies to EQUITY quotes.
     """
 
-    dividend_rate: float | None = Field(None, alias="dividendRate")
+    dividend_rate: float | None = None
     """
     Amount of dividends that a company is expected to pay over the next year.
 
     Applies to EQUITY, ETF and MUTUALFUND quotes.
     """
 
-    dividend_yield: float | None = Field(None, alias="dividendYield")
+    dividend_yield: float | None = None
     """
     Annual dividend as a percentage of the security's current price.
 
     Applies to EQUITY, ETF and MUTUALFUND quotes.
     """
 
-    eps_current_year: float | None = Field(None, alias="epsCurrentYear")
+    eps_current_year: float | None = None
     """
     Company's earnings per share (EPS) for the current year.
 
     Applies to EQUITY quotes.
     """
 
-    eps_forward: float | None = Field(None, alias="epsForward")
+    eps_forward: float | None = None
     """
     Company's projected earnings per share (EPS) for the next fiscal year.
 
     Applies to EQUITY quotes.
     """
 
-    eps_trailing_twelve_months: float | None = Field(
-        None, alias="epsTrailingTwelveMonths"
-    )
+    eps_trailing_twelve_months: float | None = None
     """
     Company's earnings per share (EPS) for the past 12 months.
 
     Applies to EQUITY, ETF and MUTUALFUND quotes.
     """
 
-    esg_populated: bool = Field(alias="esgPopulated")
+    esg_populated: bool
     """
     Availability status of ESG ratings data.
 
@@ -195,35 +190,35 @@ class YQuote(BaseModel):
     Applies to ALL quotes.
     """
 
-    exchange_data_delayed_by: int = Field(alias="exchangeDataDelayedBy")
+    exchange_data_delayed_by: int
     """
     Delay in data from the exchange, typically in minutes.
 
     Applies to ALL quotes.
     """
 
-    exchange_timezone_name: str = Field(alias="exchangeTimezoneName")
+    exchange_timezone_name: str
     """
     Name of the timezone of the exchange.
 
     Applies to ALL quotes.
     """
 
-    exchange_timezone_short_name: str = Field(alias="exchangeTimezoneShortName")
+    exchange_timezone_short_name: str
     """
     Short name of the timezone of the exchange.
 
     Applies to ALL quotes.
     """
 
-    expire_iso_date: str | None = Field(None, alias="expireIsoDate")
+    expire_iso_date: str | None = None
     """
     Date on which the option contract expires, in ISO 8601 format.
 
     Applies to OPTION quotes.
     """
 
-    fifty_day_average: float | None = Field(None, alias="fiftyDayAverage")
+    fifty_day_average: float | None = None
     """
     Average closing price of the stock over the past 50 trading days.
 
@@ -231,7 +226,7 @@ class YQuote(BaseModel):
     quotes.
     """
 
-    fifty_day_average_change: float | None = Field(None, alias="fiftyDayAverageChange")
+    fifty_day_average_change: float | None = None
     """
     Change in the 50-day average price from the previous trading day.
 
@@ -239,9 +234,7 @@ class YQuote(BaseModel):
     quotes.
     """
 
-    fifty_day_average_change_percent: float | None = Field(
-        None, alias="fiftyDayAverageChangePercent"
-    )
+    fifty_day_average_change_percent: float | None = None
     """
     Percent change in the 50-day average price from the previous trading day.
 
@@ -249,9 +242,7 @@ class YQuote(BaseModel):
     quotes.
     """
 
-    fifty_two_week_change_percent: float | None = Field(
-        None, alias="fiftyTwoWeekChangePercent"
-    )
+    fifty_two_week_change_percent: float | None = None
     """
     Percentage change in price over the past 52 weeks.
 
@@ -259,95 +250,91 @@ class YQuote(BaseModel):
     quotes.
     """
 
-    fifty_two_week_high: float = Field(alias="fiftyTwoWeekHigh")
+    fifty_two_week_high: float
     """
     Highest price the stock has traded at in the past 52 weeks.
 
     Applies to ALL quotes.
     """
 
-    fifty_two_week_high_change: float = Field(alias="fiftyTwoWeekHighChange")
+    fifty_two_week_high_change: float
     """
     Change in the 52-week high price from the previous trading day.
 
     Applies to ALL quotes.
     """
 
-    fifty_two_week_high_change_percent: float = Field(
-        alias="fiftyTwoWeekHighChangePercent"
-    )
+    fifty_two_week_high_change_percent: float
     """
     Percent change in the 52-week high price from the previous trading day.
 
     Applies to ALL quotes.
     """
 
-    fifty_two_week_low: float = Field(alias="fiftyTwoWeekLow")
+    fifty_two_week_low: float
     """
     Lowest price the stock has traded at in the past 52 weeks.
 
     Applies to ALL quotes.
     """
 
-    fifty_two_week_low_change: float = Field(alias="fiftyTwoWeekLowChange")
+    fifty_two_week_low_change: float
     """
     Change in the 52-week low price from the previous trading day.
 
     Applies to ALL quotes.
     """
 
-    fifty_two_week_low_change_percent: float = Field(
-        alias="fiftyTwoWeekLowChangePercent"
-    )
+    fifty_two_week_low_change_percent: float
     """
     Percent change in the 52-week low price from the previous trading day.
 
     Applies to ALL quotes.
     """
 
-    fifty_two_week_range: str = Field(alias="fiftyTwoWeekRange")
+    fifty_two_week_range: str
     """
     Trading price range over the past 52 weeks.
 
     Applies to ALL quotes.
     """
 
-    financial_currency: str | None = Field(None, alias="financialCurrency")
+    financial_currency: str | None = None
     """
     Currency in which the company reports its financial results.
 
     Applies to EQUITY, ETF and MUTUALFUND quotes.
     """
 
-    forward_pe: float | None = Field(None, alias="forwardPE")
+    forward_pe: float | None = None
     """
     Projected price-to-earnings ratio for the next 12 months.
 
     Applies to EQUITY quotes.
     """
 
-    from_currency: str | None = Field(None, alias="fromCurrency")
+    from_currency: str | None = None
     """
     Base currency in exchange pair.
 
     Applies to CRYPTOCURRENCY quotes.
     """
 
-    full_exchange_name: str = Field(alias="fullExchangeName")
+    full_exchange_name: str
     """
     Full name of the securities exchange on which the security is traded.
 
     Applies to ALL quotes.
     """
 
-    gmt_off_set_milliseconds: int = Field(alias="gmtOffSetMilliseconds")
+    gmt_off_set_milliseconds: int
     """
     Offset from GMT of the exchange, in milliseconds.
 
     Applies to ALL quotes.
     """
 
-    head_symbol_as_string: str | None = Field(None, alias="headSymbolAsString")
+    head_symbol_as_string: str | None = None
     """
     Symbol of the contract's underlying security.
 
@@ -361,21 +348,21 @@ class YQuote(BaseModel):
     Applies to ALL quotes.
     """
 
-    last_market: str | None = Field(None, alias="lastMarket")
+    last_market: str | None = None
     """
     Last market in which the security was traded.
 
     Applies to CRYPTOCURRENCY quotes.
     """
 
-    logo_url: str | None = Field(None, alias="logo_url")
+    logo_url: str | None = None
     """
     URL of the company's logo.
 
     Applies to CRYPTOCURRENCY quotes.
     """
 
-    long_name: str | None = Field(None, alias="longName")
+    long_name: str | None = None
     """
     Official name of the company.
 
@@ -389,116 +376,112 @@ class YQuote(BaseModel):
     Applies to ALL quotes.
     """
 
-    market_cap: int | None = Field(None, alias="marketCap")
+    market_cap: int | None = None
     """
     Total market value of the security in trading currency.
 
     Applies to EQUITY, ETF and MUTUALFUND quotes.
     """
 
-    message_board_id: str | None = Field(None, alias="messageBoardId")
+    message_board_id: str | None = None
     """
     Identifier for the Yahoo! Finance message board for this security.
 
     Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, INDEX and MUTUALFUND quotes.
     """
 
-    net_assets: float | None = Field(None, alias="netAssets")
+    net_assets: float | None = None
     """
     Total net assets of the company.
 
     Applies to ETF and MUTUALFUND quotes.
     """
 
-    net_expense_ratio: float | None = Field(None, alias="netExpenseRatio")
+    net_expense_ratio: float | None = None
     """
     Ratio of total expenses to total net assets.
 
     Applies to ETF and MUTUALFUND quotes.
     """
 
-    open_interest: int | None = Field(None, alias="openInterest")
+    open_interest: int | None = None
     """
     Total number of open contracts on a futures or options market.
 
     Applies to FUTURE and OPTION quotes.
     """
 
-    post_market_change: float | None = Field(None, alias="postMarketChange")
+    post_market_change: float | None = None
     """
     Change in the security's price in post-market trading.
 
     Applies to ALL quotes.
     """
 
-    post_market_change_percent: float | None = Field(
-        None, alias="postMarketChangePercent"
-    )
+    post_market_change_percent: float | None = None
     """
     Percent change in the security's price in post-market trading.
 
     Applies to ALL quotes.
     """
 
-    post_market_price: float | None = Field(None, alias="postMarketPrice")
+    post_market_price: float | None = None
     """
     Price of the security in post-market trading.
 
     Applies to ALL quotes.
     """
 
-    pre_market_change: float | None = Field(None, alias="preMarketChange")
+    pre_market_change: float | None = None
     """
     Change in the security's price in pre-market trading.
 
     Applies to ALL quotes.
     """
 
-    pre_market_change_percent: float | None = Field(
-        None, alias="preMarketChangePercent"
-    )
+    pre_market_change_percent: float | None = None
     """
     Percent change in the security's price in pre-market trading.
 
     Applies to ALL quotes.
     """
 
-    pre_market_price: float | None = Field(None, alias="preMarketPrice")
+    pre_market_price: float | None = None
     """
     Price of the security in pre-market trading.
 
     Applies to ALL quotes.
     """
 
-    prev_name: str | None = Field(None, alias="prevName")
+    prev_name: str | None = None
     """
     Name of the company prior to its most recent name change.
 
     Applies to EQUITY quotes.
     """
 
-    price_eps_current_year: float | None = Field(None, alias="priceEpsCurrentYear")
+    price_eps_current_year: float | None = None
     """
     Current-year price-to-earnings ratio.
 
     Applies to EQUITY quotes.
     """
 
-    price_hint: int = Field(alias="priceHint")
+    price_hint: int
     """
     Decimal precision indicator for price values.
 
     Applies to ALL quotes.
     """
 
-    price_to_book: float | None = Field(None, alias="priceToBook")
+    price_to_book: float | None = None
     """
     Market value relative to book value per share.
 
     Applies to EQUITY, ETF and MUTUALFUND quotes.
     """
 
-    quote_source_name: str | None = Field(None, alias="quoteSourceName")
+    quote_source_name: str | None = None
     """
     Name of the source providing the quote.
 
@@ -512,84 +495,84 @@ class YQuote(BaseModel):
     Applies to ALL quotes.
     """
 
-    regular_market_change: float = Field(alias="regularMarketChange")
+    regular_market_change: float
     """
     Change in the security's price in regular trading.
 
     Applies to ALL quotes.
     """
 
-    regular_market_change_percent: float = Field(alias="regularMarketChangePercent")
+    regular_market_change_percent: float
     """
     Percent change in the security's price in regular trading.
 
     Applies to ALL quotes.
     """
 
-    regular_market_day_high: float | None = Field(None, alias="regularMarketDayHigh")
+    regular_market_day_high: float | None = None
     """
     Highest price during regular trading session.
 
     Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and OPTION quotes.
     """
 
-    regular_market_day_low: float | None = Field(None, alias="regularMarketDayLow")
+    regular_market_day_low: float | None = None
     """
     Lowest price during regular trading session.
 
     Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and OPTION quotes.
     """
 
-    regular_market_day_range: str | None = Field(None, alias="regularMarketDayRange")
+    regular_market_day_range: str | None = None
     """
     Price range during regular trading session.
 
     Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and OPTION quotes.
     """
 
-    regular_market_open: float | None = Field(None, alias="regularMarketOpen")
+    regular_market_open: float | None = None
     """
     Opening price for regular trading session.
 
     Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and OPTION quotes.
     """
 
-    regular_market_previous_close: float = Field(alias="regularMarketPreviousClose")
+    regular_market_previous_close: float
     """
     Closing price of the security in the previous regular trading session.
 
     Applies to ALL quotes.
     """
 
-    regular_market_price: float = Field(alias="regularMarketPrice")
+    regular_market_price: float
     """
     Latest price from regular trading session.
 
     Applies to ALL quotes.
     """
 
-    regular_market_volume: int | None = Field(None, alias="regularMarketVolume")
+    regular_market_volume: int | None = None
     """
     Number of units traded in regular session.
 
     Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, FUTURE, INDEX and OPTION quotes.
     """
 
-    shares_outstanding: int | None = Field(None, alias="sharesOutstanding")
+    shares_outstanding: int | None = None
     """
     Number of shares currently held by all shareholders.
 
     Applies to EQUITY, ETF and MUTUALFUND quotes.
     """
 
-    short_name: str = Field(alias="shortName")
+    short_name: str
     """
     Short, user-friendly name for the stock or security.
 
     Applies to ALL quotes.
     """
 
-    source_interval: int = Field(alias="sourceInterval")
+    source_interval: int
     """
     Interval at which the data source provides updates, in seconds.
 
@@ -610,7 +593,7 @@ class YQuote(BaseModel):
     Applies to ALL quotes.
     """
 
-    to_currency: str | None = Field(None, alias="toCurrency")
+    to_currency: str | None = None
     """
     Counter currency in exchange pair.
 
@@ -624,18 +607,14 @@ class YQuote(BaseModel):
     Applies to ALL quotes.
     """
 
-    trailing_annual_dividend_rate: float | None = Field(
-        None, alias="trailingAnnualDividendRate"
-    )
+    trailing_annual_dividend_rate: float | None = None
     """
     Dividend payment per share over the past 12 months.
 
     Applies to EQUITY, ETF and MUTUALFUND quotes.
     """
 
-    trailing_annual_dividend_yield: float | None = Field(
-        None, alias="trailingAnnualDividendYield"
-    )
+    trailing_annual_dividend_yield: float | None = None
     """
     Dividend yield over the past 12 months.
 
@@ -649,18 +628,14 @@ class YQuote(BaseModel):
     Applies to EQUITY, ETF and MUTUALFUND quotes.
     """
 
-    trailing_three_month_nav_returns: float | None = Field(
-        None, alias="trailingThreeMonthNavReturns"
-    )
+    trailing_three_month_nav_returns: float | None = None
     """
     Trailing 3-month net asset value (NAV) returns.
 
     Applies to ETF quotes.
     """
 
-    trailing_three_month_returns: float | None = Field(
-        None, alias="trailingThreeMonthReturns"
-    )
+    trailing_three_month_returns: float | None = None
     """
     Trailing 3-month returns.
 
@@ -674,7 +649,7 @@ class YQuote(BaseModel):
     Applies to ALL quotes.
     """
 
-    two_hundred_day_average: float | None = Field(None, alias="twoHundredDayAverage")
+    two_hundred_day_average: float | None = None
     """
     Average closing price of the stock over the past 200 trading days.
 
@@ -682,9 +657,7 @@ class YQuote(BaseModel):
     quotes.
     """
 
-    two_hundred_day_average_change: float | None = Field(
-        None, alias="twoHundredDayAverageChange"
-    )
+    two_hundred_day_average_change: float | None = None
     """
     Change in the 200-day average price from the previous trading day.
 
@@ -692,9 +665,7 @@ class YQuote(BaseModel):
     quotes.
     """
 
-    two_hundred_day_average_change_percent: float | None = Field(
-        None, alias="twoHundredDayAverageChangePercent"
-    )
+    two_hundred_day_average_change_percent: float | None = None
     """
     Percent change in the 200-day average price from the previous trading day.
 
@@ -702,51 +673,49 @@ class YQuote(BaseModel):
     quotes.
     """
 
-    type_disp: str = Field(alias="typeDisp")
+    type_disp: str
     """
     User-friendly representation of the QuoteType.
 
     Applies to ALL quotes.
     """
 
-    underlying_exchange_symbol: str | None = Field(
-        None, alias="underlyingExchangeSymbol"
-    )
+    underlying_exchange_symbol: str | None = None
     """
     Exchange symbol for the underlying asset's trading venue.
 
     Applies to FUTURE quotes.
     """
 
-    underlying_short_name: str | None = Field(None, alias="underlyingShortName")
+    underlying_short_name: str | None = None
     """
     Short name of the underlying security of a derivative.
 
     Applies to OPTION quotes.
     """
 
-    underlying_symbol: str | None = Field(None, alias="underlyingSymbol")
+    underlying_symbol: str | None = None
     """
     Ticker symbol of the underlying security of a derivative.
 
     Applies to FUTURE and OPTION quotes.
     """
 
-    volume_24_hr: int | None = Field(None, alias="volume24Hr")
+    volume_24_hr: int | None = None
     """
     Total trading volume of a cryptocurrency in the past 24 hours.
 
     Applies to CRYPTOCURRENCY quotes.
     """
 
-    volume_all_currencies: int | None = Field(None, alias="volumeAllCurrencies")
+    volume_all_currencies: int | None = None
     """
     Aggregate 24-hour volume across all currency pairs.
 
     Applies to CRYPTOCURRENCY quotes.
     """
 
-    ytd_return: float | None = Field(None, alias="ytdReturn")
+    ytd_return: float | None = None
     """
     Year-to-date return on the security.
 
@@ -806,65 +775,63 @@ class YQuote(BaseModel):
     Applies to ALL quotes.
     """
 
-    dividend_date: date | None = Field(None, alias="dividendDate")
+    dividend_date: date | None = None
     """
     Date when the company is expected to pay its next dividend.
 
     Applies to EQUITY, ETF and MUTUALFUND quotes.
     """
 
-    expire_date: date | None = Field(None, alias="expireDate")
+    expire_date: date | None = None
     """
     Date on which the option contract expires.
 
     Applies to OPTION quotes.
     """
 
-    ipo_expected_date: date | None = Field(None, alias="ipoExpectedDate")
+    ipo_expected_date: date | None = None
     """
     Expected date of the initial public offering (IPO).
 
     Applies to EQUITY quotes.
     """
 
-    name_change_date: date | None = Field(None, alias="nameChangeDate")
+    name_change_date: date | None = None
     """
     Date on which the company last changed its name.
 
     Applies to EQUITY quotes.
     """
 
-    start_date: date | None = Field(None, alias="startDate")
+    start_date: date | None = None
     """
     Date on which the coin started trading.
 
     Applies to CRYPTOCURRENCY quotes.
     """
 
-    quote_type: QuoteType = Field(alias="quoteType")
+    quote_type: QuoteType
     """
     Type of quote.
 
     Applies to ALL quotes.
     """
 
-    market_state: MarketState = Field(alias="marketState")
+    market_state: MarketState
     """
     Current state of the market for a security.
 
     Applies to ALL quotes.
     """
 
-    option_type: OptionType | None = Field(None, alias="optionType")
+    option_type: OptionType | None = None
     """
     Type of option.
 
     Applies to OPTION quotes.
     """
 
-    custom_price_alert_confidence: PriceAlertConfidence = Field(
-        alias="customPriceAlertConfidence"
-    )
+    custom_price_alert_confidence: PriceAlertConfidence
     """
     Value whose meaning is not clear at the moment.
 
