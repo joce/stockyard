@@ -10,6 +10,7 @@
 - Textual: text-based user interface (TUI)
 - Requests: HTTP operations
 - Regex: pattern matching
+- Pydantic: data validation and settings management
 - Pytest: testing
 
 ## Compliance validation
@@ -71,7 +72,7 @@
 ### General Style (PEP 8 & Google)
 
 - MUST follow the Google Python Style Guide for naming, imports, and structure
-- MUST use `CapWords` for class names
+- MUST use `PascalCase` for class names
 - MUST use `snake_case` for functions, methods, and variables
 - MUST use `UPPER_SNAKE_CASE` for constants
 - MUST prefix private/internal methods and data members with single underscore (`_`)
