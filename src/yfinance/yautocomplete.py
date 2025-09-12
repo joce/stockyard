@@ -74,14 +74,11 @@ class YAutocomplete:
             QuoteType: The corresponding QuoteType enum value.
         """
 
+        # Types for Option, Currency, Cryptocurrency, Future, and ETF are not
+        # currently mapped.
         mapping: dict[str, QuoteType] = {
             "S": QuoteType.EQUITY,
             "I": QuoteType.INDEX,
-            # "OPTION": QuoteType.OPTION,
-            # "CURRENCY": QuoteType.CURRENCY,
-            # "CRYPTOCURRENCY": QuoteType.CRYPTOCURRENCY,
-            # "FUTURE": QuoteType.FUTURE,
-            # "ETF": QuoteType.ETF,
             "M": QuoteType.MUTUALFUND,
         }
         return mapping.get(type_str.upper(), QuoteType.EQUITY)
