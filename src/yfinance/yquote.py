@@ -5,7 +5,7 @@ from __future__ import annotations
 import sys
 from datetime import date, datetime
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, computed_field
 from pydantic.alias_generators import to_camel
 
 # These types are required in full for serialization purposes
@@ -18,6 +18,7 @@ from .enums import (  # noqa: TC001
 
 if sys.version_info >= (3, 11):
     from datetime import UTC as UTC_DT
+    from zoneinfo import ZoneInfo
 
     UTC = UTC_DT
 else:
@@ -128,6 +129,14 @@ class YQuote(BaseModel):
     Applies to CRYPTOCURRENCY quotes.
     """
 
+    custom_price_alert_confidence: PriceAlertConfidence
+    """
+    Value whose meaning is not clear at the moment.
+
+    Seen values have been NONE, LOW and HIGH.
+    Applies to ALL quotes.
+    """
+
     currency: str
     """
     Currency in which the security is traded.
@@ -142,6 +151,13 @@ class YQuote(BaseModel):
     Applies to EQUITY quotes.
     """
 
+    dividend_date: date | None = None
+    """
+    Date when the company is expected to pay its next dividend.
+
+    Applies to EQUITY, ETF and MUTUALFUND quotes.
+    """
+
     dividend_rate: float | None = None
     """
     Amount of dividends that a company is expected to pay over the next year.
@@ -154,6 +170,29 @@ class YQuote(BaseModel):
     Annual dividend as a percentage of the security's current price.
 
     Applies to EQUITY, ETF and MUTUALFUND quotes.
+    """
+
+    earnings_timestamp: int | None = None
+    """
+    Raw timestamp value of the date and time of the company's earnings announcement.
+
+    Applies to EQUITY quotes.
+    """
+
+    earnings_timestamp_end: int | None = None
+    """
+    Raw timestamp value of the date and time of the end of the company's earnings
+    announcement.
+
+    Applies to EQUITY quotes.
+    """
+
+    earnings_timestamp_start: int | None = None
+    """
+    Raw timestamp value of the date and time of the start of the company's earnings
+    announcement.
+
+    Applies to EQUITY quotes.
     """
 
     eps_current_year: float | None = None
@@ -209,6 +248,13 @@ class YQuote(BaseModel):
     Short name of the timezone of the exchange.
 
     Applies to ALL quotes.
+    """
+
+    expire_date: date | None = None
+    """
+    Date on which the option contract expires.
+
+    Applies to OPTION quotes.
     """
 
     expire_iso_date: str | None = None
@@ -306,6 +352,13 @@ class YQuote(BaseModel):
     Applies to EQUITY, ETF and MUTUALFUND quotes.
     """
 
+    first_trade_date_milliseconds: int
+    """
+    Raw value of the date and time of first trade of this security, in milliseconds.
+
+    Applies to ALL quotes.
+    """
+
     forward_pe: float | None = None
     """
     Projected price-to-earnings ratio for the next 12 months.
@@ -339,6 +392,13 @@ class YQuote(BaseModel):
     Symbol of the contract's underlying security.
 
     Applies to OPTION quotes.
+    """
+
+    ipo_expected_date: date | None = None
+    """
+    Expected date of the initial public offering (IPO).
+
+    Applies to EQUITY quotes.
     """
 
     language: str
@@ -383,11 +443,25 @@ class YQuote(BaseModel):
     Applies to EQUITY, ETF and MUTUALFUND quotes.
     """
 
+    market_state: MarketState
+    """
+    Current state of the market for a security.
+
+    Applies to ALL quotes.
+    """
+
     message_board_id: str | None = None
     """
     Identifier for the Yahoo! Finance message board for this security.
 
     Applies to CRYPTOCURRENCY, CURRENCY, EQUITY, ETF, INDEX and MUTUALFUND quotes.
+    """
+
+    name_change_date: date | None = None
+    """
+    Date on which the company last changed its name.
+
+    Applies to EQUITY quotes.
     """
 
     net_assets: float | None = None
@@ -411,6 +485,13 @@ class YQuote(BaseModel):
     Applies to FUTURE and OPTION quotes.
     """
 
+    option_type: OptionType | None = None
+    """
+    Type of option.
+
+    Applies to OPTION quotes.
+    """
+
     post_market_change: float | None = None
     """
     Change in the security's price in post-market trading.
@@ -432,6 +513,13 @@ class YQuote(BaseModel):
     Applies to ALL quotes.
     """
 
+    post_market_time: int | None = None
+    """
+    Raw timestamp of the most recent post-market trade.
+
+    Applies to ALL quotes.
+    """
+
     pre_market_change: float | None = None
     """
     Change in the security's price in pre-market trading.
@@ -449,6 +537,13 @@ class YQuote(BaseModel):
     pre_market_price: float | None = None
     """
     Price of the security in pre-market trading.
+
+    Applies to ALL quotes.
+    """
+
+    pre_market_time: int | None = None
+    """
+    Raw timestamp of the most recent pre-market trade.
 
     Applies to ALL quotes.
     """
@@ -484,6 +579,13 @@ class YQuote(BaseModel):
     quote_source_name: str | None = None
     """
     Name of the source providing the quote.
+
+    Applies to ALL quotes.
+    """
+
+    quote_type: QuoteType
+    """
+    Type of quote.
 
     Applies to ALL quotes.
     """
@@ -551,6 +653,12 @@ class YQuote(BaseModel):
     Applies to ALL quotes.
     """
 
+    regular_market_time: int
+    """
+    Raw timestamp of the most recent trade in the regular trading session.
+
+    Applies to ALL quotes.
+    """
     regular_market_volume: int | None = None
     """
     Number of units traded in regular session.
@@ -577,6 +685,13 @@ class YQuote(BaseModel):
     Interval at which the data source provides updates, in seconds.
 
     Applies to ALL quotes.
+    """
+
+    start_date: date | None = None
+    """
+    Date on which the coin started trading.
+
+    Applies to CRYPTOCURRENCY quotes.
     """
 
     strike: float | None = None
@@ -722,141 +837,113 @@ class YQuote(BaseModel):
     Applies to ETF and MUTUALFUND quotes.
     """
 
-    # Field with custom parsing
+    ###
+    # Computed fields for datetime conversions
+    ###
 
-    first_trade_datetime: datetime = Field(alias="firstTradeDateMilliseconds")
-    """
-    Timestamp of the first trade of this security, in milliseconds.
-
-    Applies to ALL quotes.
-    """
-
-    earnings_datetime: datetime | None = Field(None, alias="earningsTimestamp")
-    """
-    Date and time of the company's earnings announcement.
-
-    Applies to EQUITY quotes.
-    """
-
-    earnings_datetime_end: datetime | None = Field(None, alias="earningsTimestampEnd")
-    """
-    Date and time of the end of the company's earnings announcement.
-
-    Applies to EQUITY quotes.
-    """
-
-    earnings_datetime_start: datetime | None = Field(
-        None, alias="earningsTimestampStart"
-    )
-    """
-    Date and time of the start of the company's earnings announcement.
-
-    Applies to EQUITY quotes.
-    """
-
-    post_market_datetime: datetime | None = Field(None, alias="postMarketTime")
-    """
-    Time of the most recent post-market trade.
-
-    Applies to ALL quotes.
-    """
-
-    pre_market_datetime: datetime | None = Field(None, alias="preMarketTime")
-    """
-    Time of the most recent pre-market trade.
-
-    Applies to ALL quotes.
-    """
-
-    regular_market_datetime: datetime = Field(alias="regularMarketTime")
-    """
-    Time of the most recent trade in the regular trading session.
-
-    Applies to ALL quotes.
-    """
-
-    dividend_date: date | None = None
-    """
-    Date when the company is expected to pay its next dividend.
-
-    Applies to EQUITY, ETF and MUTUALFUND quotes.
-    """
-
-    expire_date: date | None = None
-    """
-    Date on which the option contract expires.
-
-    Applies to OPTION quotes.
-    """
-
-    ipo_expected_date: date | None = None
-    """
-    Expected date of the initial public offering (IPO).
-
-    Applies to EQUITY quotes.
-    """
-
-    name_change_date: date | None = None
-    """
-    Date on which the company last changed its name.
-
-    Applies to EQUITY quotes.
-    """
-
-    start_date: date | None = None
-    """
-    Date on which the coin started trading.
-
-    Applies to CRYPTOCURRENCY quotes.
-    """
-
-    quote_type: QuoteType
-    """
-    Type of quote.
-
-    Applies to ALL quotes.
-    """
-
-    market_state: MarketState
-    """
-    Current state of the market for a security.
-
-    Applies to ALL quotes.
-    """
-
-    option_type: OptionType | None = None
-    """
-    Type of option.
-
-    Applies to OPTION quotes.
-    """
-
-    custom_price_alert_confidence: PriceAlertConfidence
-    """
-    Value whose meaning is not clear at the moment.
-
-    Seen values have been NONE, LOW and HIGH.
-    Applies to ALL quotes.
-    """
-
-    # Field validators
-    @field_validator("first_trade_datetime", mode="before")
-    @classmethod
-    def _parse_first_trade_datetime(cls, v: int) -> datetime:
+    @computed_field
+    @property
+    def earnings_datetime(self) -> datetime | None:
         """
-        Parse first trade datetime from milliseconds timestamp.
+        Date and time of the company's earnings announcement.
 
-        Args:
-            v (int): Timestamp in milliseconds since epoch.
-
-        Returns:
-            datetime: Parsed datetime object in UTC timezone.
+        Applies to EQUITY quotes.
         """
-        timestamp_seconds = int(v) // 1000
-        microseconds = (int(v) % 1000) * 1000
-        return datetime.fromtimestamp(timestamp_seconds, UTC).replace(
+        return self._get_datetime(self.earnings_timestamp)
+
+    @computed_field
+    @property
+    def earnings_datetime_end(self) -> datetime | None:
+        """
+        Date and time of the end of the company's earnings announcement.
+
+        Applies to EQUITY quotes.
+        """
+        return self._get_datetime(self.earnings_timestamp_end)
+
+    @computed_field
+    @property
+    def earnings_datetime_start(self) -> datetime | None:
+        """
+        Date and time of the start of the company's earnings announcement.
+
+        Applies to EQUITY quotes.
+        """
+        return self._get_datetime(self.earnings_timestamp_start)
+
+    @computed_field
+    @property
+    def first_trade_datetime(self) -> datetime:
+        """
+        Date and time of the first trade of this security.
+
+        Applies to ALL quotes.
+        """
+        timestamp_seconds: int = self.first_trade_date_milliseconds // 1000
+        microseconds: int = (self.first_trade_date_milliseconds % 1000) * 1000
+        if sys.version_info >= (3, 11):
+            tz_info: ZoneInfo = ZoneInfo(self.exchange_timezone_name)
+            return datetime.fromtimestamp(timestamp_seconds, tz_info).replace(
+                microsecond=microseconds
+            )
+
+        tz_info = pytz.timezone(self._exchange_timezone_name)
+        return datetime.fromtimestamp(timestamp_seconds, tz_info).replace(
             microsecond=microseconds
         )
+
+    @computed_field
+    @property
+    def post_market_datetime(self) -> datetime | None:
+        """
+        Date and time of the most recent post-market trade.
+
+        Applies to ALL quotes.
+        """
+        return self._get_datetime(self.post_market_time)
+
+    @computed_field
+    @property
+    def pre_market_datetime(self) -> datetime | None:
+        """
+        Date and time of the most recent pre-market trade.
+
+        Applies to ALL quotes.
+        """
+        return self._get_datetime(self.pre_market_time)
+
+    @computed_field
+    @property
+    def regular_market_datetime(self) -> datetime | None:
+        """
+        Date and time of the most recent trade in the regular trading session.
+
+        Applies to ALL quotes.
+        """
+        return self._get_datetime(self.regular_market_time)
+
+    def _get_datetime(self, timestamp: int | None) -> datetime | None:
+        """
+        Convert a timestamp in seconds to a timezone-aware datetime object.
+
+        Args:
+            timestamp (int | None): Timestamp in UTC or None
+
+        Returns:
+            datetime | None: Timezone-aware datetime object, or None if input is None
+        """
+
+        if timestamp is None:
+            return None
+
+        if sys.version_info >= (3, 11):
+            tz_info: ZoneInfo = ZoneInfo(self.exchange_timezone_name)
+
+            return datetime.fromtimestamp(timestamp, tz_info)
+
+        tz_info = pytz.timezone(self._exchange_timezone_name)
+
+        return datetime.fromtimestamp(timestamp).astimezone(tz_info)
 
     def __str__(self) -> str:
         """

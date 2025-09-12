@@ -1,21 +1,12 @@
 """Validate The behavior of the `YQuote` class."""
 
-import sys
 from typing import TYPE_CHECKING
 
 from tests.fake_yfinance import FakeYFinance
 from yfinance.enums import MarketState, QuoteType
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from yfinance import YQuote
-
-if sys.version_info >= (3, 11):
-    from zoneinfo import ZoneInfo
-
-else:
-    import pytz
 
 
 def test_yquote_values() -> None:
@@ -38,13 +29,7 @@ def test_yquote_values() -> None:
     assert aapl_quote.trailing_pe == 29.757748  # noqa: PLR2004
     assert aapl_quote.market_state == MarketState.REGULAR
 
-    tz_adjusted_datetime: datetime
-    if sys.version_info >= (3, 11):
-        tz_info: ZoneInfo = ZoneInfo(aapl_quote.exchange_timezone_name)
-        tz_adjusted_datetime = aapl_quote.earnings_datetime.astimezone(tz_info)
-
-    else:
-        tz_info = pytz.timezone(aapl_quote.exchange_timezone_name)
-        tz_adjusted_datetime = aapl_quote.earnings_datetime.astimezone(tz_info)
-
-    assert tz_adjusted_datetime.strftime("%Y-%m-%d %H:%M:%S") == "2023-11-02 17:00:00"
+    assert (
+        aapl_quote.earnings_datetime.strftime("%Y-%m-%d %H:%M:%S")
+        == "2023-11-02 17:00:00"
+    )
