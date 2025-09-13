@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from textual.app import ComposeResult
     from textual.events import Mount
 
+    from .stockyardapp import StockyardApp
     from .stockyardapp_state import StockyardAppState
 
 if sys.version_info >= (3, 12):
@@ -26,6 +27,8 @@ else:
 
 class WatchlistScreen(Screen[None]):
     """The watchlist screen."""
+
+    app: StockyardApp
 
     class BM(Enum):
         """The binding mode enum for the quote table."""
