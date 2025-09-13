@@ -72,7 +72,7 @@ class StockyardApp(App[None]):
         message: RenderableType | None = None,
     ) -> None:
         self._yfinance.close()
-        return super().exit(result, return_code, message)
+        super().exit(result, return_code, message)
 
     def on_unmount(self) -> None:
         """Handle unmount events."""
