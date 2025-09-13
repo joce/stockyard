@@ -10,7 +10,8 @@ from textual.binding import BindingsMap
 from textual.screen import Screen
 
 from ._footer import Footer
-from ._quote_table import QuoteTable
+
+# from ._quote_table import QuoteTable
 from ._messages import ExitApp
 
 # from ._quote_table import QuoteTable
@@ -21,6 +22,7 @@ if TYPE_CHECKING:
     from textual.events import Mount
 
     from .stockyard_config import StockyardConfig
+    from .stockyardapp import StockyardApp
 
 if sys.version_info >= (3, 12):
     from typing import override

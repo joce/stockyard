@@ -17,7 +17,6 @@ from textual.widgets import LoadingIndicator
 from yfinance import YFinance
 
 from ._footer import Footer
-from ._messages import ExitApp
 from ._watchlist_screen import WatchlistScreen
 from .stockyard_config import StockyardConfig
 
@@ -26,6 +25,8 @@ if TYPE_CHECKING:
 
     from rich.console import RenderableType
     from textual.worker import Worker
+
+    from ._messages import ExitApp
 
 if sys.version_info >= (3, 12):
     from typing import override
