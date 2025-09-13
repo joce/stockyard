@@ -887,7 +887,7 @@ class YQuote(BaseModel):
                 microsecond=microseconds
             )
 
-        tz_info = pytz.timezone(self._exchange_timezone_name)
+        tz_info = pytz.timezone(self.exchange_timezone_name)
         return datetime.fromtimestamp(timestamp_seconds, tz_info).replace(
             microsecond=microseconds
         )
@@ -941,7 +941,7 @@ class YQuote(BaseModel):
 
             return datetime.fromtimestamp(timestamp, tz_info)
 
-        tz_info = pytz.timezone(self._exchange_timezone_name)
+        tz_info = pytz.timezone(self.exchange_timezone_name)
 
         return datetime.fromtimestamp(timestamp).astimezone(tz_info)
 
