@@ -111,7 +111,7 @@ def generate_dummy_docstring(func: FunctionDef) -> str:
         if hasattr(func.returns, "name"):
             res += f"\
                 {func.returns.name}: Some value.\n"
-        elif hasattr(func.returns, "value"):
+        elif hasattr(func.returns, "value.name"):
             res += f"\
                 {func.returns.value.name}: Some value.\n"
     return res
