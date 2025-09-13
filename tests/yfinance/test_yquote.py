@@ -14,7 +14,7 @@ async def test_yquote_values() -> None:
 
     aapl_quote: YQuote
     gold_fut: YQuote
-    aapl_quote, gold_fut, btc_usd = FakeYFinance().retrieve_quotes(
+    aapl_quote, gold_fut, btc_usd = await FakeYFinance().retrieve_quotes(
         ["AAPL", "GC=F", "BTC-USD"]
     )
     assert gold_fut.expire_date is not None
