@@ -139,8 +139,9 @@ class StockyardApp(App[None]):
         try:
             f: TextIOWrapper
             with Path(path).open(encoding="utf-8") as f:
-                config: dict[str, Any] = json.load(f)
-                self._config.load_config(config)
+                config_data: dict[str, Any] = json.load(f)
+                # Use Pydantic's model_validate to create a new config instance
+                self._config = StockyardConfig.model_validate(config_data)
             self._config_loaded = True
         except FileNotFoundError:
             logger.warning("load_config: Config file not found: %s", path)
@@ -166,8 +167,9 @@ class StockyardApp(App[None]):
         try:
             f: TextIOWrapper
             with Path(path).open("w+", encoding="utf-8") as f:
-                config: dict[str, Any] = self._config.save_config()
-                json.dump(config, f, indent=4)
+                # Use Pydantic's model_dump to serialize the config
+                config_data: dict[str, Any] = self._config.model_dump()
+                json.dump(config_data, f, indent=4)
         except FileNotFoundError:
             logger.exception("save_config: Config file not found: %s", path)
         except PermissionError:
