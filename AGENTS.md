@@ -62,7 +62,7 @@
 - SHOULD keep functions and methods reasonably short and straightforward
 - MUST NOT use wildcard imports (`import *`) or relative imports
 - MUST import explicitly by module name
-- MUST use f-strings for string formatting
+- MUST use f-strings for string formatting outside of logging
 - MUST NOT use mutable default values in function definitions
 
 ### Typing
