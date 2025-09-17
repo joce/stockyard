@@ -90,8 +90,8 @@ def test_time_format_validator_with_string_via_model_validate(
     assert config.time_format == expected_format
 
 
-def test_model_serialization() -> None:
-    """Test model serialization and deserialization."""
+def test_roundtrip_serialization() -> None:
+    """Model dumps and validates back with equivalent values."""
     original = StockyardConfig(
         title="Test Config",
         log_level=logging.WARNING,

@@ -1,7 +1,6 @@
 """Validate formatted number comparison helper functionality."""
 
 # pylint: disable=protected-access
-
 # pyright: reportPrivateUsage=none
 
 import pytest

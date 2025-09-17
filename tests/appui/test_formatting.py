@@ -1,14 +1,13 @@
 """Validate behavior of text formatting utilities for numerical data presentation."""
 
-# pylint: disable=protected-access
-
-# pyright: reportPrivateUsage=none
-
 from __future__ import annotations
 
 import pytest
 
 from appui import _formatting as fmt
+
+# pylint: disable=protected-access
+# pyright: reportPrivateUsage=none
 
 
 @pytest.mark.parametrize(
