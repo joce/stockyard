@@ -18,8 +18,17 @@ def test_default_values() -> None:
     assert cfg.columns == ["last", "change_percent", "volume", "market_cap"]
     assert cfg.sort_column == "ticker"
     assert cfg.sort_direction == SortDirection.ASCENDING
-    assert cfg.quotes[:3] == ["AAPL", "F", "VT"]
-    assert cfg.query_frequency == WatchlistConfig._DEFAULT_QUERY_FREQUENCY
+    assert cfg.quotes == [
+        "AAPL",
+        "F",
+        "VT",
+        "^DJI",
+        "ARKK",
+        "GC=F",
+        "EURUSD=X",
+        "BTC-USD",
+    ]
+    assert cfg.query_frequency == 60  # noqa: PLR2004
 
 
 def test_columns_validation_and_duplicated() -> None:
