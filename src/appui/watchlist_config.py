@@ -25,13 +25,13 @@ class WatchlistConfig(BaseModel):
 
     # Constants (not part of the model schema)
     _TICKER_COLUMN_NAME: ClassVar[Final[str]] = "ticker"
-    _DEFAULT_COLUMN_NAMES: ClassVar[Final[list[str]]] = [
+    DEFAULT_COLUMN_NAMES: ClassVar[Final[list[str]]] = [
         "last",
         "change_percent",
         "volume",
         "market_cap",
     ]
-    _DEFAULT_TICKERS: ClassVar[Final[list[str]]] = [
+    DEFAULT_TICKERS: ClassVar[Final[list[str]]] = [
         "AAPL",
         "F",
         "VT",
@@ -41,12 +41,12 @@ class WatchlistConfig(BaseModel):
         "EURUSD=X",
         "BTC-USD",
     ]
-    _DEFAULT_SORT_DIRECTION: ClassVar[Final[SortDirection]] = SortDirection.ASCENDING
-    _DEFAULT_QUERY_FREQUENCY: ClassVar[Final[int]] = 60
+    DEFAULT_SORT_DIRECTION: ClassVar[Final[SortDirection]] = SortDirection.ASCENDING
+    DEFAULT_QUERY_FREQUENCY: ClassVar[Final[int]] = 60
 
     # Pydantic model fields
     columns: list[str] = Field(
-        default_factory=lambda: WatchlistConfig._DEFAULT_COLUMN_NAMES[:],
+        default_factory=lambda: WatchlistConfig.DEFAULT_COLUMN_NAMES[:],
         description="Non-ticker columns to display (ticker is always first)",
     )
     sort_column: str = Field(
@@ -54,14 +54,14 @@ class WatchlistConfig(BaseModel):
         description="Key of the column to sort by (includes 'ticker')",
     )
     sort_direction: SortDirection = Field(
-        default=_DEFAULT_SORT_DIRECTION, description="Sort direction"
+        default=DEFAULT_SORT_DIRECTION, description="Sort direction"
     )
     quotes: list[str] = Field(
-        default_factory=lambda: WatchlistConfig._DEFAULT_TICKERS[:],
+        default_factory=lambda: WatchlistConfig.DEFAULT_TICKERS[:],
         description="List of quote symbols",
     )
     query_frequency: int = Field(
-        default=_DEFAULT_QUERY_FREQUENCY,
+        default=DEFAULT_QUERY_FREQUENCY,
         description="Refresh/query frequency in seconds",
         ge=1,
     )
@@ -80,7 +80,7 @@ class WatchlistConfig(BaseModel):
         """
         if not v:
             _LOGGER.warning("No columns specified in config; using defaults")
-            return cls._DEFAULT_COLUMN_NAMES[:]
+            return cls.DEFAULT_COLUMN_NAMES[:]
 
         filtered: list[str] = []
         seen: set[str] = set()
@@ -99,7 +99,7 @@ class WatchlistConfig(BaseModel):
 
         if not filtered:
             _LOGGER.warning("All provided columns were invalid; using defaults")
-            return cls._DEFAULT_COLUMN_NAMES[:]
+            return cls.DEFAULT_COLUMN_NAMES[:]
 
         return filtered
 
@@ -119,7 +119,7 @@ class WatchlistConfig(BaseModel):
         try:
             return get_enum_member(SortDirection, v)
         except ValueError:
-            return cls._DEFAULT_SORT_DIRECTION
+            return cls.DEFAULT_SORT_DIRECTION
 
     @field_validator("quotes", mode="before")
     @classmethod
@@ -134,7 +134,7 @@ class WatchlistConfig(BaseModel):
         """
         if not v:
             _LOGGER.warning("No quotes specified in config; using defaults")
-            return cls._DEFAULT_TICKERS[:]
+            return cls.DEFAULT_TICKERS[:]
 
         result: list[str] = []
         seen: set[str] = set()
@@ -151,7 +151,7 @@ class WatchlistConfig(BaseModel):
 
         if not result:
             _LOGGER.warning("All provided quotes were invalid; using defaults")
-            return cls._DEFAULT_TICKERS[:]
+            return cls.DEFAULT_TICKERS[:]
         return result
 
     @field_validator("query_frequency", mode="before")
@@ -169,7 +169,7 @@ class WatchlistConfig(BaseModel):
             _LOGGER.warning(
                 "Invalid query frequency specified in config; using default"
             )
-            return cls._DEFAULT_QUERY_FREQUENCY
+            return cls.DEFAULT_QUERY_FREQUENCY
         return v
 
     @model_validator(mode="after")

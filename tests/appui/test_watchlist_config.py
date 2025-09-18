@@ -81,7 +81,7 @@ def test_quotes_normalization() -> None:
 def test_quotes_empty_fallback_to_defaults() -> None:
     """Empty quotes list falls back to defaults."""
     cfg = WatchlistConfig.model_validate({"quotes": []})
-    assert cfg.quotes == WatchlistConfig._DEFAULT_TICKERS
+    assert cfg.quotes == WatchlistConfig.DEFAULT_TICKERS
 
 
 @pytest.mark.parametrize(("freq", "expected"), [(0, 60), (1, 60), (2, 2), (120, 120)])
