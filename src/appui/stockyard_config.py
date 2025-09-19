@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import logging
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_serializer, field_validator
 
-from ._enums import TimeFormat
+from ._enums import TimeFormat, get_enum_member
+from .watchlist_config import WatchlistConfig
 
 
 class StockyardConfig(BaseModel):
@@ -18,10 +19,14 @@ class StockyardConfig(BaseModel):
     time_format: TimeFormat = Field(
         default=TimeFormat.TWENTY_FOUR_HOUR, description="The time format"
     )
+    watchlist: WatchlistConfig = Field(
+        default_factory=WatchlistConfig,
+        description="Watchlist screen configuration",
+    )
 
     @field_validator("log_level", mode="before")
     @classmethod
-    def _validate_log_level(cls, v: int | str) -> int:
+    def _validate_log_level(cls, v: int | str | None) -> int:
         """Validate the log level.
 
         Args:
@@ -39,9 +44,25 @@ class StockyardConfig(BaseModel):
         # Return default if validation fails
         return logging.ERROR
 
+    @field_serializer("log_level")
+    @classmethod
+    def _serialize_log_level(cls, v: int) -> str:
+        """Serialize the log level as a lowercase string.
+
+        Args:
+            v: The log level value to serialize.
+
+        Returns:
+            str: The lowercase log level name if known, otherwise the numeric string.
+        """
+        level_name: str = logging.getLevelName(v)
+        if not level_name.startswith("Level "):
+            return level_name.lower()
+        return str(v)
+
     @field_validator("time_format", mode="before")
     @classmethod
-    def _validate_time_format(cls, v: TimeFormat | str) -> TimeFormat:
+    def _validate_time_format(cls, v: TimeFormat | str | None) -> TimeFormat:
         """Validate the time format.
 
         Args:
@@ -52,9 +73,9 @@ class StockyardConfig(BaseModel):
         """
         if isinstance(v, TimeFormat):
             return v
+
         # Handle string input
-        for time_format in TimeFormat:
-            if time_format.value == v:
-                return time_format
-        # Return default if validation fails
-        return TimeFormat.TWENTY_FOUR_HOUR
+        try:
+            return get_enum_member(TimeFormat, v.lower() if isinstance(v, str) else v)
+        except ValueError:
+            return TimeFormat.TWENTY_FOUR_HOUR

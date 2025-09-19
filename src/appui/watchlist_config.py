@@ -117,7 +117,9 @@ class WatchlistConfig(BaseModel):
         if isinstance(v, SortDirection):
             return v
         try:
-            return get_enum_member(SortDirection, v)
+            return get_enum_member(
+                SortDirection, v.lower() if isinstance(v, str) else v
+            )
         except ValueError:
             return cls.DEFAULT_SORT_DIRECTION
 

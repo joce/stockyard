@@ -58,7 +58,9 @@ def test_columns_empty_fallback_to_defaults() -> None:
     ("sort_dir_input", "expected"),
     [
         ("asc", SortDirection.ASCENDING),
+        ("ASC", SortDirection.ASCENDING),
         ("desc", SortDirection.DESCENDING),
+        ("DESC", SortDirection.DESCENDING),
         ("x", SortDirection.ASCENDING),
     ],
 )

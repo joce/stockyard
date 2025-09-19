@@ -8,6 +8,7 @@ import pytest
 
 from appui._enums import TimeFormat
 from appui.stockyard_config import StockyardConfig
+from appui.watchlist_config import WatchlistConfig
 
 
 def test_default_values() -> None:
@@ -17,6 +18,13 @@ def test_default_values() -> None:
     assert config.title == "Stockyard"
     assert config.log_level == logging.INFO
     assert config.time_format == TimeFormat.TWENTY_FOUR_HOUR
+
+
+def test_default_watchlist_is_watchlist_config() -> None:
+    """Default config produces a watchlist model instance."""
+    config = StockyardConfig()
+
+    assert isinstance(config.watchlist, WatchlistConfig)
 
 
 def test_basic_assignment() -> None:
@@ -77,7 +85,9 @@ def test_log_level_validator_with_string_via_model_validate(
     ("input_string", "expected_format"),
     [
         ("12h", TimeFormat.TWELVE_HOUR),
+        ("12H", TimeFormat.TWELVE_HOUR),
         ("24h", TimeFormat.TWENTY_FOUR_HOUR),
+        ("24H", TimeFormat.TWENTY_FOUR_HOUR),
         ("invalid", TimeFormat.TWENTY_FOUR_HOUR),
     ],
 )
@@ -100,6 +110,7 @@ def test_roundtrip_serialization() -> None:
 
     # Serialize
     data = original.model_dump()
+    assert data["log_level"] == "warning"
 
     # Deserialize
     restored = StockyardConfig.model_validate(data)
@@ -107,3 +118,28 @@ def test_roundtrip_serialization() -> None:
     assert restored.title == original.title
     assert restored.log_level == original.log_level
     assert restored.time_format == original.time_format
+
+
+def test_model_dump_log_level_lowercase() -> None:
+    """Model dump produces lowercase string log level."""
+    config = StockyardConfig(log_level=logging.CRITICAL)
+
+    dumped = config.model_dump()
+
+    assert dumped["log_level"] == "critical"
+
+
+def test_watchlist_default_factory_produces_unique_instances() -> None:
+    """Default factory yields distinct watchlist instances per config."""
+    first = StockyardConfig()
+    second = StockyardConfig()
+
+    assert first.watchlist == second.watchlist
+    assert first.watchlist is not second.watchlist
+
+
+def test_watchlist_accepts_dict_payload() -> None:
+    """Model coerce dict payloads into WatchlistConfig."""
+    config = StockyardConfig.model_validate({"watchlist": {"quotes": ["SPY"]}})
+
+    assert isinstance(config.watchlist, WatchlistConfig)
