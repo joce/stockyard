@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import logging
-from typing import ClassVar, Final
+from typing import ClassVar, Final, Self
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from ._enums import SortDirection, get_enum_member
 from ._quote_column_definitions import ALL_QUOTE_COLUMNS
@@ -22,6 +22,8 @@ class WatchlistConfig(BaseModel):
         - Validation mirrors the previous manual implementation, with warnings
           logged for invalid or duplicate values.
     """
+
+    model_config = ConfigDict(validate_assignment=True)
 
     # Constants (not part of the model schema)
     _TICKER_COLUMN_NAME: ClassVar[Final[str]] = "ticker"
@@ -73,7 +75,7 @@ class WatchlistConfig(BaseModel):
         """Normalize and validate the list of non-ticker columns.
 
         Args:
-            v: The provided columns list, excluding `ticker`.
+            v (list[str] | None): The provided columns list, excluding `ticker`.
 
         Returns:
             list[str]: A filtered, de-duplicated list of valid column keys.
@@ -109,7 +111,7 @@ class WatchlistConfig(BaseModel):
         """Validate sort direction, accepting enum or string values.
 
         Args:
-            v: The provided sort direction value or string.
+            v (SortDirection | str | None): The provided sort direction value or string.
 
         Returns:
             SortDirection: A valid sort direction.
@@ -129,7 +131,7 @@ class WatchlistConfig(BaseModel):
         """Normalize quotes: uppercase, remove empties and duplicates.
 
         Args:
-            v: The provided list of quote symbols.
+            v (list[str] | None): The provided list of quote symbols.
 
         Returns:
             list[str]: A cleaned list of symbols or defaults if empty.
@@ -162,7 +164,7 @@ class WatchlistConfig(BaseModel):
         """Validate query frequency; fallback to default when invalid.
 
         Args:
-            v: The provided frequency in seconds.
+            v (int | None): The provided frequency in seconds.
 
         Returns:
             int: A valid frequency (>= 1), or the default if invalid.
@@ -175,14 +177,14 @@ class WatchlistConfig(BaseModel):
         return v
 
     @model_validator(mode="after")
-    def _finalize(self) -> WatchlistConfig:
+    def _finalize(self) -> Self:
         """Finalize cross-field validation for sort column membership.
 
         Ensures `sort_column` is one of `table_columns`; otherwise defaults to the
         first entry (which is always `ticker`).
 
         Returns:
-            WatchlistConfig: The validated model instance.
+            WatchlistConfig: The validated configuration instance.
         """
         if self.sort_column not in self.columns:
             self.sort_column = self._TICKER_COLUMN_NAME
