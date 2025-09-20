@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from enum import Enum
+import logging
+from enum import Enum, IntEnum
 from typing import TypeVar
 
 
@@ -26,6 +27,17 @@ class TimeFormat(Enum):
 
     TWELVE_HOUR = "12h"
     TWENTY_FOUR_HOUR = "24h"
+
+
+class LoggingLevel(IntEnum):
+    """Logging levels supported by the Stockyard application."""
+
+    NOTSET = logging.NOTSET
+    DEBUG = logging.DEBUG
+    INFO = logging.INFO
+    WARNING = logging.WARNING
+    ERROR = logging.ERROR
+    CRITICAL = logging.CRITICAL
 
 
 T = TypeVar("T", bound=Enum)

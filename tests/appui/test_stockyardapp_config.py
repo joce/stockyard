@@ -6,7 +6,7 @@ import logging
 
 import pytest
 
-from appui._enums import TimeFormat
+from appui._enums import LoggingLevel, TimeFormat
 from appui.stockyard_config import StockyardConfig
 from appui.watchlist_config import WatchlistConfig
 
@@ -31,7 +31,7 @@ def test_basic_assignment() -> None:
     """Test basic field assignment with valid values."""
     config = StockyardConfig(
         title="Custom Title",
-        log_level=logging.DEBUG,
+        log_level=LoggingLevel.DEBUG,
         time_format=TimeFormat.TWELVE_HOUR,
     )
 
@@ -43,17 +43,16 @@ def test_basic_assignment() -> None:
 @pytest.mark.parametrize(
     ("input_level", "expected_level"),
     [
-        (logging.NOTSET, logging.NOTSET),
-        (logging.DEBUG, logging.DEBUG),
-        (logging.INFO, logging.INFO),
-        (logging.WARNING, logging.WARNING),
-        (logging.ERROR, logging.ERROR),
-        (logging.CRITICAL, logging.CRITICAL),
-        (9999, logging.ERROR),
+        (LoggingLevel.NOTSET, logging.NOTSET),
+        (LoggingLevel.DEBUG, logging.DEBUG),
+        (LoggingLevel.INFO, logging.INFO),
+        (LoggingLevel.WARNING, logging.WARNING),
+        (LoggingLevel.ERROR, logging.ERROR),
+        (LoggingLevel.CRITICAL, logging.CRITICAL),
     ],
 )
 def test_log_level_validator_with_valid_values(
-    input_level: int, expected_level: int
+    input_level: LoggingLevel, expected_level: int
 ) -> None:
     """Test log level validator with valid integer values."""
     config = StockyardConfig(log_level=input_level)
@@ -104,7 +103,7 @@ def test_roundtrip_serialization() -> None:
     """Model dumps and validates back with equivalent values."""
     original = StockyardConfig(
         title="Test Config",
-        log_level=logging.WARNING,
+        log_level=LoggingLevel.WARNING,
         time_format=TimeFormat.TWELVE_HOUR,
     )
 
@@ -122,7 +121,7 @@ def test_roundtrip_serialization() -> None:
 
 def test_model_dump_log_level_lowercase() -> None:
     """Model dump produces lowercase string log level."""
-    config = StockyardConfig(log_level=logging.CRITICAL)
+    config = StockyardConfig(log_level=LoggingLevel.CRITICAL)
 
     dumped = config.model_dump()
 
@@ -143,3 +142,12 @@ def test_watchlist_accepts_dict_payload() -> None:
     config = StockyardConfig.model_validate({"watchlist": {"quotes": ["SPY"]}})
 
     assert isinstance(config.watchlist, WatchlistConfig)
+
+
+def test_log_level_assignment_accepts_enum() -> None:
+    """Assignment allows only valid logging levels."""
+    config = StockyardConfig()
+
+    config.log_level = LoggingLevel.WARNING
+
+    assert config.log_level == logging.WARNING

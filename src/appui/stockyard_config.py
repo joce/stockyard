@@ -4,18 +4,22 @@ from __future__ import annotations
 
 import logging
 
-from pydantic import BaseModel, Field, field_serializer, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator
 
-from ._enums import TimeFormat, get_enum_member
+from ._enums import LoggingLevel, TimeFormat, get_enum_member
 from .watchlist_config import WatchlistConfig
 
 
 class StockyardConfig(BaseModel):
     """The Stockyard app configuration."""
 
+    model_config = ConfigDict(validate_assignment=True)
+
     # Pydantic model fields
     title: str = Field(default="Stockyard", description="The title of the app")
-    log_level: int = Field(default=logging.INFO, description="The logging level")
+    log_level: LoggingLevel = Field(
+        default=LoggingLevel.INFO, description="The logging level"
+    )
     time_format: TimeFormat = Field(
         default=TimeFormat.TWENTY_FOUR_HOUR, description="The time format"
     )
@@ -26,27 +30,30 @@ class StockyardConfig(BaseModel):
 
     @field_validator("log_level", mode="before")
     @classmethod
-    def _validate_log_level(cls, v: int | str | None) -> int:
+    def _validate_log_level(cls, v: LoggingLevel | str | None) -> LoggingLevel:
         """Validate the log level.
 
         Args:
             v: The log level value to validate.
 
         Returns:
-            int: A valid logging level.
+            LoggingLevel: A valid logging level.
         """
-        if isinstance(v, int) and logging.getLevelName(v) != f"Level {v}":
+        if isinstance(v, LoggingLevel):
             return v
-        if isinstance(v, str):
-            level: int | None = logging.getLevelNamesMapping().get(v.upper())
-            if level is not None:
-                return level
-        # Return default if validation fails
-        return logging.ERROR
+
+        # Handle string input
+        try:
+            level: int = logging.getLevelNamesMapping()[
+                v.upper() if isinstance(v, str) else ""
+            ]
+            return get_enum_member(LoggingLevel, level)
+        except (ValueError, KeyError):
+            return LoggingLevel.ERROR
 
     @field_serializer("log_level")
     @classmethod
-    def _serialize_log_level(cls, v: int) -> str:
+    def _serialize_log_level(cls, v: LoggingLevel) -> str:
         """Serialize the log level as a lowercase string.
 
         Args:
@@ -55,10 +62,10 @@ class StockyardConfig(BaseModel):
         Returns:
             str: The lowercase log level name if known, otherwise the numeric string.
         """
-        level_name: str = logging.getLevelName(v)
+        level_name: str = logging.getLevelName(int(v))
         if not level_name.startswith("Level "):
             return level_name.lower()
-        return str(v)
+        return str(int(v))
 
     @field_validator("time_format", mode="before")
     @classmethod
