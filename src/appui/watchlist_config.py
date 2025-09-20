@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import logging
-from typing import ClassVar, Final, Self
+from contextvars import ContextVar
+from typing import Any, ClassVar, Final, Self
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -11,6 +12,29 @@ from ._enums import SortDirection, get_enum_member
 from ._quote_column_definitions import ALL_QUOTE_COLUMNS
 
 _LOGGER = logging.getLogger(__name__)
+_ALLOW_WATCHLIST_FALLBACK: ContextVar[bool] = ContextVar(
+    "_ALLOW_WATCHLIST_FALLBACK", default=False
+)
+
+
+def _coerce_sort_direction(value: SortDirection | str | None) -> SortDirection | None:
+    """Convert raw sort direction values into a supported enum if possible.
+
+    Args:
+        value (SortDirection | str | None): The sort direction value to coerce.
+
+    Returns:
+        SortDirection | None: The coerced sort direction, or None if coercion failed.
+    """
+
+    if isinstance(value, SortDirection):
+        return value
+    if isinstance(value, str):
+        try:
+            return get_enum_member(SortDirection, value.lower())
+        except ValueError:
+            return None
+    return None
 
 
 class WatchlistConfig(BaseModel):
@@ -68,6 +92,51 @@ class WatchlistConfig(BaseModel):
         ge=1,
     )
 
+    def __init__(self, **data: Any) -> None:
+        token = _ALLOW_WATCHLIST_FALLBACK.set(True)
+        try:
+            super().__init__(**data)
+        finally:
+            _ALLOW_WATCHLIST_FALLBACK.reset(token)
+
+    @classmethod
+    def model_validate(  # noqa: PLR0913 - Required to match BaseModel signature
+        cls,
+        obj: Any,  # noqa: ANN401 - Required to match BaseModel signature
+        *,
+        strict: bool | None = None,
+        from_attributes: bool | None = None,
+        context: dict[str, Any] | None = None,
+        by_alias: bool | None = None,
+        by_name: bool | None = None,
+    ) -> Self:
+        """Validate ``obj`` into a ``WatchlistConfig`` instance.
+
+        Args:
+            obj: The object to validate.
+            strict: Flag to enable strict validation.
+            from_attributes: Whether to pull values from attributes.
+            context: Additional validation context.
+            by_alias: Whether to look up fields by their aliases.
+            by_name: Whether to look up fields by their field names.
+
+        Returns:
+            WatchlistConfig: The validated configuration instance.
+        """
+
+        token = _ALLOW_WATCHLIST_FALLBACK.set(True)
+        try:
+            return super().model_validate(
+                obj,
+                strict=strict,
+                from_attributes=from_attributes,
+                context=context,
+                by_alias=by_alias,
+                by_name=by_name,
+            )
+        finally:
+            _ALLOW_WATCHLIST_FALLBACK.reset(token)
+
     # -------------------- Validators --------------------
     @field_validator("columns", mode="before")
     @classmethod
@@ -80,6 +149,7 @@ class WatchlistConfig(BaseModel):
         Returns:
             list[str]: A filtered, de-duplicated list of valid column keys.
         """
+
         if not v:
             _LOGGER.warning("No columns specified in config; using defaults")
             return cls.DEFAULT_COLUMN_NAMES[:]
@@ -115,15 +185,19 @@ class WatchlistConfig(BaseModel):
 
         Returns:
             SortDirection: A valid sort direction.
+
+        Raises:
+            ValueError: If the sort direction value is unsupported and fallback not
+            allowed.
         """
-        if isinstance(v, SortDirection):
-            return v
-        try:
-            return get_enum_member(
-                SortDirection, v.lower() if isinstance(v, str) else v
-            )
-        except ValueError:
+
+        direction = _coerce_sort_direction(v)
+        if direction is not None:
+            return direction
+        if _ALLOW_WATCHLIST_FALLBACK.get():
             return cls.DEFAULT_SORT_DIRECTION
+        error_msg = f"Unsupported sort direction value: {v!r}"
+        raise ValueError(error_msg)
 
     @field_validator("quotes", mode="before")
     @classmethod
@@ -136,6 +210,7 @@ class WatchlistConfig(BaseModel):
         Returns:
             list[str]: A cleaned list of symbols or defaults if empty.
         """
+
         if not v:
             _LOGGER.warning("No quotes specified in config; using defaults")
             return cls.DEFAULT_TICKERS[:]
@@ -169,6 +244,7 @@ class WatchlistConfig(BaseModel):
         Returns:
             int: A valid frequency (>= 1), or the default if invalid.
         """
+
         if v is None or v <= 1:
             _LOGGER.warning(
                 "Invalid query frequency specified in config; using default"
@@ -177,7 +253,7 @@ class WatchlistConfig(BaseModel):
         return v
 
     @model_validator(mode="after")
-    def _finalize(self) -> Self:
+    def _finalize_validation(self) -> Self:
         """Finalize cross-field validation for sort column membership.
 
         Ensures `sort_column` is one of `table_columns`; otherwise defaults to the
@@ -186,6 +262,9 @@ class WatchlistConfig(BaseModel):
         Returns:
             WatchlistConfig: The validated configuration instance.
         """
+
         if self.sort_column not in self.columns:
-            self.sort_column = self._TICKER_COLUMN_NAME
+            object.__setattr__(  # noqa: PLC2801 - bypasses frozen model
+                self, "sort_column", self._TICKER_COLUMN_NAME
+            )
         return self

@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 
 import pytest
+from pydantic import ValidationError
 
 from appui._enums import LoggingLevel, TimeFormat
 from appui.stockyard_config import StockyardConfig
@@ -151,3 +152,30 @@ def test_log_level_assignment_accepts_enum() -> None:
     config.log_level = LoggingLevel.WARNING
 
     assert config.log_level == logging.WARNING
+
+
+def test_log_level_assignment_rejects_invalid_value() -> None:
+    """Assignment rejects invalid logging level values."""
+    config = StockyardConfig()
+
+    with pytest.raises(ValidationError):
+        config.log_level = "verbose"  # pyright: ignore[reportAttributeAccessIssue]
+
+
+def test_time_format_assignment_accepts_enum() -> None:
+    """Assignment allows only valid time format values."""
+    config = StockyardConfig()
+
+    config.time_format = TimeFormat.TWELVE_HOUR
+
+    assert config.time_format is TimeFormat.TWELVE_HOUR
+
+
+def test_time_format_assignment_rejects_invalid_value() -> None:
+    """Assignment rejects invalid time format values."""
+    config = StockyardConfig()
+
+    with pytest.raises(ValidationError):
+        config.time_format = (
+            "13h"  # pyright: ignore[reportAttributeAccessIssue, reportAssignmentType]
+        )

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pytest
+from pydantic import ValidationError
 
 from appui._enums import SortDirection
 from appui.watchlist_config import WatchlistConfig
@@ -127,3 +128,20 @@ def test_roundtrip_serialization() -> None:
     assert restored.sort_direction == _TEST_SORT_DIRECTION
     assert restored.quotes == _TEST_QUOTES
     assert restored.query_frequency == _TEST_QUERY_FREQUENCY
+
+
+def test_sort_direction_assignment_accepts_enum() -> None:
+    """Assignment allows only valid sort direction values."""
+    cfg = WatchlistConfig()
+
+    cfg.sort_direction = SortDirection.DESCENDING
+
+    assert cfg.sort_direction is SortDirection.DESCENDING
+
+
+def test_sort_direction_assignment_rejects_invalid_value() -> None:
+    """Assignment rejects invalid sort direction values."""
+    cfg = WatchlistConfig()
+
+    with pytest.raises(ValidationError):
+        cfg.sort_direction = "sideways"  # pyright: ignore[reportAttributeAccessIssue, reportAssignmentType]
