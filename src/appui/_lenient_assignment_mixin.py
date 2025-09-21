@@ -4,38 +4,10 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from contextvars import ContextVar
-from typing import TYPE_CHECKING, Any, ClassVar, Self, TypeVar
-
-from ._enums import StockyardEnum, get_enum_member
+from typing import TYPE_CHECKING, Any, ClassVar, Self
 
 if TYPE_CHECKING:
     from collections.abc import Generator
-
-
-T = TypeVar("T", bound=StockyardEnum)
-
-
-def coerce_enum_member(enum_type: type[T], value: object) -> T | None:
-    """Attempt to coerce ``value`` into a member of ``enum_type``.
-
-    Args:
-        enum_type: The Enum class to coerce into.
-        value: The incoming value that may represent an enum member.
-
-    Returns:
-        The matching enum member, or ``None`` if no match can be deduced.
-    """
-
-    if value is None:
-        return None
-    if isinstance(value, enum_type):
-        return value
-    if isinstance(value, str):
-        try:
-            return get_enum_member(enum_type, value.lower())
-        except ValueError:
-            return None
-    return None
 
 
 class LenientAssignmentMixin:

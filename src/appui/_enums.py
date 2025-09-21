@@ -4,11 +4,15 @@ from __future__ import annotations
 
 import logging
 from enum import Enum, IntEnum
+from tkinter import N
 from typing import TypeVar
 
 
 class StockyardEnum(Enum):
-    """Base class for all Stockyard enums."""
+    """Base class for all Stockyard enums.
+
+    StockyardEnum subclasses must have lowercase string values.
+    """
 
     def __str__(self) -> str:
         return str(self.value)
@@ -48,10 +52,10 @@ class LoggingLevel(IntEnum):
 
 
 T = TypeVar("T", bound=StockyardEnum)
-U = TypeVar("U", str, int, float)
+U = TypeVar("U", str, int, float, None)
 
 
-def get_enum_member(enum_type: type[T], value: U | None) -> T:
+def get_enum_member(enum_type: type[T], value: U) -> T:
     """Get the enum member for a given string value.
 
     Args:
@@ -70,3 +74,24 @@ def get_enum_member(enum_type: type[T], value: U | None) -> T:
             return member
     error_msg = f"Value '{value}' is not a valid member of {enum_type.__name__}"
     raise ValueError(error_msg)
+
+
+def coerce_enum_member(enum_type: type[T], value: U) -> T | None:
+    """Attempt to coerce ``value`` into a member of ``enum_type``.
+
+    Args:
+        enum_type: The Enum class to coerce into.
+        value: The incoming value that may represent an enum member.
+
+    Returns:
+        The matching enum member, or ``None`` if no match can be deduced.
+    """
+
+    if isinstance(value, enum_type):
+        return value
+    if isinstance(value, str):
+        try:
+            return get_enum_member(enum_type, value.lower())
+        except ValueError:
+            return None
+    return None

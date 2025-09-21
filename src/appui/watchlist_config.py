@@ -7,8 +7,8 @@ from typing import ClassVar, Final, Self
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from ._enums import SortDirection
-from ._lenient_assignment_mixin import LenientAssignmentMixin, coerce_enum_member
+from ._enums import SortDirection, coerce_enum_member
+from ._lenient_assignment_mixin import LenientAssignmentMixin
 from ._quote_column_definitions import ALL_QUOTE_COLUMNS
 
 _LOGGER = logging.getLogger(__name__)

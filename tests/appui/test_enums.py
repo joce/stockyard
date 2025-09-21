@@ -39,7 +39,7 @@ class FloatTestEnum(Enum):
 )
 def test_get_enum_member(
     enum_type: type[StockyardEnum], value: Any, enum_member: Any  # noqa: ANN401
-) -> None:  # fmt: skip
+) -> None:
     """Verify successful conversion of values to their corresponding enum members."""
     assert get_enum_member(enum_type, value) == enum_member
 
