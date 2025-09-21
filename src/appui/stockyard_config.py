@@ -3,17 +3,12 @@
 from __future__ import annotations
 
 import logging
-from contextvars import ContextVar
-from typing import Any, Self
 
 from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator
 
-from ._enums import LoggingLevel, TimeFormat, get_enum_member
+from ._enums import LoggingLevel, TimeFormat
+from ._lenient_assignment_mixin import LenientAssignmentMixin, coerce_enum_member
 from .watchlist_config import WatchlistConfig
-
-_ALLOW_STOCKYARD_FALLBACK: ContextVar[bool] = ContextVar(
-    "_ALLOW_STOCKYARD_FALLBACK", default=False
-)
 
 
 def _coerce_log_level(value: LoggingLevel | int | str | None) -> LoggingLevel | None:
@@ -43,27 +38,7 @@ def _coerce_log_level(value: LoggingLevel | int | str | None) -> LoggingLevel | 
     return None
 
 
-def _coerce_time_format(value: TimeFormat | str | None) -> TimeFormat | None:
-    """Convert raw time format values into a supported enum if possible.
-
-    Args:
-        value (TimeFormat | str | None): The time format value to coerce.
-
-    Returns:
-        TimeFormat | None: The coerced time format, or None if coercion failed.
-    """
-
-    if isinstance(value, TimeFormat):
-        return value
-    if isinstance(value, str):
-        try:
-            return get_enum_member(TimeFormat, value.lower())
-        except ValueError:
-            return None
-    return None
-
-
-class StockyardConfig(BaseModel):
+class StockyardConfig(LenientAssignmentMixin, BaseModel):
     """The Stockyard app configuration."""
 
     model_config = ConfigDict(validate_assignment=True)
@@ -80,51 +55,6 @@ class StockyardConfig(BaseModel):
         default_factory=WatchlistConfig,
         description="Watchlist screen configuration",
     )
-
-    def __init__(self, **data: Any) -> None:
-        token = _ALLOW_STOCKYARD_FALLBACK.set(True)
-        try:
-            super().__init__(**data)
-        finally:
-            _ALLOW_STOCKYARD_FALLBACK.reset(token)
-
-    @classmethod
-    def model_validate(  # noqa: PLR0913 - Required to match BaseModel signature
-        cls,
-        obj: Any,  # noqa: ANN401 - Required to match BaseModel signature
-        *,
-        strict: bool | None = None,
-        from_attributes: bool | None = None,
-        context: dict[str, Any] | None = None,
-        by_alias: bool | None = None,
-        by_name: bool | None = None,
-    ) -> Self:
-        """Validate ``obj`` into a ``StockyardConfig`` instance.
-
-        Args:
-            obj: The object to validate.
-            strict: Flag to enable strict validation.
-            from_attributes: Whether to pull values from attributes.
-            context: Additional validation context.
-            by_alias: Whether to look up fields by their aliases.
-            by_name: Whether to look up fields by their field names.
-
-        Returns:
-            StockyardConfig: The validated configuration instance.
-        """
-
-        token = _ALLOW_STOCKYARD_FALLBACK.set(True)
-        try:
-            return super().model_validate(
-                obj,
-                strict=strict,
-                from_attributes=from_attributes,
-                context=context,
-                by_alias=by_alias,
-                by_name=by_name,
-            )
-        finally:
-            _ALLOW_STOCKYARD_FALLBACK.reset(token)
 
     @field_validator("log_level", mode="before")
     @classmethod
@@ -144,7 +74,7 @@ class StockyardConfig(BaseModel):
         level = _coerce_log_level(v)
         if level is not None:
             return level
-        if _ALLOW_STOCKYARD_FALLBACK.get():
+        if cls._fallback_enabled():
             return LoggingLevel.ERROR
         error_msg = f"Unsupported log level value: {v!r}"
         raise ValueError(error_msg)
@@ -182,10 +112,10 @@ class StockyardConfig(BaseModel):
             allowed.
         """
 
-        fmt = _coerce_time_format(v)
+        fmt = coerce_enum_member(TimeFormat, v)
         if fmt is not None:
             return fmt
-        if _ALLOW_STOCKYARD_FALLBACK.get():
+        if cls._fallback_enabled():
             return TimeFormat.TWENTY_FOUR_HOUR
         error_msg = f"Unsupported time format value: {v!r}"
         raise ValueError(error_msg)

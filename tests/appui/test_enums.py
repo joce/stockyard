@@ -5,7 +5,7 @@ from typing import Any
 
 import pytest
 
-from appui._enums import TimeFormat, get_enum_member
+from appui._enums import StockyardEnum, TimeFormat, get_enum_member
 
 
 class IntTestEnum(Enum):
@@ -38,7 +38,7 @@ class FloatTestEnum(Enum):
     ],
 )
 def test_get_enum_member(
-    enum_type: type[Enum], value: Any, enum_member: Any  # noqa: ANN401
+    enum_type: type[StockyardEnum], value: Any, enum_member: Any  # noqa: ANN401
 ) -> None:  # fmt: skip
     """Verify successful conversion of values to their corresponding enum members."""
     assert get_enum_member(enum_type, value) == enum_member

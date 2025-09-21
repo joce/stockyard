@@ -7,7 +7,14 @@ from enum import Enum, IntEnum
 from typing import TypeVar
 
 
-class Justify(Enum):
+class StockyardEnum(Enum):
+    """Base class for all Stockyard enums."""
+
+    def __str__(self) -> str:
+        return str(self.value)
+
+
+class Justify(StockyardEnum):
     """Justify enum for the Label class."""
 
     LEFT = "left"
@@ -15,14 +22,14 @@ class Justify(Enum):
     RIGHT = "right"
 
 
-class SortDirection(Enum):
+class SortDirection(StockyardEnum):
     """SortDirection enum for the QuoteTableState class."""
 
     ASCENDING = "asc"
     DESCENDING = "desc"
 
 
-class TimeFormat(Enum):
+class TimeFormat(StockyardEnum):
     """TimeFormat enum for time display format."""
 
     TWELVE_HOUR = "12h"
@@ -40,7 +47,7 @@ class LoggingLevel(IntEnum):
     CRITICAL = logging.CRITICAL
 
 
-T = TypeVar("T", bound=Enum)
+T = TypeVar("T", bound=StockyardEnum)
 U = TypeVar("U", str, int, float)
 
 
