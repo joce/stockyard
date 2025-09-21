@@ -117,19 +117,14 @@ class WatchlistConfig(LenientAssignmentMixin, BaseModel):
 
         Returns:
             SortDirection: A valid sort direction.
-
-        Raises:
-            ValueError: If the sort direction value is unsupported and fallback not
-            allowed.
         """
 
-        direction = coerce_enum_member(SortDirection, v)
+        direction = coerce_enum_member(
+            SortDirection, v, strict=not cls._fallback_enabled()
+        )
         if direction is not None:
             return direction
-        if cls._fallback_enabled():
-            return cls.DEFAULT_SORT_DIRECTION
-        error_msg = f"Unsupported sort direction value: {v!r}"
-        raise ValueError(error_msg)
+        return cls.DEFAULT_SORT_DIRECTION
 
     @field_validator("quotes", mode="before")
     @classmethod

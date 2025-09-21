@@ -11,33 +11,6 @@ from ._lenient_assignment_mixin import LenientAssignmentMixin
 from .watchlist_config import WatchlistConfig
 
 
-def _coerce_log_level(value: LoggingLevel | int | str | None) -> LoggingLevel | None:
-    """Convert raw log level values into a supported enum if possible.
-
-    Args:
-        value (LoggingLevel | int | str | None): The log level value to coerce.
-
-    Returns:
-        LoggingLevel | None: The coerced log level, or None if coercion failed.
-    """
-
-    if isinstance(value, LoggingLevel):
-        return value
-    if isinstance(value, int):
-        try:
-            return LoggingLevel(value)
-        except ValueError:
-            return None
-    if isinstance(value, str):
-        mapped_level = logging.getLevelNamesMapping().get(value.upper())
-        if mapped_level is not None:
-            try:
-                return LoggingLevel(mapped_level)
-            except ValueError:
-                return None
-    return None
-
-
 class StockyardConfig(LenientAssignmentMixin, BaseModel):
     """The Stockyard app configuration."""
 
@@ -66,18 +39,12 @@ class StockyardConfig(LenientAssignmentMixin, BaseModel):
 
         Returns:
             LoggingLevel: A valid logging level.
-
-        Raises:
-            ValueError: If the log level value is unsupported and fallback not allowed.
         """
 
-        level = _coerce_log_level(v)
+        level = coerce_enum_member(LoggingLevel, v, strict=not cls._fallback_enabled())
         if level is not None:
             return level
-        if cls._fallback_enabled():
-            return LoggingLevel.ERROR
-        error_msg = f"Unsupported log level value: {v!r}"
-        raise ValueError(error_msg)
+        return LoggingLevel.ERROR
 
     @field_serializer("log_level")
     @classmethod
@@ -106,16 +73,9 @@ class StockyardConfig(LenientAssignmentMixin, BaseModel):
 
         Returns:
             TimeFormat: A valid time format.
-
-        Raises:
-            ValueError: If the time format value is unsupported and fallback not
-            allowed.
         """
 
-        fmt = coerce_enum_member(TimeFormat, v)
+        fmt = coerce_enum_member(TimeFormat, v, strict=not cls._fallback_enabled())
         if fmt is not None:
             return fmt
-        if cls._fallback_enabled():
-            return TimeFormat.TWENTY_FOUR_HOUR
-        error_msg = f"Unsupported time format value: {v!r}"
-        raise ValueError(error_msg)
+        return TimeFormat.TWENTY_FOUR_HOUR

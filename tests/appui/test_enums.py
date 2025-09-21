@@ -1,11 +1,12 @@
 """Validate enumeration member retrieval and validation functionality."""
 
+from __future__ import annotations
+
 from enum import Enum
-from typing import Any
 
 import pytest
 
-from appui._enums import StockyardEnum, TimeFormat, get_enum_member
+from appui._enums import TimeFormat, coerce_enum_member
 
 
 class IntTestEnum(Enum):
@@ -29,25 +30,43 @@ class FloatTestEnum(Enum):
     [
         (TimeFormat, "12h", TimeFormat.TWELVE_HOUR),
         (TimeFormat, "24h", TimeFormat.TWENTY_FOUR_HOUR),
+        (TimeFormat, "TWELVE_HOUR", TimeFormat.TWELVE_HOUR),
+        (TimeFormat, " 24H ", TimeFormat.TWENTY_FOUR_HOUR),
+        (TimeFormat, TimeFormat.TWENTY_FOUR_HOUR, TimeFormat.TWENTY_FOUR_HOUR),
         (IntTestEnum, 1, IntTestEnum.ONE),
         (IntTestEnum, 2, IntTestEnum.TWO),
+        (IntTestEnum, "TWO", IntTestEnum.TWO),
         (IntTestEnum, 99, IntTestEnum.NINETY_NINE),
         (FloatTestEnum, 1.1, FloatTestEnum.ONE_ONE),
+        (FloatTestEnum, "ONE_TWO", FloatTestEnum.ONE_TWO),
         (FloatTestEnum, 1.2, FloatTestEnum.ONE_TWO),
         (FloatTestEnum, 1.99, FloatTestEnum.ONE_NINETY_NINE),
     ],
 )
-def test_get_enum_member(
-    enum_type: type[StockyardEnum], value: Any, enum_member: Any  # noqa: ANN401
+def test_coerce_enum_member_succeeds(
+    enum_type: type[Enum], value: str | float | TimeFormat, enum_member: Enum
 ) -> None:
     """Verify successful conversion of values to their corresponding enum members."""
-    assert get_enum_member(enum_type, value) == enum_member
+
+    assert coerce_enum_member(enum_type, value) == enum_member
 
 
-def test_get_enum_member_invalid() -> None:
-    """Verify ValueError is raised when converting invalid values to enum members."""
+def test_coerce_enum_member_with_unknown_values_returns_none() -> None:
+    """Non-matching values produce ``None`` when strict mode is disabled."""
+
+    assert coerce_enum_member(TimeFormat, "1h") is None
+    assert coerce_enum_member(TimeFormat, None) is None
+
+
+def test_coerce_enum_member_strict_with_unknown_values_raises() -> None:
+    """Strict mode raises a ``ValueError`` for unknown values."""
 
     with pytest.raises(
         ValueError, match=r"Value '1h' is not a valid member of TimeFormat"
     ):
-        get_enum_member(TimeFormat, "1h")
+        coerce_enum_member(TimeFormat, "1h", strict=True)
+
+    with pytest.raises(
+        ValueError, match=r"Value 'None' is not a valid member of TimeFormat"
+    ):
+        coerce_enum_member(TimeFormat, None, strict=True)

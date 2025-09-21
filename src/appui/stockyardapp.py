@@ -39,6 +39,8 @@ logging.basicConfig(
 )
 logging.getLogger("asyncio").setLevel(logging.ERROR)
 
+_LOGGER = logging.getLogger(__name__)
+
 
 class StockyardApp(App[None]):
     """A Textual app for the Stockyard application."""
@@ -135,7 +137,6 @@ class StockyardApp(App[None]):
         if self._config_loaded:
             return
 
-        logger = logging.getLogger(__name__)
         try:
             f: TextIOWrapper
             with Path(path).open(encoding="utf-8") as f:
@@ -144,9 +145,9 @@ class StockyardApp(App[None]):
                 self._config = StockyardConfig.model_validate(config_data)
             self._config_loaded = True
         except FileNotFoundError:
-            logger.warning("load_config: Config file not found: %s", path)
+            _LOGGER.warning("load_config: Config file not found: %s", path)
         except json.JSONDecodeError as e:
-            logger.exception(
+            _LOGGER.exception(
                 "load_config: error decoding JSON file: %s [%d, %d]: %s",
                 path,
                 e.lineno,
@@ -163,17 +164,16 @@ class StockyardApp(App[None]):
             path: The path to the configuration file.
         """
 
-        logger = logging.getLogger(__name__)
         try:
             f: TextIOWrapper
             with Path(path).open("w+", encoding="utf-8") as f:
                 # Use Pydantic's model_dump to serialize the config
-                config_data: dict[str, Any] = self._config.model_dump()
+                config_data: dict[str, Any] = self._config.model_dump(mode="json")
                 json.dump(config_data, f, indent=4)
         except FileNotFoundError:
-            logger.exception("save_config: Config file not found: %s", path)
+            _LOGGER.exception("save_config: Config file not found: %s", path)
         except PermissionError:
-            logger.exception("save_config: Permission denied: %s", path)
+            _LOGGER.exception("save_config: Permission denied: %s", path)
 
     @work(exclusive=True)
     async def _prime_yfinance(self) -> None:
@@ -186,7 +186,6 @@ class StockyardApp(App[None]):
     def _finish_loading(self) -> None:
         """Finish loading."""
 
-        logger = logging.getLogger(__name__)
         try:
             indicator: LoadingIndicator = self.query_one(
                 "LoadingIndicator", LoadingIndicator
@@ -194,7 +193,7 @@ class StockyardApp(App[None]):
             indicator.remove()
         except NoMatches:
             # No indicator was found
-            logger.exception("No loading indicator found")
+            _LOGGER.exception("No loading indicator found")
 
         self.push_screen("watchlist")
 

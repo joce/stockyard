@@ -4,21 +4,12 @@ from __future__ import annotations
 
 import logging
 from enum import Enum, IntEnum
-from tkinter import N
 from typing import TypeVar
 
-
-class StockyardEnum(Enum):
-    """Base class for all Stockyard enums.
-
-    StockyardEnum subclasses must have lowercase string values.
-    """
-
-    def __str__(self) -> str:
-        return str(self.value)
+_LOGGER = logging.getLogger(__name__)
 
 
-class Justify(StockyardEnum):
+class Justify(Enum):
     """Justify enum for the Label class."""
 
     LEFT = "left"
@@ -26,14 +17,14 @@ class Justify(StockyardEnum):
     RIGHT = "right"
 
 
-class SortDirection(StockyardEnum):
+class SortDirection(Enum):
     """SortDirection enum for the QuoteTableState class."""
 
     ASCENDING = "asc"
     DESCENDING = "desc"
 
 
-class TimeFormat(StockyardEnum):
+class TimeFormat(Enum):
     """TimeFormat enum for time display format."""
 
     TWELVE_HOUR = "12h"
@@ -51,47 +42,53 @@ class LoggingLevel(IntEnum):
     CRITICAL = logging.CRITICAL
 
 
-T = TypeVar("T", bound=StockyardEnum)
-U = TypeVar("U", str, int, float, None)
+T = TypeVar("T", bound=Enum)
 
 
-def get_enum_member(enum_type: type[T], value: U) -> T:
-    """Get the enum member for a given string value.
+def coerce_enum_member(
+    enum_type: type[T], value: T | str | float | None, *, strict: bool = False
+) -> T | None:
+    """Attempt to resolve ``value`` to a member of ``enum_type``.
 
     Args:
-        enum_type (Type[T]): The enum type.
-        value (U | None): The value to get the enum member for.
+        enum_type (type[T]): The enum class to coerce into.
+        value (T | str | float | None): The incoming value that may represent an enum
+            member.
+        strict (bool): When ``True`` raise ``ValueError`` instead of returning ``None``.
+
+    Returns:
+        The matching enum member, or ``None`` if no match can be deduced and
+        ``strict`` is ``False``.
 
     Raises:
-        ValueError: If the value is not a valid member of the enum.
-
-    Returns:
-        T: The enum member.
-    """
-
-    for member in enum_type:
-        if member.value == value:
-            return member
-    error_msg = f"Value '{value}' is not a valid member of {enum_type.__name__}"
-    raise ValueError(error_msg)
-
-
-def coerce_enum_member(enum_type: type[T], value: U) -> T | None:
-    """Attempt to coerce ``value`` into a member of ``enum_type``.
-
-    Args:
-        enum_type: The Enum class to coerce into.
-        value: The incoming value that may represent an enum member.
-
-    Returns:
-        The matching enum member, or ``None`` if no match can be deduced.
+        ValueError: If ``strict`` is ``True`` and no matching enum member is found
     """
 
     if isinstance(value, enum_type):
         return value
+
+    member: T | None = None
+
     if isinstance(value, str):
-        try:
-            return get_enum_member(enum_type, value.lower())
-        except ValueError:
-            return None
+        lowered = value.strip().lower()
+        for enum_member in enum_type:
+            member_value = enum_member.value
+            if isinstance(member_value, str) and member_value.lower() == lowered:
+                member = enum_member
+                break
+            if enum_member.name.lower() == lowered:
+                member = enum_member
+                break
+    else:
+        for enum_member in enum_type:
+            if enum_member.value == value:
+                member = enum_member
+                break
+
+    if member is not None:
+        return member
+
+    if strict:
+        error_msg = f"Value '{value}' is not a valid member of {enum_type.__name__}"
+        raise ValueError(error_msg)
     return None
