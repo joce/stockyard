@@ -29,13 +29,16 @@
         Quotes:
             ☐ Add
                 Need to add a flag to refresh the data from the YClient source immediately
-            ✔ Remove @done(23-11-25 22:10)
+            ☐ Remove
             ☐ Filtering
 
             ✔ use `@override` @done(23-11-16 21:24)
                 Implies dropping support for < 3.12
 
         Rewrite the app using MVU pattern:
+
+    YFinance:
+        ☐ get rid of _client as it is and make it only a sync facade to _yasync_client @created(25-09-26 17:37)
 
     Tests:
         Screens:
