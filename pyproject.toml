@@ -9,7 +9,6 @@ requires-python = ">=3.9, < 4.0"
 
 dependencies = [
     "regex >= 2025.0, < 2026.0",
-    "requests >= 2.32, < 3.0",
     "httpx >= 0.28, < 1.0",
     "pydantic >= 2.7, < 3.0",
     "textual >= 6.0",
