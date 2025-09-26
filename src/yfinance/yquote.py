@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 from datetime import date, datetime
+from functools import cached_property
 
 from pydantic import BaseModel, Field, computed_field
 from pydantic.alias_generators import to_camel
@@ -842,40 +843,36 @@ class YQuote(BaseModel):
     ###
 
     @computed_field
-    @property
+    @cached_property
     def earnings_datetime(self) -> datetime | None:
-        """
-        Date and time of the company's earnings announcement.
+        """Date and time of the company's earnings announcement.
 
         Applies to EQUITY quotes.
         """
         return self._get_datetime(self.earnings_timestamp)
 
     @computed_field
-    @property
+    @cached_property
     def earnings_datetime_end(self) -> datetime | None:
-        """
-        Date and time of the end of the company's earnings announcement.
+        """Date and time of the end of the company's earnings announcement.
 
         Applies to EQUITY quotes.
         """
         return self._get_datetime(self.earnings_timestamp_end)
 
     @computed_field
-    @property
+    @cached_property
     def earnings_datetime_start(self) -> datetime | None:
-        """
-        Date and time of the start of the company's earnings announcement.
+        """Date and time of the start of the company's earnings announcement.
 
         Applies to EQUITY quotes.
         """
         return self._get_datetime(self.earnings_timestamp_start)
 
     @computed_field
-    @property
+    @cached_property
     def first_trade_datetime(self) -> datetime:
-        """
-        Date and time of the first trade of this security.
+        """Date and time of the first trade of this security.
 
         Applies to ALL quotes.
         """
@@ -893,38 +890,34 @@ class YQuote(BaseModel):
         )
 
     @computed_field
-    @property
+    @cached_property
     def post_market_datetime(self) -> datetime | None:
-        """
-        Date and time of the most recent post-market trade.
+        """Date and time of the most recent post-market trade.
 
         Applies to ALL quotes.
         """
         return self._get_datetime(self.post_market_time)
 
     @computed_field
-    @property
+    @cached_property
     def pre_market_datetime(self) -> datetime | None:
-        """
-        Date and time of the most recent pre-market trade.
+        """Date and time of the most recent pre-market trade.
 
         Applies to ALL quotes.
         """
         return self._get_datetime(self.pre_market_time)
 
     @computed_field
-    @property
+    @cached_property
     def regular_market_datetime(self) -> datetime | None:
-        """
-        Date and time of the most recent trade in the regular trading session.
+        """Date and time of the most recent trade in the regular trading session.
 
         Applies to ALL quotes.
         """
         return self._get_datetime(self.regular_market_time)
 
     def _get_datetime(self, timestamp: int | None) -> datetime | None:
-        """
-        Convert a timestamp in seconds to a timezone-aware datetime object.
+        """Convert a timestamp in seconds to a timezone-aware datetime object.
 
         Args:
             timestamp (int | None): Timestamp in UTC or None
@@ -946,8 +939,7 @@ class YQuote(BaseModel):
         return datetime.fromtimestamp(timestamp).astimezone(tz_info)
 
     def __str__(self) -> str:
-        """
-        Return string representation of the financial quote.
+        """Return string representation of the financial quote.
 
         Returns:
             str: Formatted as 'symbol: price (percent%) -- datetime'.
