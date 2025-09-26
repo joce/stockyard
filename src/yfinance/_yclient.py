@@ -1,5 +1,4 @@
-"""
-Provide low-level client interface to Yahoo! Finance API.
+"""Provide low-level client interface to Yahoo! Finance API.
 
 Implements session persistence, authentication flow, and request signing required for
 reliable API communication.
@@ -62,8 +61,7 @@ class YClient:
         self._logger = logging.getLogger(__name__)
 
     def _refresh_cookies(self) -> None:
-        """
-        Log into Yahoo! finance.
+        """Log into Yahoo! finance.
 
         Logging in will set the cookies that are required to fetch the crumb and make
         calls to the Yahoo! finance API.
@@ -129,8 +127,7 @@ class YClient:
         self._crumb = ""
 
     def _get_cookies_eu(self) -> httpx.Cookies:
-        """
-        Get cookies from the EU consent page.
+        """Get cookies from the EU consent page.
 
         Returns:
             The cookies from the EU consent page.
@@ -244,8 +241,7 @@ class YClient:
     def _execute_request(
         self, api_call: str, query_params: dict[str, str]
     ) -> dict[str, Any]:
-        """
-        Execute the given request and return the data from the response.
+        """Execute the given request and return the data from the response.
 
         Args:
             api_call (str): The path to the Yahoo! finance API call (with arguments) to
@@ -288,8 +284,7 @@ class YClient:
     def call(
         self, api_url: str, query_params: dict[str, str] | None = None
     ) -> dict[str, Any]:
-        """
-        Execute Yahoo! Finance API request with optional query parameters.
+        """Execute Yahoo! Finance API request with optional query parameters.
 
         Args:
             api_url (str): The path of the API to call on the Yahoo! Finance API.

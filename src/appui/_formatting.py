@@ -8,8 +8,7 @@ _NO_VALUE: Final[str] = "N/A"
 
 
 def as_percent(value: float | None) -> str:
-    """
-    Return the value formatted as a percentage.
+    """Return the value formatted as a percentage.
 
     Args:
         value (float | None): The value to be formatted as a percentage.
@@ -25,8 +24,7 @@ def as_percent(value: float | None) -> str:
 
 
 def as_float(value: float | None, precision: int = 2) -> str:
-    """
-    Return the value formatted as a compact float.
+    """Return the value formatted as a compact float.
 
     Args:
         value (float | None): The value to be formatted as a float.
@@ -44,8 +42,7 @@ def as_float(value: float | None, precision: int = 2) -> str:
 
 
 def as_compact(value: int | None) -> str:
-    """
-    Return the value formatted as a compact string.
+    """Return the value formatted as a compact string.
 
     Large integers are scaled down and suffixed with K, M, B, or T to create a concise,
     human-readable format.

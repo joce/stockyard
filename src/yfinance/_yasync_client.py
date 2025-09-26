@@ -318,8 +318,7 @@ class YAsyncClient:
     async def call(
         self, api_url: str, query_params: dict[str, str] | None = None
     ) -> dict[str, Any]:
-        """
-        Execute Yahoo! Finance API call asynchronously.
+        """Execute Yahoo! Finance API call asynchronously.
 
         Args:
             api_url (str): API endpoint (e.g. '/v10/finance/quoteSummary/MSFT').

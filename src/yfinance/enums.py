@@ -4,8 +4,7 @@ from enum import Enum
 
 
 class QuoteType(Enum):
-    """
-    Classification of financial instruments supported by Yahoo! Finance API.
+    """Classification of financial instruments supported by Yahoo! Finance API.
 
     Attributes:
         EQUITY (str): Equity.
@@ -29,8 +28,7 @@ class QuoteType(Enum):
 
 
 class MarketState(Enum):
-    """
-    Trading session phases for financial markets in Yahoo! Finance.
+    """Trading session phases for financial markets in Yahoo! Finance.
 
     Attributes:
         PREPRE (str): Pre-pre market state.
@@ -53,8 +51,7 @@ class MarketState(Enum):
 
 
 class OptionType(Enum):
-    """
-    Classification of derivative contracts by right to buy or sell the underlying asset.
+    """Classification of derivative contracts by right to buy or sell the underlying asset.
 
     Attributes:
         CALL (str): Call option.
@@ -66,8 +63,7 @@ class OptionType(Enum):
 
 
 class PriceAlertConfidence(Enum):
-    """
-    Confidence level indicator for Yahoo! Finance price alerts with internal usage.
+    """Confidence level indicator for Yahoo! Finance price alerts with internal usage.
 
     Attributes:
         NONE (str): No confidence.

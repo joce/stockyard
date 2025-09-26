@@ -31,8 +31,7 @@ class YFinance:
         await self._yclient.aclose()
 
     async def retrieve_quotes(self, symbols: list[str]) -> list[YQuote]:
-        """
-        Retrieve quotes for the given symbols.
+        """Retrieve quotes for the given symbols.
 
         Args:
             symbols (list[str]): The symbols to get quotes for.
@@ -74,8 +73,7 @@ class YFinance:
     async def retrieve_autocompletes(
         self, query: str
     ) -> tuple[str, list[YAutocomplete]]:
-        """
-        Retrieve autocomplete entries for the given query.
+        """Retrieve autocomplete entries for the given query.
 
         Args:
             query (str): The query to get autocomplete entries for.

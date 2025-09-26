@@ -17,8 +17,7 @@ T = TypeVar("T")
 
 
 class YSyncClient:
-    """
-    Threaded event-loop based sync facade for YAsyncClient.
+    """Threaded event-loop based sync facade for YAsyncClient.
 
     Usage:
         client = YSyncClient()
@@ -45,8 +44,7 @@ class YSyncClient:
         self._loop.run_forever()
 
     def _run(self, coroutine: Coroutine[Any, Any, T]) -> T:
-        """
-        Submit coroutine to background loop and wait for result.
+        """Submit coroutine to background loop and wait for result.
 
         Args:
             coroutine (Coroutine): Coroutine to run.
@@ -64,8 +62,7 @@ class YSyncClient:
     def call(
         self, api_url: str, query_params: dict[str, str] | None = None
     ) -> dict[str, Any]:
-        """
-        Execute a Yahoo! Finance API call synchronously.
+        """Execute a Yahoo! Finance API call synchronously.
 
         Args:
             api_url (str): API endpoint (e.g. '/v10/finance/quoteSummary/MSFT').

@@ -8,8 +8,7 @@ from appui._formatting import _NO_VALUE
 
 
 def compare_compact_ints(a: str, b: str) -> int:
-    """
-    Compare two compact integers, provided as strings.
+    """Compare two compact integers, provided as strings.
 
     Args:
         a (str): first compact integer
