@@ -1,5 +1,5 @@
 {
-    "autoDocstring.startOnNewLine": true,
+    "autoDocstring.startOnNewLine": false,
     "isort.args": ["--profile", "black"],
     "isort.check": true,
     "pylint.importStrategy": "fromEnvironment",
