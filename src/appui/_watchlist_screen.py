@@ -13,12 +13,12 @@ from ._footer import Footer
 from ._messages import AppExit, TableSortingChanged
 from ._quote_column_definitions import ALL_QUOTE_COLUMNS, TICKER_COLUMN_KEY
 from ._quote_table import QuoteTable
-from ._quote_table_data import QuoteCell, QuoteColumn, QuoteRow
 
 if TYPE_CHECKING:
     from textual.app import ComposeResult
     from textual.events import Mount
 
+    from ._quote_table_data import QuoteColumn
     from .stockyard_config import StockyardConfig
     from .stockyardapp import StockyardApp
     from .watchlist_config import WatchlistConfig

@@ -22,9 +22,14 @@ init-hook="import sys; sys.path.append("src"); sys.path.append("tools/pylint_plu
 
 [BASIC]
 
+class-const-rgx=^_?[A-Z][A-Z0-9_]*$
+
 # Naming styles -- Pretty much all defaults
 class-attribute-naming-style=snake_case
+#class-attribute-naming-style=any
+#class-attribute-rgx=^(_?[a-z][a-z0-9_]*|_?[A-Z][A-Z0-9_]*)$
 inlinevar-naming-style=snake_case
+
 
 # PascalCase, plus possible leading underscores
 typealias-rgx=^_{0,2}[A-Z](([a-z0-9]+[A-Z]?)*)$
@@ -128,7 +133,8 @@ default-docstring-type=google
 # all. Valid levels: HIGH, INFERENCE, INFERENCE_FAILURE, UNDEFINED
 confidence=
 
-disable=docstring-first-line-empty,
+disable=bad-docstring-quotes,          # too many false positives
+        docstring-first-line-empty,
         fixme,
         too-few-public-methods,
         too-many-arguments,

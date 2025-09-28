@@ -2,15 +2,14 @@
 
 from __future__ import annotations
 
-import re
 import sys
 from typing import TYPE_CHECKING, Final
 
-from rich.text import Text, TextType
+from rich.text import Text
 from textual.binding import BindingsMap
 from textual.reactive import Reactive, reactive
 from textual.widgets import DataTable
-from textual.widgets._data_table import ColumnKey
+from textual.widgets._data_table import ColumnKey  # noqa: PLC2701
 from typing_extensions import Self
 
 from ._enums import Justify, SortDirection
@@ -22,7 +21,7 @@ if TYPE_CHECKING:
     from textual._types import SegmentLines
     from textual.coordinate import Coordinate
 
-    from ._quote_table_data import QuoteCell, QuoteColumn, QuoteRow
+    from ._quote_table_data import QuoteColumn
 
 if sys.version_info >= (3, 12):
     from typing import override
@@ -54,7 +53,7 @@ class QuoteTable(DataTable[Text]):
 
         self._ordering_bindings.bind("right", "order_move_right", show=False)
         self._ordering_bindings.bind("left", "order_move_left", show=False)
-        self._ordering_bindings.bind("enter", "order_toggle", show=False)
+        self._ordering_bindings.bind("enter", "order_select", show=False)
 
         # The following (especially the cursor type) need to be set after the binding
         # modes have been created
@@ -187,6 +186,13 @@ class QuoteTable(DataTable[Text]):
         #             ),
         #         )  # fmt: skip
 
+    # Overrides
+
+    @override
+    def clear(self, columns: bool = False) -> Self:
+        self._quote_columns.clear()
+        return super().clear(columns)
+
     @override
     def watch_hover_coordinate(self, old: Coordinate, value: Coordinate) -> None:
         if self.is_ordering:
@@ -198,6 +204,14 @@ class QuoteTable(DataTable[Text]):
             self._hovered_column = -1
 
         super().watch_hover_coordinate(old, value)
+
+    @override
+    def watch_cursor_coordinate(
+        self, old_coordinate: Coordinate, new_coordinate: Coordinate
+    ) -> None:
+
+        super().watch_cursor_coordinate(old_coordinate, new_coordinate)
+        self._cursor_row = new_coordinate.row
 
     @override
     async def _on_click(self, event: events.Click) -> None:
@@ -235,43 +249,7 @@ class QuoteTable(DataTable[Text]):
             if row_index == -1 and self.is_ordering:
                 self._show_hover_cursor = current_show_hover_cursor
 
-    @override
-    def watch_cursor_coordinate(
-        self, old_coordinate: Coordinate, new_coordinate: Coordinate
-    ) -> None:
-
-        super().watch_cursor_coordinate(old_coordinate, new_coordinate)
-        self._cursor_row = new_coordinate.row
-
-        #     def on_data_table_header_selected(self, evt: DataTable.HeaderSelected) -> None:
-        #         """
-        #         Event handler called when the header is clicked.
-
-        #         Args:
-        #             evt (DataTable.HeaderSelected): The event object.
-        #         """
-
-        #         # TODO We probably need to send an event to the app instead.
-        #         selected_column_key: str = (
-        #             evt.column_key.value if evt.column_key.value is not None else ""
-        #         )
-
-        #         if selected_column_key != self._state.sort_column_key:
-        #             # TODO Add a function that can set both the sort column and the sort
-        #             # direction at once
-        #             self._state.sort_column_key = selected_column_key
-        #             self._state.sort_direction = SortDirection.ASCENDING
-        #         else:
-        #             self._state.sort_direction = (
-        #                 SortDirection.ASCENDING
-        #                 if self._state.sort_direction == SortDirection.DESCENDING
-        #                 else SortDirection.DESCENDING
-        #             )
-
-    @override
-    def clear(self, columns: bool = False) -> Self:
-        self._quote_columns.clear()
-        return super().clear(columns)
+    # public API
 
     def add_quote_column(
         self,
@@ -310,17 +288,6 @@ class QuoteTable(DataTable[Text]):
             self._bindings = self._default_bindings
         self._is_ordering = value
 
-    #     def remove_quote(self, row_key: int) -> None:
-    #         """
-    #         Remove a quote from the table.
-
-    #         Args:
-    #             row_key (int): The key of the row to remove. If negative, the cursor row is
-    #                 removed.
-    #         """
-
-    #         self._state.remove_row(row_key if row_key >= 0 else self.cursor_row)
-
     @property
     def sort_column_key(self) -> str:
         """The key of the column currently used for sorting.
@@ -356,21 +323,7 @@ class QuoteTable(DataTable[Text]):
             self._sort_direction = value
             self._update_column_label(self._sort_column_key)
 
-    @property
-    def _sort_column_idx(self) -> int:
-        """Helper to get the index of the current sort column."""
-
-        try:
-            # return the index of the current sort column. It's found by its key
-            return self._quote_columns.index(
-                next(
-                    col
-                    for col in self._quote_columns
-                    if col.key == self._sort_column_key
-                )
-            )
-        except ValueError:
-            return 0
+    # Keyboard actions for ordering mode
 
     def action_order_move_right(self) -> None:
         """Move the cursor right in order mode."""
@@ -388,11 +341,57 @@ class QuoteTable(DataTable[Text]):
         if self._hovered_column > 0:
             self._hovered_column -= 1
 
-    def action_order_toggle(self) -> None:
-        """Toggle the order of the current column in order mode."""
+    def action_order_select(self) -> None:
+        """Handle the selecting of the current column in order mode."""
 
-        if self._hovered_column != self._sort_column_idx:
-            self.sort_column_key = self._quote_columns[self._hovered_column].key
+        self._select_column(self._hovered_column)
+
+    # Event handlers
+
+    def on_data_table_header_selected(self, evt: DataTable.HeaderSelected) -> None:
+        """Event handler called when the header is clicked.
+
+        Args:
+            evt (DataTable.HeaderSelected): The event object.
+        """
+
+        self._select_column(evt.column_index)
+
+    # Watchers
+
+    def watch__hovered_column(self, _old: int, _value: int) -> None:
+        """Watcher for the hovered column."""
+
+        # Force a re-render of the header row
+        self._update_count += 1
+
+    # Helpers
+
+    @property
+    def _sort_column_idx(self) -> int:
+        """Helper to get the index of the current sort column."""
+
+        try:
+            # return the index of the current sort column. It's found by its key
+            return self._quote_columns.index(
+                next(
+                    col
+                    for col in self._quote_columns
+                    if col.key == self._sort_column_key
+                )
+            )
+        except ValueError:
+            return 0
+
+    def _select_column(self, index: int) -> None:
+        """Select the column at the given index.
+
+        Args:
+            index (int): The index of the column to select.
+        """
+
+        if index != self._sort_column_idx:
+            self.sort_column_key = self._quote_columns[index].key
         else:
             self.sort_direction = (
                 SortDirection.ASCENDING
@@ -403,9 +402,3 @@ class QuoteTable(DataTable[Text]):
         self.post_message(
             TableSortingChanged(self.sort_column_key, self.sort_direction)
         )
-
-    def watch__hovered_column(self, _old: int, _value: int) -> None:
-        """Watcher for the hovered column."""
-
-        # Force a re-render of the header row
-        self._update_count += 1
