@@ -175,10 +175,7 @@ class WatchlistScreen(Screen[None]):
 
         self._quote_table.clear(columns=True)
         for column in self._columns:
-            self._quote_table.add_column(
-                column.name, width=column.width, key=column.key
-            )
-            self._quote_table.add_columns()
+            self._quote_table.add_quote_column(column)
 
         self._quote_table.sort_direction = self._config.sort_direction
         self._quote_table.sort_column_key = self._config.sort_column

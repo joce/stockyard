@@ -44,12 +44,12 @@ class QuoteRow:
 class QuoteColumn:
     """Represents a quote table column and defines its display properties and behaviors.
 
-    Contains settings for the column's appearance (name, width, justification) and
+    Contains settings for the column's appearance (label, width, justification) and
     behavior (formatting, sorting, and sign indication).
     """
 
-    name: str
-    """The name of the column."""
+    label: str
+    """The label of the column."""
 
     width: int
     """The width of the column."""

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import sys
 from typing import TYPE_CHECKING, Final
 
@@ -9,23 +10,19 @@ from rich.text import Text, TextType
 from textual.binding import BindingsMap
 from textual.reactive import Reactive, reactive
 from textual.widgets import DataTable
+from textual.widgets._data_table import ColumnKey
 from typing_extensions import Self
 
 from ._enums import Justify, SortDirection
 from ._messages import TableSortingChanged
-from ._quote_column_definitions import TICKER_COLUMN_KEY
-
-# from textual.widgets._data_table import RowKey  # noqa: PLC2701
-
 
 if TYPE_CHECKING:
     from rich.style import Style
     from textual import events
     from textual._types import SegmentLines
     from textual.coordinate import Coordinate
-    from textual.widgets.data_table import CellType, ColumnKey
 
-    #     from ._quote_table_data import QuoteCell, QuoteColumn, QuoteRow
+    from ._quote_table_data import QuoteCell, QuoteColumn, QuoteRow
 
 if sys.version_info >= (3, 12):
     from typing import override
@@ -43,13 +40,12 @@ class QuoteTable(DataTable[Text]):
 
     def __init__(self) -> None:
         super().__init__()
-        #         self._column_key_map: dict[str, Any] = {}
-        self._column_keys: list[str] = []
+        self._quote_columns: list[QuoteColumn] = []
         self._is_ordering: bool = False
 
         self._cursor_row: int = -1
 
-        self._sort_column_key: str = TICKER_COLUMN_KEY
+        self._sort_column_key: str = ""
         self._sort_direction: SortDirection = SortDirection.ASCENDING
 
         # Bindings
@@ -122,38 +118,52 @@ class QuoteTable(DataTable[Text]):
 
         #         self._version = self._state.version
 
-        #     def _get_styled_column_title(self, quote_column: QuoteColumn) -> Text:
-        #         """
-        #         Generate a styled column title based on the quote column and the current state.
+    def _update_column_label(self, quote_column_key: str) -> None:
+        """Update the label of a column based on its key.
 
-        #         If the quote column key matches the sort column key in the current state, an
-        #         arrow indicating the sort direction is added to the column title. The position
-        #         of the arrow depends on the justification of the column: if the column is
-        #         left-justified, the arrow is added at the end of the title; if the column is
-        #         right-justified, the arrow is added at the beginning of the title.
+        Args:
+            quote_column_key (str): The key of the column to update.
+        """
 
-        #         Args:
-        #             quote_column (QuoteColumn): The quote column for which to generate a styled
-        #                 title.
+        label = self._get_styled_column_label(quote_column_key)
+        self.columns[ColumnKey(quote_column_key)].label = label
+        self._update_count += 1
+        self.refresh()
 
-        #         Returns:
-        #             Text: The styled column title.
-        #         """
+    def _get_styled_column_label(self, quote_column_key: str) -> Text:
+        """Generate a styled column title based on the column and the current state.
 
-        #         column_title: str = quote_column.name
-        #         if quote_column.key == self._state.sort_column_key:
-        #             if quote_column.justification == Justify.LEFT:
-        #                 if self._state.sort_direction == SortDirection.ASCENDING:
-        #                     column_title = column_title[: quote_column.width - 2] + " ▼"
-        #                 else:
-        #                     column_title = column_title[: quote_column.width - 2] + " ▲"
-        #             else:  # noqa: PLR5501
-        #                 if self._state.sort_direction == SortDirection.ASCENDING:
-        #                     column_title = "▼ " + column_title[: quote_column.width - 2]
-        #                 else:
-        #                     column_title = "▲ " + column_title[: quote_column.width - 2]
+        If the quote column key matches the sort column key in the current state, an
+        arrow indicating the sort direction is added to the column title. The position
+        of the arrow depends on the justification of the column: if the column is
+        left-justified, the arrow is added at the end of the title; if the column is
+        right-justified, the arrow is added at the beginning of the title.
 
-        #         return Text(column_title, justify=quote_column.justification.value)
+        Args:
+            quote_column_key (str): The key of the  column for which to generate a
+                styled title.
+
+        Returns:
+            Text: The styled column title.
+        """
+
+        quote_column: QuoteColumn = next(
+            col for col in self._quote_columns if col.key == quote_column_key
+        )
+        column_title: str = quote_column.label
+        if quote_column.key == self._sort_column_key:
+            if quote_column.justification == Justify.LEFT:
+                if self._sort_direction == SortDirection.ASCENDING:
+                    column_title = column_title[: quote_column.width - 2] + " ▼"
+                else:
+                    column_title = column_title[: quote_column.width - 2] + " ▲"
+            else:  # noqa: PLR5501
+                if self._sort_direction == SortDirection.ASCENDING:
+                    column_title = "▼ " + column_title[: quote_column.width - 2]
+                else:
+                    column_title = "▲ " + column_title[: quote_column.width - 2]
+
+        return Text(column_title, justify=quote_column.justification.value)
 
         #     @classmethod
         #     def _get_styled_cell(cls, cell: QuoteCell) -> Text:
@@ -260,22 +270,24 @@ class QuoteTable(DataTable[Text]):
 
     @override
     def clear(self, columns: bool = False) -> Self:
-        self._column_keys.clear()
+        self._quote_columns.clear()
         return super().clear(columns)
 
-    @override
-    def add_column(
+    def add_quote_column(
         self,
-        label: TextType,
-        *,
-        width: int | None = None,
-        key: str | None = None,
-        default: Text | None = None,
-    ) -> ColumnKey:
-        if key is None:
-            raise ValueError("A column key must be provided")
-        self._column_keys.append(key)
-        return super().add_column(label, width=width, key=key, default=default)
+        quote_column: QuoteColumn,
+    ) -> None:
+        """Add a quote column to the table.
+
+        Args:
+            quote_column (QuoteColumn): The quote column to add.
+        """
+        self._quote_columns.append(quote_column)
+        super().add_column(
+            self._get_styled_column_label(quote_column.key),
+            width=quote_column.width,
+            key=quote_column.key,
+        )
 
     @property
     def is_ordering(self) -> bool:
@@ -311,14 +323,26 @@ class QuoteTable(DataTable[Text]):
 
     @property
     def sort_column_key(self) -> str:
-        """The key of the column currently used for sorting."""
+        """The key of the column currently used for sorting.
+
+        Raises:
+            ValueError: If the provided key is not a valid column key.
+        """  # noqa: DOC502
 
         return self._sort_column_key
 
     @sort_column_key.setter
     def sort_column_key(self, value: str) -> None:
+
+        if value not in [column.key for column in self._quote_columns]:
+            error_text = f"Invalid sort column key: {value}"
+            raise ValueError(error_text)
         if value != self._sort_column_key:
+            prev_key = self._sort_column_key
             self._sort_column_key = value
+            if prev_key:
+                self._update_column_label(prev_key)
+            self._update_column_label(self._sort_column_key)
 
     @property
     def sort_direction(self) -> SortDirection:
@@ -330,17 +354,21 @@ class QuoteTable(DataTable[Text]):
     def sort_direction(self, value: SortDirection) -> None:
         if value != self._sort_direction:
             self._sort_direction = value
+            self._update_column_label(self._sort_column_key)
 
     @property
     def _sort_column_idx(self) -> int:
-        """Helper to get the index of the current sort column.
-
-        Returns:
-            int: The index of the current sort column, or 0 if not found.
-        """
+        """Helper to get the index of the current sort column."""
 
         try:
-            return self._column_keys.index(self._sort_column_key)
+            # return the index of the current sort column. It's found by its key
+            return self._quote_columns.index(
+                next(
+                    col
+                    for col in self._quote_columns
+                    if col.key == self._sort_column_key
+                )
+            )
         except ValueError:
             return 0
 
@@ -364,16 +392,16 @@ class QuoteTable(DataTable[Text]):
         """Toggle the order of the current column in order mode."""
 
         if self._hovered_column != self._sort_column_idx:
-            self._sort_column_key = self._column_keys[self._hovered_column]
+            self.sort_column_key = self._quote_columns[self._hovered_column].key
         else:
-            self._sort_direction = (
+            self.sort_direction = (
                 SortDirection.ASCENDING
-                if self._sort_direction == SortDirection.DESCENDING
+                if self.sort_direction == SortDirection.DESCENDING
                 else SortDirection.DESCENDING
             )
 
         self.post_message(
-            TableSortingChanged(self._sort_column_key, self._sort_direction)
+            TableSortingChanged(self.sort_column_key, self.sort_direction)
         )
 
     def watch__hovered_column(self, _old: int, _value: int) -> None:
