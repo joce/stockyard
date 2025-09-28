@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from rich.console import RenderableType
     from textual.worker import Worker
 
-    from ._messages import ExitApp
+    from ._messages import AppExit
 
 if sys.version_info >= (3, 12):
     from typing import override
@@ -85,7 +85,7 @@ class StockyardApp(App[None]):
             WatchlistScreen(self._config), name="watchlist"
         )
 
-    async def on_exit_app(self, _: ExitApp) -> None:
+    async def on_app_exit(self, _: AppExit) -> None:
         """Handle exit app messages.
 
         Do not call this directly.

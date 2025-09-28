@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 from ._enums import SortDirection, coerce_enum_member
 from ._lenient_assignment_mixin import LenientAssignmentMixin
-from ._quote_column_definitions import ALL_QUOTE_COLUMNS
+from ._quote_column_definitions import ALL_QUOTE_COLUMNS, TICKER_COLUMN_KEY
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -27,7 +27,6 @@ class WatchlistConfig(LenientAssignmentMixin, BaseModel):
     model_config = ConfigDict(validate_assignment=True)
 
     # Constants (not part of the model schema)
-    _TICKER_COLUMN_NAME: ClassVar[Final[str]] = "ticker"
     DEFAULT_COLUMN_NAMES: ClassVar[Final[list[str]]] = [
         "last",
         "change_percent",
@@ -53,7 +52,7 @@ class WatchlistConfig(LenientAssignmentMixin, BaseModel):
         description="Non-ticker columns to display (ticker is always first)",
     )
     sort_column: str = Field(
-        default=_TICKER_COLUMN_NAME,
+        default=TICKER_COLUMN_KEY,
         description="Key of the column to sort by (includes 'ticker')",
     )
     sort_direction: SortDirection = Field(
@@ -89,7 +88,7 @@ class WatchlistConfig(LenientAssignmentMixin, BaseModel):
         filtered: list[str] = []
         seen: set[str] = set()
         for col in v:
-            if col == cls._TICKER_COLUMN_NAME:
+            if col == TICKER_COLUMN_KEY:
                 # Always implicit; ignore if provided.
                 continue
             if col not in ALL_QUOTE_COLUMNS:
@@ -192,6 +191,6 @@ class WatchlistConfig(LenientAssignmentMixin, BaseModel):
 
         if self.sort_column not in self.columns:
             object.__setattr__(  # noqa: PLC2801 - bypasses frozen model
-                self, "sort_column", self._TICKER_COLUMN_NAME
+                self, "sort_column", TICKER_COLUMN_KEY
             )
         return self

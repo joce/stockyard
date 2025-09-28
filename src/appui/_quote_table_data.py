@@ -1,5 +1,4 @@
-"""
-Define data structures for managing and displaying quote tables in the application UI.
+"""Define data structures for managing and displaying quote tables in the app's UI.
 
 Contains the core classes QuoteCell, QuoteRow, and QuoteColumn that together form the
 building blocks of a quote table's structure and behavior.
@@ -43,8 +42,7 @@ class QuoteRow:
 
 @dataclass(frozen=True)
 class QuoteColumn:
-    """
-    Represents a quote table column and defines its display properties and behaviors.
+    """Represents a quote table column and defines its display properties and behaviors.
 
     Contains settings for the column's appearance (name, width, justification) and
     behavior (formatting, sorting, and sign indication).

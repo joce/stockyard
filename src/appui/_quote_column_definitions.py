@@ -12,10 +12,11 @@ from ._quote_table_data import QuoteColumn
 T = TypeVar("T", int, float)
 """TypeVar T is defined to be either an int or a float."""
 
+TICKER_COLUMN_KEY: Final[str] = "ticker"
+
 
 def _safe_value(v: T | None) -> float:
-    """
-    Safely retrieves the value of v.
+    """Safely retrieves the value of v.
 
     Note:
         If v is None, it returns the smallest representable value for type T.
@@ -32,8 +33,7 @@ def _safe_value(v: T | None) -> float:
 
 
 def _sign(v: T) -> int:
-    """
-    Determine the sign of a given value.
+    """Determine the sign of a given value.
 
     Args:
         v (T): The value for which the sign is to be determined.

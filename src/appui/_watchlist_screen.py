@@ -10,12 +10,10 @@ from textual.binding import BindingsMap
 from textual.screen import Screen
 
 from ._footer import Footer
-
-# from ._quote_table import QuoteTable
-from ._messages import ExitApp
-
-# from ._quote_table import QuoteTable
-# from ._selector_screen import SelectorScreen
+from ._messages import AppExit, TableSortingChanged
+from ._quote_column_definitions import ALL_QUOTE_COLUMNS, TICKER_COLUMN_KEY
+from ._quote_table import QuoteTable
+from ._quote_table_data import QuoteCell, QuoteColumn, QuoteRow
 
 if TYPE_CHECKING:
     from textual.app import ComposeResult
@@ -23,6 +21,7 @@ if TYPE_CHECKING:
 
     from .stockyard_config import StockyardConfig
     from .stockyardapp import StockyardApp
+    from .watchlist_config import WatchlistConfig
 
 if sys.version_info >= (3, 12):
     from typing import override
@@ -47,16 +46,20 @@ class WatchlistScreen(Screen[None]):
 
         super().__init__()
 
-        #         # TODO Maybe have a different state for the watchlist?
-        self._config: StockyardConfig = config
+        self._stockyard_config: StockyardConfig = config
+        # convenience alias
+        self._config: WatchlistConfig = config.watchlist
+
+        self._columns: list[QuoteColumn] = []
+
+        # Widgets
+        self._footer: Footer = Footer(self._stockyard_config.time_format)
+        self._quote_table: QuoteTable = QuoteTable()
+
+        # Bindings
         self._bindings: BindingsMap = BindingsMap()
         self._current_bindings: WatchlistScreen.BM = WatchlistScreen.BM.IN_ORDERING
 
-        # Widgets
-        self._footer: Footer = Footer(self._config.time_format)
-        #         self._quote_table: QuoteTable = QuoteTable(self._state.quote_table_state)
-
-        # Bindings
         self._bindings_modes: dict[WatchlistScreen.BM, BindingsMap] = {
             WatchlistScreen.BM.DEFAULT: BindingsMap(),
             WatchlistScreen.BM.IN_ORDERING: BindingsMap(),
@@ -64,28 +67,28 @@ class WatchlistScreen(Screen[None]):
 
         self._bindings_modes[WatchlistScreen.BM.DEFAULT].bind("q", "exit", "Exit")
 
-        #         self._bindings_modes[WatchlistScreen.BM.DEFAULT].bind(
-        #             "o", "order_quotes", "Change sort order"
-        #         )
-        #         self._bindings_modes[WatchlistScreen.BM.DEFAULT].bind(
-        #             "insert", "add_quote", "Add quote", key_display="ins"
-        #         )
+        self._bindings_modes[WatchlistScreen.BM.DEFAULT].bind(
+            "o", "order_quotes", "Change sort order"
+        )
+        self._bindings_modes[WatchlistScreen.BM.DEFAULT].bind(
+            "insert", "add_quote", "Add quote", key_display="ins"
+        )
 
-        #         # For Delete, we want the same bindings as default, plus delete
-        #         self._bindings_modes[WatchlistScreen.BM.WITH_DELETE] = self._bindings_modes[
-        #             WatchlistScreen.BM.DEFAULT
-        #         ].copy()
-        #         self._bindings_modes[WatchlistScreen.BM.WITH_DELETE].bind(
-        #             "delete", "remove_quote", "Remove quote", key_display="del"
-        #         )
+        # For Delete, we want the same bindings as default, plus delete
+        self._bindings_modes[WatchlistScreen.BM.WITH_DELETE] = self._bindings_modes[
+            WatchlistScreen.BM.DEFAULT
+        ].copy()
+        self._bindings_modes[WatchlistScreen.BM.WITH_DELETE].bind(
+            "delete", "remove_quote", "Remove quote", key_display="del"
+        )
 
-        #         # For Ordering, we want to drop all default binding. No add / delete, or cursor
-        #         # movement.
-        #         self._bindings_modes[WatchlistScreen.BM.IN_ORDERING].bind(
-        #             "escape", "exit_ordering", "Done", key_display="Esc"
-        #         )
+        # For Ordering, we want to drop all default binding. No add / delete, or cursor
+        # movement.
+        self._bindings_modes[WatchlistScreen.BM.IN_ORDERING].bind(
+            "escape", "exit_ordering", "Done", key_display="Esc"
+        )
 
-        #         self._switch_bindings(WatchlistScreen.BM.DEFAULT)
+        self._switch_bindings(WatchlistScreen.BM.DEFAULT)
 
     @override
     def _on_mount(self, event: Mount) -> None:
@@ -95,11 +98,53 @@ class WatchlistScreen(Screen[None]):
 
         self._bindings = self._bindings_modes[self._current_bindings]
 
+        self._update_columns()
+
     @override
     def compose(self) -> ComposeResult:
-        #            yield self._quote_table
+        yield self._quote_table
         yield self._footer
 
+    # Actions
+    def action_add_quote(self) -> None:
+        """Add a new quote to the table."""
+
+    def action_remove_quote(self) -> None:
+        """Remove the selected quote from the table."""
+
+        # self._quote_table.remove_quote(-1)
+        self._switch_bindings(WatchlistScreen.BM.DEFAULT)
+
+    def action_order_quotes(self) -> None:
+        """Order the quotes in the table."""
+
+        self._quote_table.is_ordering = True
+        self._switch_bindings(WatchlistScreen.BM.IN_ORDERING)
+
+    def action_exit_ordering(self) -> None:
+        """Exit the ordering mode."""
+
+        self._quote_table.is_ordering = False
+        self._switch_bindings(WatchlistScreen.BM.DEFAULT)
+
+    def action_exit(self) -> None:
+        """Handle exit actions."""
+
+        self.post_message(AppExit())
+
+    # Message handlers
+    def on_table_sorting_changed(self, message: TableSortingChanged) -> None:
+        """Handle table sorting changed messages.
+
+        Args:
+            message (TableSortingChanged): The message.
+        """
+
+        self._config.sort_column = message.column_key
+        self._config.sort_direction = message.direction
+        # TODO Persist config change now?
+
+    # Helpers
     def _switch_bindings(self, mode: WatchlistScreen.BM) -> None:
         """Switch the bindings to the given mode.
 
@@ -107,39 +152,33 @@ class WatchlistScreen(Screen[None]):
             mode (Watchlist.BM): The mode to switch to.
         """
 
-        # if (
-        #     mode == WatchlistScreen.BM.DEFAULT
-        #     and len(self._state.quote_table_state.quotes_symbols) > 0
-        # ):
-        #     mode = WatchlistScreen.BM.WITH_DELETE
+        if mode == WatchlistScreen.BM.DEFAULT and len(self._config.quotes) > 0:
+            mode = WatchlistScreen.BM.WITH_DELETE
 
-        # if self._current_bindings == mode:
-        #     return
+        if self._current_bindings == mode:
+            return
         self._current_bindings = mode
         self._bindings = self._bindings_modes[self._current_bindings]
-        self._footer.refresh_bindings()
+        self.refresh_bindings()
 
-    #     def action_add_quote(self) -> None:
-    #         """Add a new quote to the table."""
+    def _update_columns(self) -> None:
+        """Update the columns in the quote table based on the configuration."""
 
-    def action_remove_quote(self) -> None:
-        """Remove the selected quote from the table."""
+        self._columns = [
+            ALL_QUOTE_COLUMNS[TICKER_COLUMN_KEY],
+            *(
+                ALL_QUOTE_COLUMNS[column]
+                for column in self._config.columns
+                if column != TICKER_COLUMN_KEY
+            ),
+        ]
 
-    #         self._quote_table.remove_quote(-1)
-    #         self._switch_bindings(WatchlistScreen.BM.DEFAULT)
+        self._quote_table.clear(columns=True)
+        for column in self._columns:
+            self._quote_table.add_column(
+                column.name, width=column.width, key=column.key
+            )
+            self._quote_table.add_columns()
 
-    #     def action_order_quotes(self) -> None:
-    #         """Order the quotes in the table."""
-
-    #         self._quote_table.is_ordering = True
-    #         self._switch_bindings(WatchlistScreen.BM.IN_ORDERING)
-
-    #     def action_exit_ordering(self) -> None:
-    #         """Exit the ordering mode."""
-
-    #         self._quote_table.is_ordering = False
-    #         self._switch_bindings(WatchlistScreen.BM.DEFAULT)
-
-    def action_exit(self) -> None:
-        """Handle exit actions."""
-        self.post_message(ExitApp())
+        self._quote_table.sort_direction = self._config.sort_direction
+        self._quote_table.sort_column_key = self._config.sort_column
