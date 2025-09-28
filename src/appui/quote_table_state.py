@@ -46,34 +46,6 @@
 
 #             super().__init__(f"Invalid row index `{index}`.")
 
-#     _TICKER_COLUMN_KEY: Final[str] = "ticker"
-
-#     # Default values
-#     _DEFAULT_COLUMN_KEYS: Final[list[str]] = [
-#         "last",
-#         "change_percent",
-#         "volume",
-#         "market_cap",
-#     ]
-#     _DEFAULT_QUOTES: Final[list[str]] = [
-#         "AAPL",
-#         "F",
-#         "VT",
-#         "^DJI",
-#         "ARKK",
-#         "GC=F",
-#         "EURUSD=X",
-#         "BTC-USD",
-#     ]
-#     _DEFAULT_SORT_DIRECTION: Final[SortDirection] = SortDirection.ASCENDING
-#     _DEFAULT_QUERY_FREQUENCY: Final[int] = 60
-
-#     # Config file keys
-#     _COLUMNS: Final[str] = "columns"
-#     _SORT_COLUMN: Final[str] = "sort_column"
-#     _SORT_DIRECTION: Final[str] = "sort_direction"
-#     _QUOTES: Final[str] = "quotes"
-#     _QUERY_FREQUENCY: Final[str] = "query_frequency"
 
 #     def __init__(self, yfin: YFinance) -> None:
 #         """
@@ -86,24 +58,9 @@
 #             yfin: Market data provider instance used for quote retrieval
 #         """
 
-#         # Persistent state
-#         self._quotes_symbols: list[str] = QuoteTableState._DEFAULT_QUOTES[:]
-#         self._sort_column_key: str = QuoteTableState._TICKER_COLUMN_KEY
-#         self._sort_direction: SortDirection = QuoteTableState._DEFAULT_SORT_DIRECTION
-#         self._query_frequency: int = QuoteTableState._DEFAULT_QUERY_FREQUENCY
-
-#         # Ticker is *always* the first column
-#         columns_keys: list[str] = [
-#             QuoteTableState._TICKER_COLUMN_KEY,
-#             *QuoteTableState._DEFAULT_COLUMN_KEYS,
-#         ]
-#         self._columns: list[QuoteColumn] = [
-#             ALL_QUOTE_COLUMNS[column] for column in columns_keys
-#         ]
 
 #         # Transient state
 #         self._cursor_symbol: str = ""
-#         self._hovered_column: int = -1
 #         self._version: int = 0
 #         self._quotes: list[YQuote] = []
 #         self._sort_key_func: Callable[[YQuote], Any] = ALL_QUOTE_COLUMNS[
@@ -120,11 +77,6 @@
 #         self._quotes_lock: Lock = Lock()
 #         self._logger = logging.getLogger(__name__)
 
-#     @property
-#     def version(self) -> int:
-#         """The version of the quote data."""
-
-#         return self._version
 
 #     @property
 #     def query_thread_running(self) -> bool:
@@ -144,46 +96,6 @@
 #         else:
 #             self._query_thread.join()
 
-#     @property
-#     def sort_column_key(self) -> str:
-#         """The key of the column to sort by."""
-
-#         return self._sort_column_key
-
-#     @sort_column_key.setter
-#     def sort_column_key(self, value: str) -> None:
-#         if value == self._sort_column_key:
-#             return
-#         self._sort_column_key = value
-#         self._sort_key_func = ALL_QUOTE_COLUMNS[self._sort_column_key].sort_key_func
-#         with self._quotes_lock:
-#             self._sort_quotes()
-#         self._version += 1
-
-#     @property
-#     def sort_column_idx(self) -> int:
-#         """The index of the column to sort by."""
-
-#         return self._columns.index(ALL_QUOTE_COLUMNS[self._sort_column_key])
-
-#     @sort_column_idx.setter
-#     def sort_column_idx(self, value: int) -> None:
-#         self.sort_column_key = self._columns[value].key
-
-#     @property
-#     def sort_direction(self) -> SortDirection:
-#         """The direction of the sort."""
-
-#         return self._sort_direction
-
-#     @sort_direction.setter
-#     def sort_direction(self, value: SortDirection) -> None:
-#         if value == self._sort_direction:
-#             return
-#         self._sort_direction = value
-#         with self._quotes_lock:
-#             self._sort_quotes()
-#         self._version += 1
 
 #     @property
 #     def query_frequency(self) -> int:
@@ -196,26 +108,6 @@
 #         self._query_frequency = value
 #         # Don't change the version. This is a setting for the backend, not the UI.
 
-#     @property
-#     def hovered_column(self) -> int:
-#         """
-#         Index of the focused table column.
-
-#         A value of -1 indicates no column is focused.
-
-#         Note:
-#             Focus can be triggered either by mouse hover or keyboard selection in column
-#             ordering mode.
-#         """
-
-#         return self._hovered_column
-
-#     @hovered_column.setter
-#     def hovered_column(self, value: int) -> None:
-#         if value == self._hovered_column or value < -1 or value >= len(self._columns):
-#             return
-#         self._hovered_column = value
-#         self._version += 1
 
 #     @property
 #     def cursor_row(self) -> int:
@@ -231,11 +123,6 @@
 #             # mirror the cursor position from the UI.
 #             self._set_cursor_row_no_lock(value)
 
-#     @property
-#     def quotes_columns(self) -> list[QuoteColumn]:
-#         """The columns of the quote table."""
-
-#         return self._columns
 
 #     @property
 #     def quotes_rows(self) -> list[QuoteRow]:
@@ -269,11 +156,6 @@
 
 #             return quote_info
 
-#     @property
-#     def column_keys(self) -> list[str]:
-#         """The keys of the columns of the quote table."""
-
-#         return [c.key for c in self._columns]
 
 #     @property
 #     def quotes_symbols(self) -> tuple[str, ...]:
@@ -281,26 +163,6 @@
 
 #         return tuple(self._quotes_symbols)
 
-#     def append_column(self, column_key: str) -> None:
-#         """
-#         Append a new column to the quote table.
-
-#         Attempting to add a column that is already present or that doesn't exist will
-#         have no effect.
-
-#         The column is added at the end of the list of existing columns.
-
-#         Args:
-#             column_key (str): The identifier of the column to add.
-#                 The identifier of the column is expected to match the ones found in the
-#                 ALL_QUOTE_COLUMNS definition.
-#         """
-
-#         if not self._can_add_column(column_key):
-#             return
-
-#         self._columns.append(ALL_QUOTE_COLUMNS[column_key])
-#         self._version += 1
 
 #     def insert_column(self, index: int, column_key: str) -> None:
 #         """
