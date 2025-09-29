@@ -6,8 +6,6 @@ import logging
 from enum import Enum, IntEnum
 from typing import TypeVar
 
-_LOGGER = logging.getLogger(__name__)
-
 
 class Justify(Enum):
     """Justify enum for the Label class."""
