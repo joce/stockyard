@@ -82,7 +82,7 @@ class StockyardApp(App[None]):
         self._priming_worker = self._prime_yfinance()
         self.title = self._config.title
         self.install_screen(  # type: ignore[no-untyped-call]
-            WatchlistScreen(self._config), name="watchlist"
+            WatchlistScreen(self._config, self._yfinance), name="watchlist"
         )
 
     async def on_app_exit(self, _: AppExit) -> None:

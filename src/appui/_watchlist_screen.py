@@ -9,6 +9,8 @@ from typing import TYPE_CHECKING
 from textual.binding import BindingsMap
 from textual.screen import Screen
 
+from yfinance import YFinance
+
 from ._footer import Footer
 from ._messages import AppExit, TableSortingChanged
 from ._quote_column_definitions import ALL_QUOTE_COLUMNS, TICKER_COLUMN_KEY
@@ -41,7 +43,7 @@ class WatchlistScreen(Screen[None]):
         WITH_DELETE = "with_delete"
         IN_ORDERING = "in_ordering"
 
-    def __init__(self, config: StockyardConfig) -> None:
+    def __init__(self, config: StockyardConfig, yfinance: YFinance) -> None:
         """Initialize the watchlist screen."""
 
         super().__init__()
@@ -49,6 +51,7 @@ class WatchlistScreen(Screen[None]):
         self._stockyard_config: StockyardConfig = config
         # convenience alias
         self._config: WatchlistConfig = config.watchlist
+        self._yfinance = yfinance
 
         self._columns: list[QuoteColumn] = []
 
