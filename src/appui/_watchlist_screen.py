@@ -3,22 +3,26 @@
 from __future__ import annotations
 
 import sys
+from asyncio import Lock, sleep
 from enum import Enum
 from typing import TYPE_CHECKING
 
+from rich.text import Text
+from textual import work
 from textual.binding import BindingsMap
 from textual.screen import Screen
-
-from yfinance import YFinance
+from textual.worker import Worker
 
 from ._footer import Footer
-from ._messages import AppExit, TableSortingChanged
+from ._messages import AppExit, QuotesRefreshed, TableSortingChanged
 from ._quote_column_definitions import ALL_QUOTE_COLUMNS, TICKER_COLUMN_KEY
 from ._quote_table import QuoteTable
 
 if TYPE_CHECKING:
     from textual.app import ComposeResult
     from textual.events import Mount
+
+    from yfinance import YFinance, YQuote
 
     from ._quote_table_data import QuoteColumn
     from .stockyard_config import StockyardConfig
@@ -48,16 +52,21 @@ class WatchlistScreen(Screen[None]):
 
         super().__init__()
 
+        # Params
         self._stockyard_config: StockyardConfig = config
         # convenience alias
         self._config: WatchlistConfig = config.watchlist
         self._yfinance = yfinance
 
+        # Data
         self._columns: list[QuoteColumn] = []
 
         # Widgets
         self._footer: Footer = Footer(self._stockyard_config.time_format)
         self._quote_table: QuoteTable = QuoteTable()
+
+        self._quote_worker: Worker[None] | None = None
+        self._yfinance_lock: Lock = Lock()
 
         # Bindings
         self._bindings: BindingsMap = BindingsMap()
@@ -104,6 +113,12 @@ class WatchlistScreen(Screen[None]):
         self._update_columns()
 
     @override
+    def _on_unmount(self) -> None:
+        if self._quote_worker and self._quote_worker.is_running:
+            self._quote_worker.cancel()
+        super()._on_unmount()
+
+    @override
     def compose(self) -> ComposeResult:
         yield self._quote_table
         yield self._footer
@@ -146,6 +161,47 @@ class WatchlistScreen(Screen[None]):
         self._config.sort_column = message.column_key
         self._config.sort_direction = message.direction
         # TODO Persist config change now?
+
+    def on_show(self) -> None:
+        """Handle the screen being shown."""
+
+        if self._quote_worker is None or self._quote_worker.is_finished:
+            self._quote_worker = self._poll_quotes()
+
+    def on_hide(self) -> None:
+        """Handle the screen being hidden."""
+
+        if self._quote_worker and self._quote_worker.is_running:
+            self._quote_worker.cancel()
+
+    def on_quotes_refreshed(self, message: QuotesRefreshed) -> None:
+        """Handle quotes refreshed messages.
+
+        Args:
+            message (QuotesRefreshed): The message.
+        """
+
+        self._quote_table.clear()
+        for quote in message.quotes:
+            self._quote_table.add_row(Text(quote.symbol))
+
+    # Workers
+    @work(exclusive=True, group="watchlist-quotes")
+    async def _poll_quotes(self) -> None:
+        """Poll quotes periodically and update the table."""
+
+        delay = 10  # max(1, self._config.query_frequency)
+        while True:
+            try:
+                quotes: list[YQuote] = []
+                if self._config.quotes:
+                    async with self._yfinance_lock:
+                        quotes = await self._yfinance.retrieve_quotes(
+                            self._config.quotes
+                        )
+                    self.post_message(QuotesRefreshed(quotes))
+            finally:
+                await sleep(delay)
 
     # Helpers
     def _switch_bindings(self, mode: WatchlistScreen.BM) -> None:

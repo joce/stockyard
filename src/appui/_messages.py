@@ -2,6 +2,8 @@
 
 from textual.message import Message
 
+from yfinance.yquote import YQuote
+
 from ._enums import SortDirection
 
 
@@ -18,7 +20,6 @@ class TableSortingChanged(Message):
         """Initialize the TableSortingChanged message.
 
         Args:
-            sender (object): The sender of the message.
             column_key (key): The key of the column that is now sorted.
             direction (SortDirection): The direction of the sort.
         """
@@ -26,3 +27,17 @@ class TableSortingChanged(Message):
         super().__init__()
         self.column_key: str = column_key
         self.direction: SortDirection = direction
+
+
+class QuotesRefreshed(Message):
+    """Message to indicate that the quotes have been refreshed."""
+
+    def __init__(self, quotes: list[YQuote]) -> None:
+        """Initialize the QuotesRefreshed message.
+
+        Args:
+            quotes (list[YQuote]): The refreshed quotes.
+        """
+
+        super().__init__()
+        self.quotes: list[YQuote] = quotes
