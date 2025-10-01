@@ -6,27 +6,25 @@ building blocks of a quote table's structure and behavior.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Callable
+from dataclasses import KW_ONLY, dataclass
+from typing import Any, Callable
+
+from rich.text import Text
 
 from ._enums import Justify
 
-if TYPE_CHECKING:
-    from yfinance import YQuote
+# @dataclass(frozen=True)
+# class QuoteCell:
+#     """Definition of a cell for the quote table."""
 
+#     value: str
+#     """The value to display."""
 
-@dataclass(frozen=True)
-class QuoteCell:
-    """Definition of a cell for the quote table."""
+#     sign: int
+#     """The sign of the value, i.e. negative (-1), positive (1) or neutral (0)."""
 
-    value: str
-    """The value to display."""
-
-    sign: int
-    """The sign of the value, i.e. negative (-1), positive (1) or neutral (0)."""
-
-    justify: Justify
-    """The justification of the text in the cell."""
+#     justify: Justify
+#     """The justification of the text in the cell."""
 
 
 @dataclass(frozen=True)
@@ -36,7 +34,7 @@ class QuoteRow:
     key: str
     """The key of the row."""
 
-    values: list[QuoteCell]
+    values: list[Text]
     """The values of the row."""
 
 
@@ -51,28 +49,32 @@ class QuoteColumn:
     label: str
     """The label of the column."""
 
-    width: int
+    _: KW_ONLY
+
+    width: int = 10
     """The width of the column."""
 
-    key: str
-    """The key of the column."""
-
-    format_func: Callable[[YQuote], str]
-    """ The function used to format the column."""
-
-    sort_key_func: Callable[[YQuote], Any]
-    """The function used provide the sort key for the column."""
-
-    sign_indicator_func: Callable[[YQuote], int] = lambda _: 0
-    """
-    The function used to provide the sign indicator for the column.
-
-    Defaults to a function that returns 0 (neutral).
-    """
+    key: str = None  # pyright: ignore[reportAssignmentType]
+    """The key of the column, defaults to the label if omitted."""
 
     justification: Justify = Justify.RIGHT
-    """
-    The justification of the column.
+    """Text justification for the column."""
 
-    Defaults to Justify.RIGHT.
-    """
+    format_func: Callable[[Any], Text] = lambda _: Text()
+    """The function used to format the column."""
+
+    sort_key_func: Callable[[Any], Any] = lambda _: 0
+    """The function used to provide the sort key for the column."""
+
+    def __post_init__(self) -> None:
+        """Ensure the column key defaults to the label when omitted."""
+
+        object.__setattr__(
+            self,
+            "key",
+            (
+                self.label
+                if self.key is None  # pyright: ignore[reportUnnecessaryComparison]
+                else self.key
+            ),
+        )

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import sys
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING
 
 from rich.text import Text
 from textual.binding import BindingsMap
@@ -31,9 +31,6 @@ else:
 
 class QuoteTable(DataTable[Text]):
     """A DataTable for displaying quotes."""
-
-    _GAINING_COLOR: Final[str] = "#00DD00"
-    _LOSING_COLOR: Final[str] = "#DD0000"
 
     _hovered_column: Reactive[int] = reactive(-1)
 
@@ -149,48 +146,27 @@ class QuoteTable(DataTable[Text]):
         quote_column: QuoteColumn = next(
             col for col in self._quote_columns if col.key == quote_column_key
         )
-        column_title: str = quote_column.label
+        column_label: str = quote_column.label
         if quote_column.key == self._sort_column_key:
             if quote_column.justification == Justify.LEFT:
                 if self._sort_direction == SortDirection.ASCENDING:
-                    column_title = column_title[: quote_column.width - 2] + " ▼"
+                    column_label = column_label[: quote_column.width - 2] + " ▼"
                 else:
-                    column_title = column_title[: quote_column.width - 2] + " ▲"
+                    column_label = column_label[: quote_column.width - 2] + " ▲"
             else:  # noqa: PLR5501
                 if self._sort_direction == SortDirection.ASCENDING:
-                    column_title = "▼ " + column_title[: quote_column.width - 2]
+                    column_label = "▼ " + column_label[: quote_column.width - 2]
                 else:
-                    column_title = "▲ " + column_title[: quote_column.width - 2]
+                    column_label = "▲ " + column_label[: quote_column.width - 2]
 
-        return Text(column_title, justify=quote_column.justification.value)
-
-        #     @classmethod
-        #     def _get_styled_cell(cls, cell: QuoteCell) -> Text:
-        #         """
-        #         Generate the styled text for a cell based on the quote cell data.
-
-        #         Args:
-        #             cell (QuoteCell): The quote cell for which to generate a styled cell.
-
-        #         Returns:
-        #             Text: The styled cell.
-        #         """
-
-        #         return Text(
-        #             cell.value,
-        #             justify=cell.justify.value,
-        #             style=(
-        #                 QuoteTable._LOSING_COLOR
-        #                 if cell.sign == -1
-        #                 else QuoteTable._GAINING_COLOR if cell.sign > 0 else ""
-        #             ),
-        #         )  # fmt: skip
+        return Text(column_label, justify=quote_column.justification.value)
 
     # Overrides
 
     @override
     def clear(self, columns: bool = False) -> Self:
-        self._quote_columns.clear()
+        if columns:
+            self._quote_columns.clear()
         return super().clear(columns)
 
     @override
