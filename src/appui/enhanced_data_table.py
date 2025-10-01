@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import sys
-from typing import TYPE_CHECKING
+from dataclasses import KW_ONLY, dataclass
+from typing import TYPE_CHECKING, Any, Callable, Generic, TypeVar
 
 from rich.text import Text
 from textual.binding import BindingsMap
@@ -21,22 +22,76 @@ if TYPE_CHECKING:
     from textual._types import SegmentLines
     from textual.coordinate import Coordinate
 
-    from ._quote_table_data import QuoteColumn
-
 if sys.version_info >= (3, 12):
     from typing import override
 else:
     from typing_extensions import override
 
+T = TypeVar("T")
+"""TypeVar for the data type that the table displays."""
 
-class QuoteTable(DataTable[Text]):
-    """A DataTable for displaying quotes."""
+
+@dataclass(frozen=True)
+class EnhancedRow:
+    """Definition of row for the quote table."""
+
+    key: str
+    """The key of the row."""
+
+    values: list[Text]
+    """The values of the row."""
+
+
+@dataclass(frozen=True)
+class EnhancedColumn(Generic[T]):
+    """Definition of an enhanced table column.
+
+    Contains settings for the column's appearance (label, width, justification) and
+    behavior (formatting, sorting, and sign indication).
+    """
+
+    label: str
+    """The label of the column."""
+
+    _: KW_ONLY
+
+    width: int = 10
+    """The width of the column."""
+
+    key: str = None  # pyright: ignore[reportAssignmentType]
+    """The key of the column, defaults to the label if omitted."""
+
+    justification: Justify = Justify.RIGHT
+    """Text justification for the column."""
+
+    cell_format_func: Callable[[T], Text] = lambda _: Text()
+    """The function used to format the cells of this column."""
+
+    sort_key_func: Callable[[T], Any] = lambda _: 0
+    """The function used to provide the sort key for the column."""
+
+    def __post_init__(self) -> None:
+        """Ensure the column key defaults to the label when omitted."""
+
+        object.__setattr__(
+            self,
+            "key",
+            (
+                self.label
+                if self.key is None  # pyright: ignore[reportUnnecessaryComparison]
+                else self.key
+            ),
+        )
+
+
+class EnhancedDataTable(DataTable[Text], Generic[T]):
+    """A DataTable with added capabilities."""
 
     _hovered_column: Reactive[int] = reactive(-1)
 
     def __init__(self) -> None:
         super().__init__()
-        self._quote_columns: list[QuoteColumn] = []
+        self._quote_columns: list[EnhancedColumn[T]] = []
         self._is_ordering: bool = False
 
         self._cursor_row: int = -1
@@ -143,7 +198,7 @@ class QuoteTable(DataTable[Text]):
             Text: The styled column title.
         """
 
-        quote_column: QuoteColumn = next(
+        quote_column: EnhancedColumn[T] = next(
             col for col in self._quote_columns if col.key == quote_column_key
         )
         column_label: str = quote_column.label
@@ -229,7 +284,7 @@ class QuoteTable(DataTable[Text]):
 
     def add_quote_column(
         self,
-        quote_column: QuoteColumn,
+        quote_column: EnhancedColumn[T],
     ) -> None:
         """Add a quote column to the table.
 

@@ -7,9 +7,11 @@ from typing import Final, TypeVar
 
 from rich.text import Text
 
+from yfinance.yquote import YQuote
+
 from ._enums import Justify
 from ._formatting import as_compact, as_float, as_percent
-from ._quote_table_data import QuoteColumn
+from .enhanced_data_table import EnhancedColumn
 
 T = TypeVar("T", int, float)
 """TypeVar T is defined to be either an int or a float."""
@@ -54,32 +56,36 @@ def _get_style_for_value(value: float) -> str:
     return _GAINING_COLOR if value > 0 else _LOSING_COLOR if value < 0 else ""
 
 
-ALL_QUOTE_COLUMNS: Final[dict[str, QuoteColumn]] = {
+ALL_QUOTE_COLUMNS: Final[dict[str, EnhancedColumn[YQuote]]] = {
     "ticker": (
-        QuoteColumn(
+        EnhancedColumn(
             "Ticker",
             width=8,
             key="ticker",
-            format_func=lambda q: Text(q.symbol.upper(), justify=Justify.LEFT.value),
+            cell_format_func=lambda q: Text(
+                q.symbol.upper(), justify=Justify.LEFT.value
+            ),
             sort_key_func=lambda q: q.symbol.lower(),
             justification=Justify.LEFT,
         )
     ),
     "last": (
-        QuoteColumn(
+        EnhancedColumn(
             "Last",
             width=10,
             key="last",
-            format_func=lambda q: Text(as_float(q.regular_market_price, q.price_hint)),
+            cell_format_func=lambda q: Text(
+                as_float(q.regular_market_price, q.price_hint)
+            ),
             sort_key_func=lambda q: (q.regular_market_price, q.symbol.lower()),
         )
     ),
     "change": (
-        QuoteColumn(
+        EnhancedColumn(
             "Change",
             width=10,
             key="change",
-            format_func=lambda q: Text(
+            cell_format_func=lambda q: Text(
                 as_float(q.regular_market_change, q.price_hint),
                 style=_get_style_for_value(q.regular_market_change),
             ),
@@ -87,11 +93,11 @@ ALL_QUOTE_COLUMNS: Final[dict[str, QuoteColumn]] = {
         )
     ),
     "change_percent": (
-        QuoteColumn(
+        EnhancedColumn(
             "Chg %",
             width=8,
             key="change_percent",
-            format_func=lambda q: Text(
+            cell_format_func=lambda q: Text(
                 as_percent(q.regular_market_change_percent),
                 style=_get_style_for_value(q.regular_market_change_percent),
             ),
@@ -99,11 +105,13 @@ ALL_QUOTE_COLUMNS: Final[dict[str, QuoteColumn]] = {
         )
     ),
     "open": (
-        QuoteColumn(
+        EnhancedColumn(
             "Open",
             width=10,
             key="open",
-            format_func=lambda q: Text(as_float(q.regular_market_open, q.price_hint)),
+            cell_format_func=lambda q: Text(
+                as_float(q.regular_market_open, q.price_hint)
+            ),
             sort_key_func=lambda q: (
                 _safe_value(q.regular_market_open),
                 q.symbol.lower(),
@@ -111,11 +119,11 @@ ALL_QUOTE_COLUMNS: Final[dict[str, QuoteColumn]] = {
         )
     ),
     "low": (
-        QuoteColumn(
+        EnhancedColumn(
             "Low",
             width=10,
             key="low",
-            format_func=lambda q: Text(
+            cell_format_func=lambda q: Text(
                 as_float(q.regular_market_day_low, q.price_hint)
             ),
             sort_key_func=lambda q: (
@@ -125,11 +133,11 @@ ALL_QUOTE_COLUMNS: Final[dict[str, QuoteColumn]] = {
         )
     ),
     "high": (
-        QuoteColumn(
+        EnhancedColumn(
             "High",
             width=10,
             key="high",
-            format_func=lambda q: Text(
+            cell_format_func=lambda q: Text(
                 as_float(q.regular_market_day_high, q.price_hint)
             ),
             sort_key_func=lambda q: (
@@ -139,29 +147,33 @@ ALL_QUOTE_COLUMNS: Final[dict[str, QuoteColumn]] = {
         )
     ),
     "52w_low": (
-        QuoteColumn(
+        EnhancedColumn(
             "52w Low",
             width=10,
             key="52w_low",
-            format_func=lambda q: Text(as_float(q.fifty_two_week_low, q.price_hint)),
+            cell_format_func=lambda q: Text(
+                as_float(q.fifty_two_week_low, q.price_hint)
+            ),
             sort_key_func=lambda q: (q.fifty_two_week_low, q.symbol.lower()),
         )
     ),
     "52w_high": (
-        QuoteColumn(
+        EnhancedColumn(
             "52w High",
             width=10,
             key="52w_high",
-            format_func=lambda q: Text(as_float(q.fifty_two_week_high, q.price_hint)),
+            cell_format_func=lambda q: Text(
+                as_float(q.fifty_two_week_high, q.price_hint)
+            ),
             sort_key_func=lambda q: (q.fifty_two_week_high, q.symbol.lower()),
         )
     ),
     "volume": (
-        QuoteColumn(
+        EnhancedColumn(
             "Volume",
             width=10,
             key="volume",
-            format_func=lambda q: Text(as_compact(q.regular_market_volume)),
+            cell_format_func=lambda q: Text(as_compact(q.regular_market_volume)),
             sort_key_func=lambda q: (
                 _safe_value(q.regular_market_volume),
                 q.symbol.lower(),
@@ -169,11 +181,11 @@ ALL_QUOTE_COLUMNS: Final[dict[str, QuoteColumn]] = {
         )
     ),
     "avg_volume": (
-        QuoteColumn(
+        EnhancedColumn(
             "Avg Vol",
             width=10,
             key="avg_volume",
-            format_func=lambda q: Text(as_compact(q.average_daily_volume_3_month)),
+            cell_format_func=lambda q: Text(as_compact(q.average_daily_volume_3_month)),
             sort_key_func=lambda q: (
                 _safe_value(q.average_daily_volume_3_month),
                 q.symbol.lower(),
@@ -181,29 +193,29 @@ ALL_QUOTE_COLUMNS: Final[dict[str, QuoteColumn]] = {
         )
     ),
     "pe": (
-        QuoteColumn(
+        EnhancedColumn(
             "P/E",
             width=6,
             key="pe",
-            format_func=lambda q: Text(as_float(q.trailing_pe)),
+            cell_format_func=lambda q: Text(as_float(q.trailing_pe)),
             sort_key_func=lambda q: (_safe_value(q.trailing_pe), q.symbol.lower()),
         )
     ),
     "dividend": (
-        QuoteColumn(
+        EnhancedColumn(
             "Div",
             width=6,
             key="dividend",
-            format_func=lambda q: Text(as_float(q.dividend_yield)),
+            cell_format_func=lambda q: Text(as_float(q.dividend_yield)),
             sort_key_func=lambda q: (_safe_value(q.dividend_yield), q.symbol.lower()),
         )
     ),
     "market_cap": (
-        QuoteColumn(
+        EnhancedColumn(
             "Mkt Cap",
             width=10,
             key="market_cap",
-            format_func=lambda q: Text(as_compact(q.market_cap)),
+            cell_format_func=lambda q: Text(as_compact(q.market_cap)),
             sort_key_func=lambda q: (_safe_value(q.market_cap), q.symbol.lower()),
         )
     ),
