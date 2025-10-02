@@ -7,11 +7,11 @@ from asyncio import Lock, sleep
 from enum import Enum
 from typing import TYPE_CHECKING
 
-from rich.text import Text
 from textual import work
 from textual.binding import BindingsMap
 from textual.screen import Screen
-from textual.worker import Worker
+
+from yfinance import YQuote
 
 from ._footer import Footer
 from ._messages import AppExit, QuotesRefreshed, TableSortingChanged
@@ -21,9 +21,11 @@ from .enhanced_data_table import EnhancedDataTable
 if TYPE_CHECKING:
     from textual.app import ComposeResult
     from textual.events import Mount
+    from textual.worker import Worker
 
-    from yfinance import YFinance, YQuote
+    from yfinance import YFinance
 
+    from ._quote_table import QuoteTable
     from .enhanced_data_table import EnhancedColumn
     from .stockyard_config import StockyardConfig
     from .stockyardapp import StockyardApp
@@ -63,7 +65,7 @@ class WatchlistScreen(Screen[None]):
 
         # Widgets
         self._footer: Footer = Footer(self._stockyard_config.time_format)
-        self._quote_table: EnhancedDataTable[YQuote] = EnhancedDataTable[YQuote]()
+        self._quote_table: QuoteTable = EnhancedDataTable[YQuote]()
 
         self._quote_worker: Worker[None] | None = None
         self._yfinance_lock: Lock = Lock()
@@ -183,7 +185,7 @@ class WatchlistScreen(Screen[None]):
 
         self._quote_table.clear()
         for quote in message.quotes:
-            self._quote_table.add_row(Text(quote.symbol))
+            self._quote_table.add_or_update_row_data(quote, quote.symbol)
 
     # Workers
     @work(exclusive=True, group="watchlist-quotes")
@@ -234,7 +236,7 @@ class WatchlistScreen(Screen[None]):
 
         self._quote_table.clear(columns=True)
         for column in self._columns:
-            self._quote_table.add_quote_column(column)
+            self._quote_table.add_enhanced_column(column)
 
-        self._quote_table.sort_direction = self._config.sort_direction
         self._quote_table.sort_column_key = self._config.sort_column
+        self._quote_table.sort_direction = self._config.sort_direction

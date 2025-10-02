@@ -1,4 +1,13 @@
-"""A data table widget to display and manipulate financial quotes."""
+"""Enhanced DataTable widget with sorting and column ordering capabilities.
+
+This module provides an enhanced version of Textual's DataTable widget with additional
+features for data presentation and interaction. The `EnhancedDataTable` widget adds
+support for customizable column formatting, interactive sorting with visual indicators,
+and a keyboard-driven column ordering mode. It uses `EnhancedColumn` definitions to
+specify column appearance, formatting functions, and sorting behavior, making it
+suitable for displaying structured data with rich text formatting and interactive
+sorting capabilities.
+"""
 
 from __future__ import annotations
 
@@ -33,7 +42,7 @@ T = TypeVar("T")
 
 @dataclass(frozen=True)
 class EnhancedRow:
-    """Definition of row for the quote table."""
+    """Definition of row for the enhanced table."""
 
     key: str
     """The key of the row."""
@@ -64,10 +73,10 @@ class EnhancedColumn(Generic[T]):
     justification: Justify = Justify.RIGHT
     """Text justification for the column."""
 
-    cell_format_func: Callable[[T], Text] = lambda _: Text()
+    cell_format_func: Callable[[T], Text] = lambda v: Text(str(v))
     """The function used to format the cells of this column."""
 
-    sort_key_func: Callable[[T], Any] = lambda _: 0
+    sort_key_func: Callable[[T], Any] = lambda v: v
     """The function used to provide the sort key for the column."""
 
     def __post_init__(self) -> None:
@@ -91,7 +100,7 @@ class EnhancedDataTable(DataTable[Text], Generic[T]):
 
     def __init__(self) -> None:
         super().__init__()
-        self._quote_columns: list[EnhancedColumn[T]] = []
+        self._enhanced_columns: list[EnhancedColumn[T]] = []
         self._is_ordering: bool = False
 
         self._cursor_row: int = -1
@@ -113,11 +122,6 @@ class EnhancedDataTable(DataTable[Text], Generic[T]):
         self.zebra_stripes = True
         self.cursor_foreground_priority = "renderable"
         self.fixed_columns = 1
-
-        #     @override
-        #     def _on_unmount(self) -> None:
-        #         self._state.query_thread_running = False
-        #         super()._on_unmount()
 
         #     def _update_table(self) -> None:
         #         """Update the table with the latest quotes (if any)."""
@@ -169,59 +173,62 @@ class EnhancedDataTable(DataTable[Text], Generic[T]):
 
         #         self._version = self._state.version
 
-    def _update_column_label(self, quote_column_key: str) -> None:
+    def _update_column_label(self, column_key: str) -> None:
         """Update the label of a column based on its key.
 
         Args:
-            quote_column_key (str): The key of the column to update.
+            column_key (str): The key of the column to update.
         """
 
-        label = self._get_styled_column_label(quote_column_key)
-        self.columns[ColumnKey(quote_column_key)].label = label
+        label = self._get_styled_column_label(column_key)
+        self.columns[ColumnKey(column_key)].label = label
         self._update_count += 1
         self.refresh()
 
-    def _get_styled_column_label(self, quote_column_key: str) -> Text:
+    def _get_styled_column_label(self, column_key: str) -> Text:
         """Generate a styled column title based on the column and the current state.
 
-        If the quote column key matches the sort column key in the current state, an
+        If the column key matches the sort column key in the current state, an
         arrow indicating the sort direction is added to the column title. The position
         of the arrow depends on the justification of the column: if the column is
         left-justified, the arrow is added at the end of the title; if the column is
         right-justified, the arrow is added at the beginning of the title.
 
         Args:
-            quote_column_key (str): The key of the  column for which to generate a
+            column_key (str): The key of the  column for which to generate a
                 styled title.
 
         Returns:
             Text: The styled column title.
         """
 
-        quote_column: EnhancedColumn[T] = next(
-            col for col in self._quote_columns if col.key == quote_column_key
+        if not column_key:
+            return Text("")
+
+        column: EnhancedColumn[T] = next(
+            col for col in self._enhanced_columns if col.key == column_key
         )
-        column_label: str = quote_column.label
-        if quote_column.key == self._sort_column_key:
-            if quote_column.justification == Justify.LEFT:
+        column_label: str = column.label
+        if column.key == self._sort_column_key:
+            if column.justification == Justify.LEFT:
                 if self._sort_direction == SortDirection.ASCENDING:
-                    column_label = column_label[: quote_column.width - 2] + " ▼"
+                    column_label = column_label[: column.width - 2] + " ▼"
                 else:
-                    column_label = column_label[: quote_column.width - 2] + " ▲"
+                    column_label = column_label[: column.width - 2] + " ▲"
             else:  # noqa: PLR5501
                 if self._sort_direction == SortDirection.ASCENDING:
-                    column_label = "▼ " + column_label[: quote_column.width - 2]
+                    column_label = "▼ " + column_label[: column.width - 2]
                 else:
-                    column_label = "▲ " + column_label[: quote_column.width - 2]
+                    column_label = "▲ " + column_label[: column.width - 2]
 
-        return Text(column_label, justify=quote_column.justification.value)
+        return Text(column_label, justify=column.justification.value)
 
     # Overrides
 
     @override
     def clear(self, columns: bool = False) -> Self:
         if columns:
-            self._quote_columns.clear()
+            self._enhanced_columns.clear()
         return super().clear(columns)
 
     @override
@@ -282,21 +289,59 @@ class EnhancedDataTable(DataTable[Text], Generic[T]):
 
     # public API
 
-    def add_quote_column(
+    def add_enhanced_column(
         self,
-        quote_column: EnhancedColumn[T],
+        column: EnhancedColumn[T],
     ) -> None:
-        """Add a quote column to the table.
+        """Add an enhanced column to the table.
 
         Args:
-            quote_column (QuoteColumn): The quote column to add.
+            column (EnhancedColumn): The column to add.
         """
-        self._quote_columns.append(quote_column)
+        self._enhanced_columns.append(column)
         super().add_column(
-            self._get_styled_column_label(quote_column.key),
-            width=quote_column.width,
-            key=quote_column.key,
+            self._get_styled_column_label(column.key),
+            width=column.width,
+            key=column.key,
         )
+
+    def add_row_data(self, row_data: T, key: str) -> None:
+        """Add an enhanced row to the table.
+
+        Args:
+            row_data (T): The data of the row to add.
+            key (str): The key of the row.
+        """
+
+        cells: list[Text] = [
+            column.cell_format_func(row_data) for column in self._enhanced_columns
+        ]
+
+        super().add_row(*cells, key=key)
+
+    def update_row_data(self, row_data: T, key: str) -> None:
+        """Update an enhanced row in the table.
+
+        Args:
+            row_data (T): The data of the row to update.
+            key (str): The key of the row.
+        """
+
+        for column in self._enhanced_columns:
+            self.update_cell(key, column.key, column.cell_format_func(row_data))
+
+    def add_or_update_row_data(self, row_data: T, key: str) -> None:
+        """Add or update an enhanced row in the table.
+
+        Args:
+            row_data (T): The data of the row to add or update.
+            key (str): The key of the row.
+        """
+
+        if key in self.rows:
+            self.update_row_data(row_data, key)
+        else:
+            self.add_row_data(row_data, key)
 
     @property
     def is_ordering(self) -> bool:
@@ -332,7 +377,7 @@ class EnhancedDataTable(DataTable[Text], Generic[T]):
     @sort_column_key.setter
     def sort_column_key(self, value: str) -> None:
 
-        if value not in [column.key for column in self._quote_columns]:
+        if value not in [column.key for column in self._enhanced_columns]:
             error_text = f"Invalid sort column key: {value}"
             raise ValueError(error_text)
         if value != self._sort_column_key:
@@ -404,10 +449,10 @@ class EnhancedDataTable(DataTable[Text], Generic[T]):
 
         try:
             # return the index of the current sort column. It's found by its key
-            return self._quote_columns.index(
+            return self._enhanced_columns.index(
                 next(
                     col
-                    for col in self._quote_columns
+                    for col in self._enhanced_columns
                     if col.key == self._sort_column_key
                 )
             )
@@ -422,7 +467,7 @@ class EnhancedDataTable(DataTable[Text], Generic[T]):
         """
 
         if index != self._sort_column_idx:
-            self.sort_column_key = self._quote_columns[index].key
+            self.sort_column_key = self._enhanced_columns[index].key
         else:
             self.sort_direction = (
                 SortDirection.ASCENDING
